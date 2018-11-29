@@ -52,8 +52,8 @@ class EOSListener {
 
                         if (passFilter) {
 
-                            console.log("--------------DATA------------");
-                            console.log(data);
+                            //console.log("--------------DATA------------");
+                            //console.log(data);
                             let payload = {
                                 action,
                                 actionData,
@@ -61,7 +61,7 @@ class EOSListener {
                                 message
                             };
                             if ('memo' in actionData) {
-                                console.log(" MEMO: ", actionData.memo);
+                                //console.log(" MEMO: ", actionData.memo);
                                 const memoJson = this.extractJson(actionData.memo);
                                 if (memoJson) {
                                     payload['memoJson'] = memoJson;
