@@ -36,6 +36,19 @@ figlet('Load Exchange Data', {
 
 });
 
+const extractSymbolRegex = /^\s*(\d+.?\d*)\s*([a-zA-Z]+)\s*$/;
+
+function extractSymbol(value) {
+    const result = extractSymbolRegex.exec(value);
+    if (result) {
+        return {
+            amount: result[1],
+            symbol: result[2],
+        };
+    }
+    return null;
+}
+
 const listener = new EOSListener({
     eoswsToken,
     origin,
@@ -53,8 +66,27 @@ listener.addActionTraces({
             account,
             action,
             actionData: { to, from, quantity },
-            parsedMemo,
         } = payload;
+
+        let { parsedMemo } = payload;
+
+        if (parsedMemo) {
+            const { trade_quantity, trade_price } = parsedMemo;
+            let tradeQuantity = extractSymbol(trade_quantity);
+            let tradePrice = extractSymbol(trade_price);
+            let symbol = null;
+            if (tradeQuantity) {
+                symbol = tradeQuantity[2];
+                parsedMemo.trade_quantity = tradeQuantity[1]
+            }
+            if (tradePrice) {
+                symbol = symbol ? symbol + '_' + tradePrice[2] : tradePrice[2];
+                parsedMemo.trade_price = tradePrice[1]
+            }
+            if (!parsedMemo.symbol) {
+                parsedMemo.symbol = symbol;
+            }
+        }
 
         const toInsert = {
             account,
