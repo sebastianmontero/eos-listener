@@ -1,6 +1,8 @@
-const EOSListener = require('./EOSListener.js');
 const figlet = require('figlet');
 const mysql = require('mysql');
+const EOSListener = require('./EOSListener');
+const Interpreter = require('./Interpreter');
+const logger = require('./Logger');
 
 class LoadExchangeData {
     constructor(config) {
@@ -11,7 +13,8 @@ class LoadExchangeData {
             origin,
             eoswsEndpoint,
             streamOptions,
-            db
+            db,
+            keyDictionary
         } = config;
 
         this.listener = new EOSListener({
@@ -20,6 +23,7 @@ class LoadExchangeData {
             eoswsEndpoint,
             streamOptions
         });
+        this.interpreter = new Interpreter(keyDictionary);
         this.dbCon = mysql.createConnection(db);
     }
 
@@ -36,7 +40,7 @@ class LoadExchangeData {
     }
 
     printFiglet() {
-        figlet('Load Exchange Data', {
+        figlet('Loading Exchange Data', {
             font: "Big",
             horizontalLayout: 'default',
             verticalLayout: 'default'
@@ -75,6 +79,7 @@ class LoadExchangeData {
                 parsedMemo.symbol = symbol;
             }
         }
+        return parsedMemo;
     }
 
     start() {
@@ -94,11 +99,10 @@ class LoadExchangeData {
                 const {
                     account,
                     action,
-                    actionData: { to, from, quantity },
+                    actionData: { to, from, quantity, memo },
                 } = payload;
 
-                let { parsedMemo } = payload;
-                this.postProcessParsedMemo(parsedMemo);
+                let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
                 const toInsert = {
                     account,
                     action,
@@ -109,6 +113,7 @@ class LoadExchangeData {
                 };
                 this.dbCon.query("INSERT INTO exchange_trades SET ?", [toInsert], (error) => {
                     if (error) {
+                        logger.error('Unable to insert transfer to exchange_trades table', error);
                         throw error;
                     }
                 });
