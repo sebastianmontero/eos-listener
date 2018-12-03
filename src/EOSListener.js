@@ -11,7 +11,23 @@ class EOSListener {
     }) {
         this.client = new EoswsClient(
             createEoswsSocket(() =>
-                new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin })
+                new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
+                {
+                    autoReconnect: true,
+                    reconnectDelayInMs: 1000,
+                    onError: (message) => {
+                        logger.error('On Socket error', message);
+                    },
+                    onClose: (message) => {
+                        logger.error('On Socket close', message);
+                    },
+                    onInvalidMessage: (message) => {
+                        logger.error('On Socket invalid message', message);
+                    },
+                    onReconnect: (message) => {
+                        logger.error('On Socket reconnect', message);
+                    },
+                }
             )
         );
     }
