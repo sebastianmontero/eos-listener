@@ -1,0 +1,8 @@
+{
+    "db": {
+        "host": "eosanalytics.c7gsse6wzugu.us-east-1.rds.amazonaws.com",
+        "user": "analyticsadmin",
+        "password": "",
+        "database": "eosanalytics"
+    }
+}
