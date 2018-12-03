@@ -90,33 +90,37 @@ class LoadExchangeData {
 
         this.printFiglet();
 
-        this.listener.addActionTraces({
-            actionTraces,
-            actionFilters,
-            callbackFn: payload => {
-                const {
-                    account,
-                    action,
-                    actionData: { to, from, quantity, memo },
-                } = payload;
+        try {
+            this.listener.addActionTraces({
+                actionTraces,
+                actionFilters,
+                callbackFn: payload => {
+                    const {
+                        account,
+                        action,
+                        actionData: { to, from, quantity, memo },
+                    } = payload;
 
-                let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
-                const toInsert = {
-                    account,
-                    action,
-                    to,
-                    from,
-                    quantity,
-                    ...parsedMemo
-                };
-                this.dbCon.query("INSERT INTO exchange_trades SET ?", [toInsert], (error) => {
-                    if (error) {
-                        logger.error('Unable to insert transfer to exchange_trades table', error);
-                        throw error;
-                    }
-                });
-            }
-        });
+                    let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
+                    const toInsert = {
+                        account,
+                        action,
+                        to,
+                        from,
+                        quantity,
+                        ...parsedMemo
+                    };
+                    this.dbCon.query("INSERT INTO exchange_trades SET ?", [toInsert], (error) => {
+                        if (error) {
+                            logger.error('Unable to insert transfer to exchange_trades table', error);
+                            throw error;
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            logger.error(error);
+        }
     }
 }
 
