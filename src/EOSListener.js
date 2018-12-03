@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/eosws-js');
-const logger = require('./Logger');
+const { logger } = require('./Logger');
 
 
 class EOSListener {

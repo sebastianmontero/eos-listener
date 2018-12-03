@@ -2,7 +2,7 @@ const figlet = require('figlet');
 const mysql = require('mysql');
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
-const logger = require('./Logger');
+const { logger } = require('./Logger');
 
 class LoadExchangeData {
     constructor(config) {
@@ -86,7 +86,6 @@ class LoadExchangeData {
         const {
             actionTraces,
             actionFilters,
-            keyDictionary,
         } = this.config;
 
         this.printFiglet();
@@ -94,7 +93,6 @@ class LoadExchangeData {
         this.listener.addActionTraces({
             actionTraces,
             actionFilters,
-            memoJsonKeyDictionary: keyDictionary,
             callbackFn: payload => {
                 const {
                     account,
