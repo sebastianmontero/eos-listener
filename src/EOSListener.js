@@ -14,21 +14,21 @@ class EOSListener {
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
                 {
-                    autoReconnect: false,
+                    autoReconnect: true,
                     onError: (message) => {
                         logger.error('On Socket error', message);
                     },
                     onClose: () => {
-                        logger.error('Connection has been closed. Reconnecting...');
-                        for (let actionTrace in this._addedActionTraces) {
-                            this.addActionTraces(actionTrace);
-                        }
+                        logger.error('Connection with mainet has been closed. Waiting for reconnect to restablish listeners');
                     },
                     onInvalidMessage: (message) => {
                         logger.error('On Socket invalid message', message);
                     },
-                    onReconnect: (message) => {
-                        logger.error('On Socket reconnect', message);
+                    onReconnect: () => {
+                        logger.error('Reconnected to mainet. Adding traces...');
+                        for (let actionTrace in this._addedActionTraces) {
+                            this._addActionTraces(actionTrace);
+                        }
                     },
                 }
             )
@@ -41,18 +41,29 @@ class EOSListener {
         callbackFn,
         streamOptions = {}
     }) {
-        this._addedActionTraces.push({
+        const listenerConfig = {
             actionTraces,
             actionFilters,
             callbackFn,
             streamOptions
-        });
+        };
+
+        this._addedActionTraces.push(listenerConfig);
         try {
             await this.client.connect();
             logger.info("Connected to mainet!");
         } catch (error) {
             logger.error(error);
         }
+        this._addActionTraces(listenerConfig);
+    }
+
+    _addActionTraces({
+        actionTraces,
+        actionFilters,
+        callbackFn,
+        streamOptions = {}
+    }) {
         actionTraces.forEach(actionTrace => {
             this.client.getActionTraces(actionTrace, streamOptions).onMessage((message) => {
                 try {
