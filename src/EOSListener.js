@@ -9,6 +9,7 @@ class EOSListener {
         origin,
         eoswsEndpoint,
     }) {
+        this._addedActionTraces = [];
         this.client = new EoswsClient(
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
@@ -19,7 +20,9 @@ class EOSListener {
                     },
                     onClose: () => {
                         logger.error('Connection has been closed. Reconnecting...');
-
+                        for (let actionTrace in this._addedActionTraces) {
+                            this.addActionTraces(actionTrace);
+                        }
                     },
                     onInvalidMessage: (message) => {
                         logger.error('On Socket invalid message', message);
@@ -38,8 +41,15 @@ class EOSListener {
         callbackFn,
         streamOptions = {}
     }) {
+        this._addedActionTraces.push({
+            actionTraces,
+            actionFilters,
+            callbackFn,
+            streamOptions
+        });
         try {
             await this.client.connect();
+            logger.info("Connected to mainet!");
         } catch (error) {
             logger.error(error);
         }

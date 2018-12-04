@@ -12,7 +12,6 @@ class LoadExchangeData {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            streamOptions,
             db,
             keyDictionary
         } = config;
@@ -21,7 +20,6 @@ class LoadExchangeData {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            streamOptions
         });
         this.interpreter = new Interpreter(keyDictionary);
         this.dbCon = mysql.createConnection(db);
