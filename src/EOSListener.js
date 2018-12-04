@@ -10,7 +10,6 @@ class EOSListener {
         eoswsEndpoint,
     }) {
         this._addedActionTraces = [];
-        const _self = this;
         this.client = new EoswsClient(
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
@@ -27,8 +26,8 @@ class EOSListener {
                     },
                     onReconnect: () => {
                         logger.error('Reconnected to mainet. Adding traces...');
-                        for (let actionTrace in _self._addedActionTraces) {
-                            _self._addActionTraces(actionTrace);
+                        for (let actionTrace of this._addedActionTraces) {
+                            this._addActionTraces(actionTrace);
                         }
                     },
                 }
