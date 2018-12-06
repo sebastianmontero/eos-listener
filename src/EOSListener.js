@@ -68,7 +68,6 @@ class EOSListener {
             this.client.getActionTraces(actionTrace, streamOptions).onMessage((message) => {
                 try {
                     if (message.type === InboundMessageType.ACTION_TRACE) {
-
                         const data = message.data.trace.act;
                         const {
                             name: action,

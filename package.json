@@ -13,6 +13,7 @@
         "axios": "0.18.0",
         "config": "2.0.1",
         "console-stamp": "0.2.7",
+        "date-diff": "^0.2.1",
         "eosws": "1.2.1",
         "figlet": "1.2.1",
         "mysql": "^2.16.0",
