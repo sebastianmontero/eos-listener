@@ -87,10 +87,13 @@ class EOSListener {
                         }
 
                         if (passFilter) {
+                            const { block_num, block_time } = message;
                             let payload = {
                                 action,
                                 actionData,
                                 account,
+                                block_num,
+                                block_time,
                                 message
                             };
                             logger.debug('Payload', payload);

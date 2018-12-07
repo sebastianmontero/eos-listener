@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const DateDiff = require('date-diff');
+const TimeUtil = require('../Util/TimeUtil');
 
 const specialValues = [
     {
@@ -27,7 +27,6 @@ class DateLoader {
         this.startYear = startYear;
         this.endYear = endYear;
         this.locale = locale;
-        this.baseDate = new Date('1970-01-01');
     }
 
     load() {
@@ -85,14 +84,6 @@ class DateLoader {
         }
     }
 
-    _dayDiff(date1, date2) {
-        const diff = new DateDiff(date1, date2);
-        return diff.days();
-    }
-    _daysInYear(year) {
-        return this._dayDiff(new Date(year + 1, 0, 1), new Date(year, 0, 1));
-    }
-
     _loadYears(startYear, endYear) {
         console.log(`Loading years between start year: ${startYear} and ${endYear}...`)
         this._loadYearSpecialValues();
@@ -102,7 +93,7 @@ class DateLoader {
                 year_id: year,
                 time_type_id: 0,
                 year_date,
-                year_duration: this._daysInYear(year),
+                year_duration: TimeUtil.daysInYear(year),
                 prev_year_id: year - 1,
             };
             this._insertYear(toInsert);
@@ -122,21 +113,13 @@ class DateLoader {
         }
     }
 
-    _quarterId(year, quarter) {
-        return parseInt(`${year}${quarter}`);
-    }
-
-    _quarterIdFromDate(date) {
-        return this._quarterId(date.getUTCFullYear(), Math.ceil((date.getUTCMonth() + 1) / 3));
-    }
-
     _loadQuarters(startYear, endYear) {
         console.log(`Loading quarters for years between: ${startYear} and ${endYear}.`);
         this._loadQuarterSpecialValues();
         for (let year = startYear; year <= endYear; year++) {
-            let prev_quarter_id = this._quarterId(year - 1, 4);
+            let prev_quarter_id = TimeUtil.quarterId(year - 1, 4);
             for (let quarter = 1; quarter <= 4; quarter++) {
-                const quarter_id = this._quarterId(year, quarter);
+                const quarter_id = TimeUtil.quarterId(year, quarter);
                 const quarter_date = new Date(year, (quarter - 1) * 3, 1);
                 const next_quarter_date = new Date(quarter === 4 ? year + 1 : year, (quarter % 4) * 3, 1);
                 const toInsert = {
@@ -144,9 +127,9 @@ class DateLoader {
                     time_type_id: 0,
                     quarter_desc: `${year} Q${1}`,
                     quarter_date: quarter_date,
-                    quarter_duration: this._dayDiff(next_quarter_date, quarter_date),
+                    quarter_duration: TimeUtil.dayDiff(next_quarter_date, quarter_date),
                     prev_quarter_id,
-                    ly_quarter_id: this._quarterId(year - 1, quarter),
+                    ly_quarter_id: TimeUtil.quarterId(year - 1, quarter),
                     year_id: year
                 };
                 this._insertQuarter(toInsert);
@@ -172,21 +155,13 @@ class DateLoader {
         }
     }
 
-    _monthId(year, month) {
-        return parseInt(`${year}${month < 10 ? '0' : ''}${month}`);
-    }
-
-    _monthIdFromDate(date) {
-        return this._monthId(date.getUTCFullYear(), date.getUTCMonth() + 1);
-    }
-
     _loadMonths(startYear, endYear) {
         console.log(`Loading months for years between: ${startYear} and ${endYear}.`);
         this._loadMonthSpecialValues();
         for (let year = startYear; year <= endYear; year++) {
-            let prev_month_id = this._monthId(year - 1, 12);
+            let prev_month_id = TimeUtil.monthId(year - 1, 12);
             for (let month = 1; month <= 12; month++) {
-                const month_id = this._monthId(year, month);
+                const month_id = TimeUtil.monthId(year, month);
                 const month_date = new Date(year, month - 1, 1);
                 const next_month_date = new Date(month === 12 ? year + 1 : year, (month % 12), 1);
                 const toInsert = {
@@ -194,11 +169,11 @@ class DateLoader {
                     time_type_id: 0,
                     month_desc: `${month_date.toLocaleString(this.locale, { month: "short" })} ${year}`,
                     month_date,
-                    month_duration: this._dayDiff(next_month_date, month_date),
+                    month_duration: TimeUtil.dayDiff(next_month_date, month_date),
                     prev_month_id,
-                    ly_month_id: this._monthId(year - 1, month),
+                    ly_month_id: TimeUtil.monthId(year - 1, month),
                     month_of_year: month,
-                    quarter_id: this._quarterIdFromDate(month_date),
+                    quarter_id: TimeUtil.quarterIdFromDate(month_date),
                     year_id: year
                 };
                 this._insertMonth(toInsert);
@@ -223,39 +198,23 @@ class DateLoader {
         }
     }
 
-    _dayId(dayDate) {
-        return this._dayDiff(dayDate, this.baseDate);
-    }
-
-    _lmDayId(date) {
-        const ldPrevMonth = new Date(date.getUTCFullYear(), date.getUTCMonth(), 0);
-        const lmDate = ldPrevMonth.getUTCDate() <= date.getUTCDate() ? ldPrevMonth : new Date(date.getUTCFullYear(), date.getUTCMonth() - 1, date.getUTCDate());
-        return this._dayId(lmDate);
-    }
-
-    _lyDayId(date) {
-        const ldPrevYear = new Date(date.getUTCFullYear() - 1, date.getUTCMonth() + 1, 0);
-        const lmDate = ldPrevYear.getUTCDate() <= date.getUTCDate() ? ldPrevYear : new Date(date.getUTCFullYear() - 1, date.getUTCMonth(), date.getUTCDate());
-        return this._dayId(lmDate);
-    }
-
     _loadDays(startYear, endYear) {
         console.log(`Loading days for years between: ${startYear} and ${endYear}.`);
         this._loadDaySpecialValues();
         for (let year = startYear; year <= endYear; year++) {
-            let daysInYear = this._daysInYear(year);
+            let daysInYear = TimeUtil.daysInYear(year);
             for (let dayOfYear = 1; dayOfYear <= daysInYear; dayOfYear++) {
                 const day_date = new Date(year, 0, dayOfYear);
-                const day_id = this._dayId(day_date);
+                const day_id = TimeUtil.dayId(day_date);
                 const toInsert = {
                     day_id,
                     time_type_id: 0,
                     day_date,
                     prev_day_id: day_id - 1,
-                    lm_day_id: this._lmDayId(day_date),
-                    ly_day_id: this._lyDayId(day_date),
-                    month_id: this._monthIdFromDate(day_date),
-                    quarter_id: this._quarterIdFromDate(day_date),
+                    lm_day_id: TimeUtil.lmDayId(day_date),
+                    ly_day_id: TimeUtil.lyDayId(day_date),
+                    month_id: TimeUtil.monthIdFromDate(day_date),
+                    quarter_id: TimeUtil.quarterIdFromDate(day_date),
                     year_id: year
                 };
                 this._insertDay(toInsert);
@@ -271,8 +230,8 @@ class DateLoader {
             for (let month = 1; month <= 12; month++) {
                 for (let ytm = 1; ytm <= month; ytm++) {
                     this._insertYtm({
-                        month_id: this._monthId(year, month),
-                        ytm_month_id: this._monthId(year, ytm),
+                        month_id: TimeUtil.monthId(year, month),
+                        ytm_month_id: TimeUtil.monthId(year, ytm),
                     })
                 }
             }

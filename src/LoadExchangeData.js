@@ -97,6 +97,7 @@ class LoadExchangeData {
                         account,
                         action,
                         actionData: { to, from, quantity, memo },
+                        block_time,
                     } = payload;
 
                     let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
