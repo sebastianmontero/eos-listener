@@ -87,7 +87,8 @@ class EOSListener {
                         }
 
                         if (passFilter) {
-                            const { block_num, block_time } = message;
+                            let { block_num, block_time } = message.data;
+                            block_time = new Date(block_time);
                             let payload = {
                                 action,
                                 actionData,

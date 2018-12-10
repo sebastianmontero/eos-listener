@@ -82,8 +82,8 @@
     "post_to": "http://localhost:4001/handler",
     "db": {
         "host": "localhost",
-        "user": "eosdsuser",
         "password": "eosdsuser",
+        "user": "eosdsuser",
         "database": "eos_datastore"
     },
     "keyDictionary": {
@@ -117,10 +117,7 @@
         "channel": {
             "colName": "channel",
             "keys": [
-                "channel",
-                "code",
-                "receive",
-                "ta"
+                "channel"
             ]
         }
     }

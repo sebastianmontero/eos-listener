@@ -2,6 +2,7 @@ const figlet = require('figlet');
 const mysql = require('mysql');
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
+const TimeUtil = require('./Util/TimeUtil');
 const { logger } = require('./Logger');
 
 class LoadExchangeData {
@@ -101,12 +102,16 @@ class LoadExchangeData {
                     } = payload;
 
                     let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
+                    const day_id = TimeUtil.dayId(block_time);
                     const toInsert = {
                         account,
                         action,
                         to,
                         from,
                         quantity,
+                        day_id,
+                        hour_of_day: block_time.getUTCHours(),
+                        block_time,
                         ...parsedMemo
                     };
                     this.dbCon.query("INSERT INTO exchange_trades SET ?", [toInsert], (error) => {
