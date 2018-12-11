@@ -1,4 +1,4 @@
-const mysql = require('mysql');
+const Snowflake = require('snowflake-promise').Snowflake;
 const TimeUtil = require('../Util/TimeUtil');
 
 const specialValues = [
@@ -23,219 +23,295 @@ const specialValues = [
 class DateLoader {
 
     constructor(db, startYear, endYear, locale = 'en-us') {
-        this.dbCon = mysql.createConnection(db);
+        this.snowflake = new Snowflake(db);
         this.startYear = startYear;
         this.endYear = endYear;
         this.locale = locale;
     }
 
-    load() {
+    async load() {
         console.log(`Loading data between ${this.startYear} and ${this.endYear}`);
-        this._loadYears(this.startYear, this.endYear);
-        this._loadQuarters(this.startYear, this.endYear);
-        this._loadMonths(this.startYear, this.endYear);
-        this._loadDays(this.startYear, this.endYear);
-        this._loadYtm(this.startYear, this.endYear);
-        this.dbCon.end((error) => {
-            if (error) {
-                console.error('Unable to close mysql connection', error);
-                throw error;
+        console.log('Connecting to database...');
+
+        try {
+            await this.snowflake.connect();
+            console.log('Connected to database.');
+            let startYear = await this._getMaxYear();
+            if (!startYear) {
+                startYear = this.startYear;
+                await this._loadSpecialValues();
             }
-        })
-    }
-
-    _insert(toInsert, table) {
-        this.dbCon.query(`INSERT IGNORE INTO \`${table}\` SET ?`, [toInsert], (error) => {
-            if (error) {
-                console.error(`Unable to insert row into ${table}`, error);
-                throw error;
-            }
-        });
-    }
-
-
-    _insertYear(toInsert) {
-        this._insert(toInsert, 'year');
-    }
-
-    _insertQuarter(toInsert) {
-        this._insert(toInsert, 'quarter');
-    }
-
-    _insertMonth(toInsert) {
-        this._insert(toInsert, 'month');
-    }
-
-    _insertDay(toInsert) {
-        this._insert(toInsert, 'day');
-    }
-
-    _insertYtm(toInsert) {
-        this._insert(toInsert, 'ytm_month');
-    }
-
-    _loadYearSpecialValues() {
-        for (let sv of specialValues) {
-            const toInsert = {
-                year_id: sv.id,
-                time_type_id: sv.id,
-            };
-            this._insertYear(toInsert);
+            await this._loadYears(startYear, this.endYear);
+            await this._loadQuarters(startYear, this.endYear);
+            await this._loadMonths(startYear, this.endYear);
+            await this._loadDays(startYear, this.endYear);
+            await this._loadYtm(startYear, this.endYear);
+            await this.snowflake.destroy();
+            console.log('Disconnected from database');
+        } catch (error) {
+            console.log(error);
+            throw error;
         }
     }
 
-    _loadYears(startYear, endYear) {
+    async _getMaxYear() {
+        var rows = await this.snowflake.execute('SELECT max(year_id) max_year from year');
+        return rows.length ? rows[0].max_year : null;
+    }
+
+    async _insertYear(toInsert) {
+        await this.snowflake.execute(
+            `INSERT INTO year(year_id, time_type_id, year_date, year_duration, prev_year_id)
+            VALUES (?, ?, ?, ?, ?)`,
+            toInsert
+        );
+    }
+
+    async _insertQuarter(toInsert) {
+        await this.snowflake.execute(
+            `INSERT INTO quarter(
+                quarter_id,
+                time_type_id,
+                quarter_desc,
+                quarter_date,
+                quarter_duration,
+                prev_quarter_id,
+                ly_quarter_id,
+                year_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            toInsert
+        );
+    }
+
+    async _insertMonth(toInsert) {
+        await this.snowflake.execute(
+            `INSERT INTO month(
+                month_id,
+                time_type_id,
+                month_desc,
+                month_date,
+                month_duration,
+                prev_month_id,
+                ly_month_id,
+                month_of_year,
+                quarter_id,
+                year_id)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            toInsert
+        );
+    }
+
+    async _insertDay(toInsert) {
+        await this.snowflake.execute(
+            `INSERT INTO day (
+                day_id,
+                time_type_id,
+                day_date,
+                prev_day_id,
+                lm_day_id,
+                ly_day_id,
+                month_id,
+                quarter_id,
+                year_id)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            toInsert
+        );
+    }
+
+    async _insertYtm(toInsert) {
+        await this.snowflake.execute(
+            `INSERT INTO ytm_month(month_id,ytm_month_id)VALUES(?, ?)`,
+            toInsert
+        );
+    }
+
+    async _loadYearSpecialValues() {
+        let toInsert = [];
+        for (let sv of specialValues) {
+            toInsert.push([
+                sv.id,
+                sv.id,
+                null,
+                null,
+                null,
+            ]);
+        }
+        await this._insertYear(toInsert);
+    }
+
+    async _loadYears(startYear, endYear) {
         console.log(`Loading years between start year: ${startYear} and ${endYear}...`)
-        this._loadYearSpecialValues();
+        let toInsert = [];
         for (let year = startYear; year <= endYear; year++) {
             const year_date = new Date(year, 0, 1);
-            const toInsert = {
-                year_id: year,
-                time_type_id: 0,
-                year_date,
-                year_duration: TimeUtil.daysInYear(year),
-                prev_year_id: year - 1,
-            };
-            this._insertYear(toInsert);
+            toInsert.push([
+                year,
+                0,
+                TimeUtil.toUTCDateString(year_date),
+                TimeUtil.daysInYear(year),
+                year - 1,
+            ]);
         }
+        await this._insertYear(toInsert);
         console.log(`Finished loading years.`)
     }
 
-    _loadQuarterSpecialValues() {
+    async _loadQuarterSpecialValues() {
+        let toInsert = [];
         for (let sv of specialValues) {
-            const toInsert = {
-                quarter_id: sv.id,
-                time_type_id: sv.id,
-                quarter_desc: sv.desc,
-                year_id: sv.id
-            };
-            this._insertQuarter(toInsert);
+            toInsert.push([
+                sv.id,
+                sv.id,
+                sv.desc,
+                null,
+                null,
+                null,
+                null,
+                sv.id
+            ]);
         }
+        await this._insertQuarter(toInsert);
     }
 
-    _loadQuarters(startYear, endYear) {
+    async _loadQuarters(startYear, endYear) {
         console.log(`Loading quarters for years between: ${startYear} and ${endYear}.`);
-        this._loadQuarterSpecialValues();
+        let toInsert = [];
         for (let year = startYear; year <= endYear; year++) {
             let prev_quarter_id = TimeUtil.quarterId(year - 1, 4);
             for (let quarter = 1; quarter <= 4; quarter++) {
                 const quarter_id = TimeUtil.quarterId(year, quarter);
                 const quarter_date = new Date(year, (quarter - 1) * 3, 1);
                 const next_quarter_date = new Date(quarter === 4 ? year + 1 : year, (quarter % 4) * 3, 1);
-                const toInsert = {
+                toInsert.push([
                     quarter_id,
-                    time_type_id: 0,
-                    quarter_desc: `${year} Q${1}`,
-                    quarter_date: quarter_date,
-                    quarter_duration: TimeUtil.dayDiff(next_quarter_date, quarter_date),
+                    0,
+                    `${year} Q${1}`,
+                    TimeUtil.toUTCDateString(quarter_date),
+                    TimeUtil.dayDiff(next_quarter_date, quarter_date),
                     prev_quarter_id,
-                    ly_quarter_id: TimeUtil.quarterId(year - 1, quarter),
-                    year_id: year
-                };
-                this._insertQuarter(toInsert);
+                    TimeUtil.quarterId(year - 1, quarter),
+                    year
+                ]);
                 prev_quarter_id = quarter_id;
-
             }
         }
+        await this._insertQuarter(toInsert);
         console.log('Finished loading quarters.');
     }
 
-    _loadMonthSpecialValues() {
+    async _loadMonthSpecialValues() {
+        let toInsert = [];
         for (let sv of specialValues) {
-            const toInsert = {
-                month_id: sv.id,
-                time_type_id: sv.id,
-                month_desc: sv.desc,
-                month_of_year: sv.id,
-                quarter_id: sv.id,
-                year_id: sv.id,
-
-            };
-            this._insertMonth(toInsert);
+            toInsert.push([
+                sv.id,
+                sv.id,
+                sv.desc,
+                null,
+                null,
+                null,
+                null,
+                sv.id,
+                sv.id,
+                sv.id,
+            ]);
         }
+        await this._insertMonth(toInsert);
     }
 
-    _loadMonths(startYear, endYear) {
+    async _loadMonths(startYear, endYear) {
         console.log(`Loading months for years between: ${startYear} and ${endYear}.`);
-        this._loadMonthSpecialValues();
+
+        let toInsert = [];
         for (let year = startYear; year <= endYear; year++) {
             let prev_month_id = TimeUtil.monthId(year - 1, 12);
             for (let month = 1; month <= 12; month++) {
                 const month_id = TimeUtil.monthId(year, month);
                 const month_date = new Date(year, month - 1, 1);
                 const next_month_date = new Date(month === 12 ? year + 1 : year, (month % 12), 1);
-                const toInsert = {
+                toInsert.push([
                     month_id,
-                    time_type_id: 0,
-                    month_desc: `${month_date.toLocaleString(this.locale, { month: "short" })} ${year}`,
-                    month_date,
-                    month_duration: TimeUtil.dayDiff(next_month_date, month_date),
+                    0,
+                    `${month_date.toLocaleString(this.locale, { month: "short" })} ${year}`,
+                    TimeUtil.toUTCDateString(month_date),
+                    TimeUtil.dayDiff(next_month_date, month_date),
                     prev_month_id,
-                    ly_month_id: TimeUtil.monthId(year - 1, month),
-                    month_of_year: month,
-                    quarter_id: TimeUtil.quarterIdFromDate(month_date),
-                    year_id: year
-                };
-                this._insertMonth(toInsert);
+                    TimeUtil.monthId(year - 1, month),
+                    month,
+                    TimeUtil.quarterIdFromDate(month_date),
+                    year
+                ]);
                 prev_month_id = month_id;
-
             }
         }
+        await this._insertMonth(toInsert);
         console.log('Finished loading months.');
     }
 
-    _loadDaySpecialValues() {
+    async _loadDaySpecialValues() {
+        let toInsert = [];
         for (let sv of specialValues) {
-            const toInsert = {
-                day_id: sv.id,
-                time_type_id: sv.id,
-                month_id: sv.id,
-                quarter_id: sv.id,
-                year_id: sv.id,
+            toInsert.push([
+                sv.id,
+                sv.id,
+                null,
+                null,
+                null,
+                null,
+                sv.id,
+                sv.id,
+                sv.id,
 
-            };
-            this._insertDay(toInsert);
+            ]);
         }
+        await this._insertDay(toInsert);
     }
-
-    _loadDays(startYear, endYear) {
+    async _loadSpecialValues() {
+        console.log('Loading special values...');
+        await this._loadYearSpecialValues();
+        await this._loadQuarterSpecialValues();
+        await this._loadMonthSpecialValues();
+        await this._loadDaySpecialValues();
+        console.log('Finished loading special values.');
+    }
+    async _loadDays(startYear, endYear) {
         console.log(`Loading days for years between: ${startYear} and ${endYear}.`);
-        this._loadDaySpecialValues();
+        let toInsert = [];
         for (let year = startYear; year <= endYear; year++) {
             let daysInYear = TimeUtil.daysInYear(year);
             for (let dayOfYear = 1; dayOfYear <= daysInYear; dayOfYear++) {
                 const day_date = new Date(year, 0, dayOfYear);
                 const day_id = TimeUtil.dayId(day_date);
-                const toInsert = {
+                toInsert.push([
                     day_id,
-                    time_type_id: 0,
-                    day_date,
-                    prev_day_id: day_id - 1,
-                    lm_day_id: TimeUtil.lmDayId(day_date),
-                    ly_day_id: TimeUtil.lyDayId(day_date),
-                    month_id: TimeUtil.monthIdFromDate(day_date),
-                    quarter_id: TimeUtil.quarterIdFromDate(day_date),
-                    year_id: year
-                };
-                this._insertDay(toInsert);
-
+                    0,
+                    TimeUtil.toUTCDateString(day_date),
+                    day_id - 1,
+                    TimeUtil.lmDayId(day_date),
+                    TimeUtil.lyDayId(day_date),
+                    TimeUtil.monthIdFromDate(day_date),
+                    TimeUtil.quarterIdFromDate(day_date),
+                    year
+                ]);
             }
         }
+        await this._insertDay(toInsert);
         console.log('Finished loading days.');
     }
 
-    _loadYtm(startYear, endYear) {
+    async _loadYtm(startYear, endYear) {
         console.log('Loading year to month...');
+        let toInsert = [];
         for (let year = startYear; year < endYear; year++) {
             for (let month = 1; month <= 12; month++) {
                 for (let ytm = 1; ytm <= month; ytm++) {
-                    this._insertYtm({
-                        month_id: TimeUtil.monthId(year, month),
-                        ytm_month_id: TimeUtil.monthId(year, ytm),
-                    })
+                    toInsert.push([
+                        TimeUtil.monthId(year, month),
+                        TimeUtil.monthId(year, ytm),
+                    ]);
                 }
             }
         }
+        await this._insertYtm(toInsert);
         console.log('Finished loading year to month...');
     }
 }

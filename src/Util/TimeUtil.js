@@ -44,6 +44,10 @@ class TimeUtil {
     static monthIdFromDate(date) {
         return TimeUtil.monthId(date.getUTCFullYear(), date.getUTCMonth() + 1);
     }
+
+    static toUTCDateString(date) {
+        return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`;
+    }
 }
 
 module.exports = TimeUtil;
