@@ -1,9 +1,13 @@
 const figlet = require('figlet');
-const mysql = require('mysql');
+const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
 const TimeUtil = require('./Util/TimeUtil');
+const { AccountTypeIds, SpecialValues, OrderTypeIds } = require('./const');
+const { AccountDao, ActionDao, ChannelDao, TokenDao } = require('./dao');
 const { logger } = require('./Logger');
+
+const UNKNOWN = SpecialValues.UNKNOWN.id;
 
 class LoadExchangeData {
     constructor(config) {
@@ -22,8 +26,13 @@ class LoadExchangeData {
             origin,
             eoswsEndpoint,
         });
+
+        this.snowflake = new Snowflake(db);
+        this.accountDao = new AccountDao(this.snowflake);
+        this.actionDao = new ActionDao(this.snowflake);
+        this.tokenDao = new TokenDao(this.snowflake);
         this.interpreter = new Interpreter(keyDictionary);
-        this.dbCon = mysql.createConnection(db);
+
     }
 
 
@@ -60,28 +69,146 @@ class LoadExchangeData {
 
     }
 
-    postProcessParsedMemo(parsedMemo) {
+    _postProcessParsedMemo(parsedMemo) {
         if (parsedMemo) {
-            const { trade_quantity, trade_price } = parsedMemo;
-            let tradeQuantity = this.extractSymbol(trade_quantity);
-            let tradePrice = this.extractSymbol(trade_price);
+            let { tradeQuantity, tradePrice } = parsedMemo;
+            tradeQuantity = this.extractSymbol(tradeQuantity);
+            tradePrice = this.extractSymbol(tradePrice);
             let symbol = null;
             if (tradeQuantity) {
                 symbol = tradeQuantity.symbol;
-                parsedMemo.trade_quantity = tradeQuantity.amount
+                parsedMemo.tradeQuantity = tradeQuantity.amount
             }
             if (tradePrice) {
                 symbol = symbol ? symbol + '_' + tradePrice.symbol : tradePrice.symbol;
-                parsedMemo.trade_price = tradePrice.amount;
+                parsedMemo.tradePrice = tradePrice.amount;
             }
             if (symbol && !parsedMemo.symbol) {
                 parsedMemo.symbol = symbol;
             }
+        } else {
+            parsedMemo = {
+                tradePrice: null,
+                tradeQuantity: null,
+            };
         }
         return parsedMemo;
     }
 
-    start() {
+    _getOrderTypeId(orderType) {
+        let orderTypeId = UNKNOWN;
+        if (orderType) {
+            orderType = orderType.toLowerCase();
+            if (orderType.indexOf('cancel') != -1) {
+                orderTypeId = OrderTypeIds.CANCEL;
+            } else if (orderType.indexOf('buy') != -1) {
+                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.BUY_LIMIT : OrderTypeIds.BUY;
+            } else if (orderType.indexOf('sell') != -1) {
+                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.BUY_LIMIT : OrderTypeIds.BUY;
+            }
+        }
+        return orderTypeId;
+    }
+
+    async _determinePair(quantityToken, quantityTokenId, pair) {
+        let baseTokenId = UNKNOWN, quoteTokenId = UNKNOWN;
+        quantityToken = quantityToken.toUpperCase();
+
+        if (quantityToken == 'EOS') {
+            baseTokenId = quantityTokenId;
+        } else {
+            quoteTokenId = quantityTokenId;
+        }
+
+        if (pair) {
+            pair = pair.toUpperCase();
+            let splitPair = pair.split(/[-_]/);
+            for (let i = 0; i < splitPair.length; i++) {
+                splitPair[0] = splitPair[0].trim();
+            }
+            if (splitPair.length == 1) {
+                if (splitPair[0] != quantityToken) {
+                    let tokenId = await this.tokenDao.getTokenId(splitPair[0], UNKNOWN);
+                    if (quoteTokenId === UNKNOWN) {
+                        quoteTokenId = tokenId;
+                    } else {
+                        baseTokenId = tokenId;
+                    }
+                }
+            } else if (splitPair.length === 2 || splitPair.length === 3) {
+                let quoteAccountId = UNKNOWN;
+                if (splitPair.length == 3) {
+                    quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase());
+                    splitPair.shift();
+                }
+                quoteTokenId = await this.tokenDao.getTokenId(splitPair[0], quoteAccountId);
+                baseTokenId = await this.tokenDao.getTokenId(splitPair[1], UNKNOWN);
+            }
+        }
+
+        return {
+            baseTokenId,
+            quoteTokenId,
+        };
+    }
+
+
+    async _insertExchangeTrade({
+        tokenAccountId,
+        actionId,
+        fromAccountId,
+        toAccountId,
+        quantity,
+        quantityTokenId,
+        orderTypeId,
+        quoteTokenId,
+        baseTokenId,
+        tradeQuantity,
+        tradePrice,
+        channelId,
+        dayId,
+        hourOfDay,
+        blockTime
+    }) {
+
+        await this.snowflake.execute(`INSERT INTO exchange_trades(
+            token_account_id,
+            action_id,
+            from_account_id,
+            to_account_id,
+            quantity,
+            quantity_token_id,
+            order_type_id,
+            quote_token_id,
+            base_token_id,
+            trade_quantity,
+            trade_price,
+            channel_id,
+            day_id,
+            hour_of_day,
+            block_time
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                tokenAccountId,
+                actionId,
+                fromAccountId,
+                toAccountId,
+                quantity,
+                quantityTokenId,
+                orderTypeId,
+                quoteTokenId,
+                baseTokenId,
+                tradeQuantity,
+                tradePrice,
+                channelId,
+                dayId,
+                hourOfDay,
+                blockTime
+
+            ]);
+    }
+
+    async start() {
         const {
             actionTraces,
             actionFilters,
@@ -90,36 +217,50 @@ class LoadExchangeData {
         this.printFiglet();
 
         try {
+            await this.snowflake.connect();
             this.listener.addActionTraces({
                 actionTraces,
                 actionFilters,
-                callbackFn: payload => {
+                callbackFn: async payload => {
                     const {
                         account,
                         action,
                         actionData: { to, from, quantity, memo },
-                        block_time,
+                        block_time: blockTime,
                     } = payload;
 
-                    let parsedMemo = this.postProcessParsedMemo(this.interpreter.interpret(memo));
-                    const day_id = TimeUtil.dayId(block_time);
-                    const toInsert = {
-                        account,
-                        action,
-                        to,
-                        from,
-                        quantity,
-                        day_id,
-                        hour_of_day: block_time.getUTCHours(),
-                        block_time,
-                        ...parsedMemo
-                    };
-                    this.dbCon.query("INSERT INTO exchange_trades SET ?", [toInsert], (error) => {
-                        if (error) {
-                            logger.error('Unable to insert transfer to exchange_trades table', error);
-                            throw error;
-                        }
-                    });
+                    try {
+                        let parsedMemo = this._postProcessParsedMemo(this.interpreter.interpret(memo));
+                        const { tradePrice, tradeQuantity, orderType, channel, symbol } = parsedMemo;
+                        const tokenAccountId = await this.accountDao.getAccountId(account, AccountTypeIds.TOKEN);
+                        const quantityObj = this.extractSymbol(quantity);
+                        const quantityTokenId = await this.tokenDao.getTokenId(quantityObj.symbol, UNKNOWN);
+                        const { quoteTokenId, baseTokenId } = await this._determinePair(quantityObj.symbol, quantityTokenId, symbol);
+                        const dayId = TimeUtil.dayId(blockTime);
+                        const channelId = channel ? this.channelDao.getChannelId(channel) : UNKNOWN;
+                        const toInsert = {
+                            tokenAccountId,
+                            actionId: await this.actionDao.getActionId(action, tokenAccountId),
+                            fromAccountId: await this.accountDao.getAccountId(from, AccountTypeIds.USER),
+                            toAccountId: await this.accountDao.getAccountId(to, AccountTypeIds.EXCHANGE),
+                            quantity: quantityObj.amount,
+                            quantityTokenId,
+                            orderTypeId: this._getOrderTypeId(orderType),
+                            quoteTokenId,
+                            baseTokenId,
+                            tradeQuantity,
+                            tradePrice,
+                            channelId,
+                            dayId,
+                            hourOfDay: blockTime.getUTCHours(),
+                            blockTime: TimeUtil.toUTCDateTimeNTZString(blockTime)
+                        };
+                        console.log('Getting inserting exchange trade', toInsert);
+                        await this._insertExchangeTrade(toInsert);
+                    } catch (error) {
+                        logger.error(error);
+                        throw error;
+                    }
                 }
             });
         } catch (error) {

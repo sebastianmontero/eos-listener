@@ -90,7 +90,7 @@
     },
     "keyDictionary": {
         "orderType": {
-            "colName": "ordertype",
+            "colName": "orderType",
             "keys": [
                 "type",
                 "action"
@@ -103,7 +103,7 @@
             ]
         },
         "tradeQuantity": {
-            "colName": "trade_quantity",
+            "colName": "tradeQuantity",
             "keys": [
                 "count",
                 "quantity",
@@ -111,7 +111,7 @@
             ]
         },
         "tradePrice": {
-            "colName": "trade_price",
+            "colName": "tradePrice",
             "keys": [
                 "price"
             ]

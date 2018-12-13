@@ -1,26 +1,10 @@
 const Snowflake = require('snowflake-promise').Snowflake;
 const TimeUtil = require('../Util/TimeUtil');
+const { SpecialValues } = require('../const');
 
-const specialValues = [
-    {
-        id: -1,
-        desc: 'Unknown',
-    },
-    {
-        id: -2,
-        desc: 'Not Applicable',
-    },
-    {
-        id: -3,
-        desc: 'Corrupted',
-    },
-    {
-        id: -4,
-        desc: "Hasn't Happened",
-    }
-];
+const specialValues = Object.values(SpecialValues);
 
-class DateLoader {
+class TimeDimensionLoader {
 
     constructor(db, startYear, endYear, locale = 'en-us') {
         this.snowflake = new Snowflake(db);
@@ -316,4 +300,4 @@ class DateLoader {
     }
 }
 
-module.exports = DateLoader;
+module.exports = TimeDimensionLoader;

@@ -20,9 +20,11 @@ class TimeUtil {
     static quarterIdFromDate(date) {
         return TimeUtil.quarterId(date.getUTCFullYear(), Math.ceil((date.getUTCMonth() + 1) / 3));
     }
-
+    static toUTCDate(dayDate) {
+        return new Date(Date.UTC(dayDate.getUTCFullYear(), dayDate.getUTCMonth(), dayDate.getUTCDate()));
+    }
     static dayId(dayDate) {
-        return TimeUtil.dayDiff(dayDate, baseDate);
+        return TimeUtil.dayDiff(this.toUTCDate(dayDate), baseDate);
     }
 
     static lmDayId(date) {
@@ -45,8 +47,16 @@ class TimeUtil {
         return TimeUtil.monthId(date.getUTCFullYear(), date.getUTCMonth() + 1);
     }
 
+    static _zeroPad(value) {
+        return (value < 10 ? '0' : '') + value;
+    }
+
     static toUTCDateString(date) {
-        return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`;
+        return `${this._zeroPad(date.getUTCFullYear())}-${this._zeroPad(date.getUTCMonth() + 1)}-${this._zeroPad(date.getUTCDate())}`;
+    }
+
+    static toUTCDateTimeNTZString(date) {
+        return this.toUTCDateString(date) + ` ${this._zeroPad(date.getUTCHours())}:${this._zeroPad(date.getUTCMinutes())}:${this._zeroPad(date.getUTCSeconds())}.${date.getUTCMilliseconds()}`
     }
 }
 
