@@ -31,6 +31,7 @@ class LoadExchangeData {
         this.accountDao = new AccountDao(this.snowflake);
         this.actionDao = new ActionDao(this.snowflake);
         this.tokenDao = new TokenDao(this.snowflake);
+        this.channelDao = new ChannelDao(this.snowflake);
         this.interpreter = new Interpreter(keyDictionary);
 
     }
@@ -74,17 +75,26 @@ class LoadExchangeData {
             let { tradeQuantity, tradePrice } = parsedMemo;
             tradeQuantity = this.extractSymbol(tradeQuantity);
             tradePrice = this.extractSymbol(tradePrice);
-            let symbol = null;
+            let pair = null;
             if (tradeQuantity) {
-                symbol = tradeQuantity.symbol;
+                pair = tradeQuantity.symbol;
                 parsedMemo.tradeQuantity = tradeQuantity.amount
             }
             if (tradePrice) {
-                symbol = symbol ? symbol + '_' + tradePrice.symbol : tradePrice.symbol;
+                let symbol = tradePrice.symbol;
+                if (pair) {
+                    if (pair.toUpperCase() == 'EOS') {
+                        pair = `${symbol}_${pair}`;
+                    } else {
+                        pair = `${pair}_${symbol}`;
+                    }
+                } else {
+                    pair = symbol;
+                }
                 parsedMemo.tradePrice = tradePrice.amount;
             }
-            if (symbol && !parsedMemo.symbol) {
-                parsedMemo.symbol = symbol;
+            if (pair && !parsedMemo.pair) {
+                parsedMemo.pair = pair;
             }
         } else {
             parsedMemo = {
@@ -104,7 +114,7 @@ class LoadExchangeData {
             } else if (orderType.indexOf('buy') != -1) {
                 orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.BUY_LIMIT : OrderTypeIds.BUY;
             } else if (orderType.indexOf('sell') != -1) {
-                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.BUY_LIMIT : OrderTypeIds.BUY;
+                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.SELL_LIMIT : OrderTypeIds.SELL;
             }
         }
         return orderTypeId;
@@ -113,7 +123,6 @@ class LoadExchangeData {
     async _determinePair(quantityToken, quantityTokenId, pair) {
         let baseTokenId = UNKNOWN, quoteTokenId = UNKNOWN;
         quantityToken = quantityToken.toUpperCase();
-
         if (quantityToken == 'EOS') {
             baseTokenId = quantityTokenId;
         } else {
@@ -138,7 +147,7 @@ class LoadExchangeData {
             } else if (splitPair.length === 2 || splitPair.length === 3) {
                 let quoteAccountId = UNKNOWN;
                 if (splitPair.length == 3) {
-                    quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase());
+                    quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.TOKEN);
                     splitPair.shift();
                 }
                 quoteTokenId = await this.tokenDao.getTokenId(splitPair[0], quoteAccountId);
@@ -231,13 +240,13 @@ class LoadExchangeData {
 
                     try {
                         let parsedMemo = this._postProcessParsedMemo(this.interpreter.interpret(memo));
-                        const { tradePrice, tradeQuantity, orderType, channel, symbol } = parsedMemo;
+                        const { tradePrice, tradeQuantity, orderType, channel, pair } = parsedMemo;
                         const tokenAccountId = await this.accountDao.getAccountId(account, AccountTypeIds.TOKEN);
                         const quantityObj = this.extractSymbol(quantity);
                         const quantityTokenId = await this.tokenDao.getTokenId(quantityObj.symbol, UNKNOWN);
-                        const { quoteTokenId, baseTokenId } = await this._determinePair(quantityObj.symbol, quantityTokenId, symbol);
+                        const { quoteTokenId, baseTokenId } = await this._determinePair(quantityObj.symbol, quantityTokenId, pair);
                         const dayId = TimeUtil.dayId(blockTime);
-                        const channelId = channel ? this.channelDao.getChannelId(channel) : UNKNOWN;
+                        const channelId = channel ? await this.channelDao.getChannelId(channel) : UNKNOWN;
                         const toInsert = {
                             tokenAccountId,
                             actionId: await this.actionDao.getActionId(action, tokenAccountId),
@@ -255,7 +264,6 @@ class LoadExchangeData {
                             hourOfDay: blockTime.getUTCHours(),
                             blockTime: TimeUtil.toUTCDateTimeNTZString(blockTime)
                         };
-                        console.log('Getting inserting exchange trade', toInsert);
                         await this._insertExchangeTrade(toInsert);
                     } catch (error) {
                         logger.error(error);
