@@ -1,4 +1,6 @@
 
+const parseAssetRegex = /^\s*(\d+.?\d*)\s*([a-zA-Z]+)\s*$/;
+
 class Util {
     static isEmptyObj(obj) {
         for (var key in obj) {
@@ -29,6 +31,17 @@ class Util {
             }
         }
         return -1;
+    }
+
+    static parseAsset(value) {
+        const result = parseAssetRegex.exec(value);
+        if (result) {
+            return {
+                amount: result[1],
+                symbol: result[2],
+            };
+        }
+        return null;
     }
 }
 

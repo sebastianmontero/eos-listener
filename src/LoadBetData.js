@@ -1,15 +1,14 @@
 const figlet = require('figlet');
 const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
-const Interpreter = require('./Interpreter');
-const { Util, TimeUtil } = require('./util');
-const { AccountTypeIds, SpecialValues, OrderTypeIds } = require('./const');
-const { AccountDao, ActionDao, ChannelDao, TokenDao } = require('./dao');
+const { TimeUtil, Util } = require('./util');
+const { AccountTypeIds, SpecialValues } = require('./const');
+const { AccountDao, ActionDao, TokenDao } = require('./dao');
 const { logger } = require('./Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 
-class LoadExchangeData {
+class LoadBetData {
     constructor(config) {
         this.config = config;
         const {
@@ -30,13 +29,11 @@ class LoadExchangeData {
         this.accountDao = new AccountDao(this.snowflake);
         this.actionDao = new ActionDao(this.snowflake);
         this.tokenDao = new TokenDao(this.snowflake);
-        this.channelDao = new ChannelDao(this.snowflake);
-        this.interpreter = new Interpreter(keyDictionary);
 
     }
 
     printFiglet() {
-        figlet('Loading Exchange Data', {
+        figlet('Loading Bet Data', {
             font: "Big",
             horizontalLayout: 'default',
             verticalLayout: 'default'
@@ -264,4 +261,4 @@ class LoadExchangeData {
     }
 }
 
-module.exports = LoadExchangeData;
+module.exports = LoadBetData;

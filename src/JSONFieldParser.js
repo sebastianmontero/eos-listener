@@ -1,4 +1,4 @@
-const Util = require('./Util/Util');
+const Util = require('./util/Util');
 
 class JSONFieldParser {
 

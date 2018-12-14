@@ -1,5 +1,5 @@
 const expect = require('chai').expect
-const TimeUtil = require('../../src/Util/TimeUtil');
+const TimeUtil = require('../../src/util/TimeUtil');
 
 
 describe('toUTCDateTimeNTZString()', function () {

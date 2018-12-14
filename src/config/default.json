@@ -78,6 +78,32 @@
             ]
         }
     },
+    "betTables": [
+        {
+            "dapp": "FarmEOS",
+            "code": "farmeosbank1",
+            "scope": "farmeosbank1",
+            "table": "bets"
+        },
+        {
+            "dapp": "FarmEOS",
+            "code": "farmeosbank1",
+            "scope": "farmeosbank1",
+            "table": "rouls"
+        },
+        {
+            "dapp": "FarmEOS",
+            "code": "farmeosbank1",
+            "scope": "farmeosbank1",
+            "table": "mines"
+        },
+        {
+            "dapp": "FarmEOS",
+            "code": "farmeosbank1",
+            "scope": "farmeosbank1",
+            "table": "bjs"
+        }
+    ],
     "streamOptions": {},
     "post_to": "http://localhost:4001/handler",
     "db": {

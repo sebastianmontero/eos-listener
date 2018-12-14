@@ -10,6 +10,7 @@ class EOSListener {
         eoswsEndpoint,
     }) {
         this._addedActionTraces = [];
+        this._addedTableListeners = [];
         this.client = new EoswsClient(
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
@@ -25,9 +26,14 @@ class EOSListener {
                         logger.error('On Socket invalid message', message);
                     },
                     onReconnect: () => {
-                        logger.error('Reconnected to mainet. Adding traces...');
+                        logger.error('Reconnected to mainet.');
+                        logger.error('Adding action traces...');
                         for (let actionTrace of this._addedActionTraces) {
                             this._addActionTraces(actionTrace);
+                        }
+                        logger.error('Adding table listeners...');
+                        for (let tableListener of this._addedTableListeners) {
+                            this._addTableListeners(tableListener);
                         }
                     },
                 }
@@ -108,6 +114,50 @@ class EOSListener {
 
         });
     }
+
+    async addTableListeners({
+        tables,
+        callbackFn,
+        streamOptions = {}
+    }) {
+        const listenerConfig = {
+            tables,
+            streamOptions
+        };
+
+        this._addedTableListeners.push(listenerConfig);
+        try {
+            await this.client.connect();
+            logger.info("Connected to mainet!");
+        } catch (error) {
+            logger.error(error);
+        }
+        this._addTableListeners(listenerConfig);
+    }
+
+    _addTableListener({
+        tables,
+        streamOptions = { fetch: true, listen: true }
+    }) {
+        tables.forEach(table => {
+            this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
+                try {
+                    if (message.type === InboundMessageType.TABLE_SNAPSHOT) {
+                        console.log("----TABLE_SNAPSHOT-----");
+                        console.dir(message);
+                    } else if (message.type == InboundMessageType.TABLE_DELTA) {
+                        console.log("----TABLE_DELTA-----");
+                        console.dir(message);
+                    }
+                } catch (error) {
+                    logger.error(error);
+                }
+            });
+
+        });
+    }
+
+
 }
 
 module.exports = EOSListener;
