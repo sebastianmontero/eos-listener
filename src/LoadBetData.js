@@ -16,7 +16,6 @@ class LoadBetData {
             origin,
             eoswsEndpoint,
             db,
-            keyDictionary
         } = config;
 
         this.listener = new EOSListener({
@@ -53,98 +52,6 @@ class LoadBetData {
         });
 
     }
-
-    _postProcessParsedMemo(parsedMemo) {
-        if (parsedMemo) {
-            let { tradeQuantity, tradePrice } = parsedMemo;
-            tradeQuantity = Util.parseAsset(tradeQuantity);
-            tradePrice = Util.parseAsset(tradePrice);
-            let pair = null;
-            if (tradeQuantity) {
-                pair = tradeQuantity.symbol;
-                parsedMemo.tradeQuantity = tradeQuantity.amount
-            }
-            if (tradePrice) {
-                let symbol = tradePrice.symbol;
-                if (pair) {
-                    if (pair.toUpperCase() == 'EOS') {
-                        pair = `${symbol}_${pair}`;
-                    } else {
-                        pair = `${pair}_${symbol}`;
-                    }
-                } else {
-                    pair = symbol;
-                }
-                parsedMemo.tradePrice = tradePrice.amount;
-            }
-            if (pair && !parsedMemo.pair) {
-                parsedMemo.pair = pair;
-            }
-        } else {
-            parsedMemo = {
-                tradePrice: null,
-                tradeQuantity: null,
-            };
-        }
-        return parsedMemo;
-    }
-
-    _getOrderTypeId(orderType) {
-        let orderTypeId = UNKNOWN;
-        if (orderType) {
-            orderType = orderType.toLowerCase();
-            if (orderType.indexOf('cancel') != -1) {
-                orderTypeId = OrderTypeIds.CANCEL;
-            } else if (orderType.indexOf('buy') != -1) {
-                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.BUY_LIMIT : OrderTypeIds.BUY;
-            } else if (orderType.indexOf('sell') != -1) {
-                orderTypeId = orderType.indexOf('limit') != -1 ? OrderTypeIds.SELL_LIMIT : OrderTypeIds.SELL;
-            }
-        }
-        return orderTypeId;
-    }
-
-    async _determinePair(quantityToken, quantityTokenId, pair) {
-        let baseTokenId = UNKNOWN, quoteTokenId = UNKNOWN;
-        quantityToken = quantityToken.toUpperCase();
-        if (quantityToken == 'EOS') {
-            baseTokenId = quantityTokenId;
-        } else {
-            quoteTokenId = quantityTokenId;
-        }
-
-        if (pair) {
-            pair = pair.toUpperCase();
-            let splitPair = pair.split(/[-_]/);
-            for (let i = 0; i < splitPair.length; i++) {
-                splitPair[0] = splitPair[0].trim();
-            }
-            if (splitPair.length == 1) {
-                if (splitPair[0] != quantityToken) {
-                    let tokenId = await this.tokenDao.getTokenId(splitPair[0], UNKNOWN);
-                    if (quoteTokenId === UNKNOWN) {
-                        quoteTokenId = tokenId;
-                    } else {
-                        baseTokenId = tokenId;
-                    }
-                }
-            } else if (splitPair.length === 2 || splitPair.length === 3) {
-                let quoteAccountId = UNKNOWN;
-                if (splitPair.length == 3) {
-                    quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.TOKEN);
-                    splitPair.shift();
-                }
-                quoteTokenId = await this.tokenDao.getTokenId(splitPair[0], quoteAccountId);
-                baseTokenId = await this.tokenDao.getTokenId(splitPair[1], UNKNOWN);
-            }
-        }
-
-        return {
-            baseTokenId,
-            quoteTokenId,
-        };
-    }
-
 
     async _insertExchangeTrade({
         tokenAccountId,
@@ -203,58 +110,13 @@ class LoadBetData {
 
     async start() {
         const {
-            actionTraces,
-            actionFilters,
+            betTables
         } = this.config;
 
         this.printFiglet();
 
         try {
-            await this.snowflake.connect();
-            this.listener.addActionTraces({
-                actionTraces,
-                actionFilters,
-                callbackFn: async payload => {
-                    const {
-                        account,
-                        action,
-                        actionData: { to, from, quantity, memo },
-                        block_time: blockTime,
-                    } = payload;
-
-                    try {
-                        let parsedMemo = this._postProcessParsedMemo(this.interpreter.interpret(memo));
-                        const { tradePrice, tradeQuantity, orderType, channel, pair } = parsedMemo;
-                        const tokenAccountId = await this.accountDao.getAccountId(account, AccountTypeIds.TOKEN);
-                        const quantityObj = Util.parseAsset(quantity);
-                        const quantityTokenId = await this.tokenDao.getTokenId(quantityObj.symbol, UNKNOWN);
-                        const { quoteTokenId, baseTokenId } = await this._determinePair(quantityObj.symbol, quantityTokenId, pair);
-                        const dayId = TimeUtil.dayId(blockTime);
-                        const channelId = channel ? await this.channelDao.getChannelId(channel) : UNKNOWN;
-                        const toInsert = {
-                            tokenAccountId,
-                            actionId: await this.actionDao.getActionId(action, tokenAccountId),
-                            fromAccountId: await this.accountDao.getAccountId(from, AccountTypeIds.USER),
-                            toAccountId: await this.accountDao.getAccountId(to, AccountTypeIds.EXCHANGE),
-                            quantity: quantityObj.amount,
-                            quantityTokenId,
-                            orderTypeId: this._getOrderTypeId(orderType),
-                            quoteTokenId,
-                            baseTokenId,
-                            tradeQuantity,
-                            tradePrice,
-                            channelId,
-                            dayId,
-                            hourOfDay: blockTime.getUTCHours(),
-                            blockTime: TimeUtil.toUTCDateTimeNTZString(blockTime)
-                        };
-                        await this._insertExchangeTrade(toInsert);
-                    } catch (error) {
-                        logger.error(error);
-                        throw error;
-                    }
-                }
-            });
+            this.listener.addTableListeners({ tables: betTables });
         } catch (error) {
             logger.error(error);
         }

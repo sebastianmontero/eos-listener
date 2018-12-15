@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/eosws-js');
 const { logger } = require('./Logger');
+const { DBOps, ForkSteps, TableListenerModes } = require('./const');
 
 
 class EOSListener {
@@ -135,19 +136,43 @@ class EOSListener {
         this._addTableListeners(listenerConfig);
     }
 
-    _addTableListener({
+    _addTableListeners({
         tables,
-        streamOptions = { fetch: true, listen: true }
+        insertCallbackFn,
+        updateCallbackFn,
+        removeCallbackFn,
+        streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY }
     }) {
         tables.forEach(table => {
             this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
                 try {
-                    if (message.type === InboundMessageType.TABLE_SNAPSHOT) {
-                        console.log("----TABLE_SNAPSHOT-----");
-                        console.dir(message);
-                    } else if (message.type == InboundMessageType.TABLE_DELTA) {
-                        console.log("----TABLE_DELTA-----");
-                        console.dir(message);
+                    if (message.type == InboundMessageType.TABLE_DELTA) {
+                        const { data, data: { step, dbop, dbop: { op } } } = message;
+                        const { mode } = streamOptions;
+                        let payload = {
+                            data,
+                            step,
+                            dbop,
+                            message
+                        };
+                        const isHistoryMode = mode === TableListenerModes.HISTORY;
+                        if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
+                            if (op === DBOps.INSERT) {
+                                insertCallbackFn(payload);
+                            } else if (op === DBOps.UPDATE) {
+                                updateCallbackFn(payload);
+                            } else if (op === DBOps.REMOVE && !isHistoryMode) {
+                                removeCallbackFn(payload);
+                            }
+                        } else if (step === ForkSteps.UNDO) {
+                            if (op === DBOps.INSERT && !isHistoryMode) {
+                                insertCallbackFn(payload);
+                            } else if (op === DBOps.UPDATE) {
+                                updateCallbackFn(payload);
+                            } else if (op === DBOps.REMOVE) {
+                                removeCallbackFn(payload);
+                            }
+                        }
                     }
                 } catch (error) {
                     logger.error(error);
