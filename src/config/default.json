@@ -1,83 +1,8 @@
 {
     // get eosws_token from: https://dfuse.io/#subscribe
-    "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NDQ5NzY3MzcsImp0aSI6IjE3M2Q0ZTQ5LThhYTctNDkyOC05NDk3LWY2ZWU2MDE0NTMwNSIsImlhdCI6MTU0MjM4NDczNywiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU0a2ZkYUhnWlBKSWFZSGc4WXBXQjdrdElON3pOaEdRS0JQMENtSVIxSnNTUHdBL0NMUnRFc05oL0syNzhwYXdRb01veVY0QUhaZHJBWDBuR0I4NEhiNkFhTzAxdG5oL0VvdFl1N25FdHdlc1ovRTRER0ZWZTcxSUJFRFhjOFRsb1E9PSIsInRpZXIiOiJiZXRhLXYxIiwidiI6MX0.V2MJhC2qgWsFSDBhxsrNFmanxJJahKTXxhYuT6yYIxTtarBlpudMcI98B5wnaIqzm2VQeb0nm8JslmU1icI6uw",
+    "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NDU4NzYyODAsImp0aSI6IjQxZDU4ODBkLTQzY2QtNDRlMy05NzJmLWJhZWQ5ZTE3ZmE4MCIsImlhdCI6MTU0MzI4NDI4MCwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWUxWHNxQm8xVmowREJma3RnYVVuOHZsc2NzMDU4VzMxNTVQcmJJczlWWlFTUXdBL0NMUnRIZ2cyNmRsek1HRFZ5aFpFcHhyaWh0UTN0aDJoVFFDMEd1Qmh1OWlxNjVmTXA1WkFObmFZOWUyVWg4TytqcGhMLzlGYjJUMjBETEdxeEN5WkRubz0iLCJ0aWVyIjoiYmV0YS12MSIsInYiOjF9.wKULM0SVvmLva_VX7XouxE47uwYcNkx3TD1TkrLugOkC6RjPPcWfUJqsX9wjJGdhgl4u22hojksYE3482klsEA",
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
     "origin": "https://example.com",
-    "actionTraces": [
-        {
-            "account": "eosio.token",
-            "action_name": "transfer"
-        },
-        {
-            "account": "eosblackteam",
-            "action_name": "transfer"
-        },
-        {
-            "account": "parslseed123",
-            "action_name": "transfer"
-        },
-        {
-            "account": "eosiomeetone",
-            "action_name": "transfer"
-        },
-        {
-            "account": "everipediaiq",
-            "action_name": "transfer"
-        },
-        {
-            "account": "octtothemoon",
-            "action_name": "transfer"
-        },
-        {
-            "account": "eosdactoken",
-            "action_name": "transfer"
-        },
-        {
-            "account": "trybenetwork",
-            "action_name": "transfer"
-        },
-        {
-            "account": "therealkarma",
-            "action_name": "transfer"
-        },
-        {
-            "account": "bntbntbntbnt",
-            "action_name": "transfer"
-        },
-        {
-            "account": "eosadddddddd",
-            "action_name": "transfer"
-        },
-        {
-            "account": "ednazztoken",
-            "action_name": "transfer"
-        }
-    ],
-    "actionFilters": {
-        "transfer": {
-            "to": [
-                "newdexpocket",
-                "dexeoswallet",
-                "whaleextrust",
-                "findexfindex",
-                "btexexchange",
-                "exchangename",
-                "OneDex123451",
-                "dex.io",
-                "deltadexcode",
-                "eosdaqooooo1",
-                "eosdaqooooo2",
-                "eosdaqooooo4",
-                "eosdaqoooo54",
-                "eosdaqoooo11",
-                "eosdaqooo1oo",
-                "eosdaqooo1o2",
-                "eosdaqooo1o5",
-                "eosdaqooo11o",
-                "eosdaqooo111"
-            ]
-        }
-    },
     "betTables": [
         {
             "dapp": "FarmEOS",

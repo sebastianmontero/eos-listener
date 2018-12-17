@@ -3,11 +3,12 @@ const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
 const { Util, TimeUtil } = require('./util');
-const { AccountTypeIds, SpecialValues, OrderTypeIds } = require('./const');
-const { AccountDao, ActionDao, ChannelDao, TokenDao } = require('./dao');
+const { AccountTypeIds, SpecialValues, OrderTypeIds, DappTypeIds } = require('./const');
+const { AccountDao, ActionDao, ChannelDao, DappDao, TokenDao, ExchangeTradeDao } = require('./dao');
 const { logger } = require('./Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
+const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
 class LoadExchangeData {
     constructor(config) {
@@ -31,6 +32,8 @@ class LoadExchangeData {
         this.actionDao = new ActionDao(this.snowflake);
         this.tokenDao = new TokenDao(this.snowflake);
         this.channelDao = new ChannelDao(this.snowflake);
+        this.dappDao = new DappDao(this.snowflake);
+        this.exchangeTradeDao = new ExchangeTradeDao(this.snowflake);
         this.interpreter = new Interpreter(keyDictionary);
 
     }
@@ -134,7 +137,12 @@ class LoadExchangeData {
             } else if (splitPair.length === 2 || splitPair.length === 3) {
                 let quoteAccountId = UNKNOWN;
                 if (splitPair.length == 3) {
-                    quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.TOKEN);
+                    const accountName = splitPair[0].toLowerCase();
+                    quoteAccountId = await this.accountDao.selectAccountId(accountName);
+                    if (!quoteAccountId) {
+                        const dappId = await this.dappDao.getDappId(accountName, DappTypeIds.TOKEN);
+                        quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.DAPP, dappId);
+                    }
                     splitPair.shift();
                 }
                 quoteTokenId = await this.tokenDao.getTokenId(splitPair[0], quoteAccountId);
@@ -148,72 +156,44 @@ class LoadExchangeData {
         };
     }
 
+    async _getActionTraces() {
+        const tokenAccounts = await this.accountDao.selectByDappType(DappTypeIds.TOKEN);
+        let actionTraces = [];
+        for (let tokenAccount of tokenAccounts) {
+            actionTraces.push({
+                account: tokenAccount.ACCOUNT_NAME,
+                action_name: 'transfer',
+            });
+        }
+        return actionTraces;
+    }
 
-    async _insertExchangeTrade({
-        tokenAccountId,
-        actionId,
-        fromAccountId,
-        toAccountId,
-        quantity,
-        quantityTokenId,
-        orderTypeId,
-        quoteTokenId,
-        baseTokenId,
-        tradeQuantity,
-        tradePrice,
-        channelId,
-        dayId,
-        hourOfDay,
-        blockTime
-    }) {
-
-        await this.snowflake.execute(`INSERT INTO exchange_trades(
-            token_account_id,
-            action_id,
-            from_account_id,
-            to_account_id,
-            quantity,
-            quantity_token_id,
-            order_type_id,
-            quote_token_id,
-            base_token_id,
-            trade_quantity,
-            trade_price,
-            channel_id,
-            day_id,
-            hour_of_day,
-            block_time
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                tokenAccountId,
-                actionId,
-                fromAccountId,
-                toAccountId,
-                quantity,
-                quantityTokenId,
-                orderTypeId,
-                quoteTokenId,
-                baseTokenId,
-                tradeQuantity,
-                tradePrice,
-                channelId,
-                dayId,
-                hourOfDay,
-                blockTime
-
-            ]);
+    async _getActionFilters() {
+        const exchangeAccounts = await this.accountDao.selectByDappType(DappTypeIds.EXCHANGE);
+        let to = [];
+        for (let exchangeAccount of exchangeAccounts) {
+            to.push(exchangeAccount.ACCOUNT_NAME);
+        }
+        return {
+            transfer: {
+                to
+            }
+        };
     }
 
     async start() {
-        const {
-            actionTraces,
-            actionFilters,
-        } = this.config;
 
         this.printFiglet();
 
         try {
             await this.snowflake.connect();
+            console.log("Getting action traces:");
+            const actionTraces = await this._getActionTraces();
+            console.log("Action Traces:")
+            console.dir(actionTraces);
+            const actionFilters = await this._getActionFilters();
+
+            console.dir(actionFilters);
             this.listener.addActionTraces({
                 actionTraces,
                 actionFilters,
@@ -228,7 +208,7 @@ class LoadExchangeData {
                     try {
                         let parsedMemo = this._postProcessParsedMemo(this.interpreter.interpret(memo));
                         const { tradePrice, tradeQuantity, orderType, channel, pair } = parsedMemo;
-                        const tokenAccountId = await this.accountDao.getAccountId(account, AccountTypeIds.TOKEN);
+                        const tokenAccountId = await this.accountDao.getAccountId(account, AccountTypeIds.DAPP, UNKNOWN);
                         const quantityObj = Util.parseAsset(quantity);
                         const quantityTokenId = await this.tokenDao.getTokenId(quantityObj.symbol, UNKNOWN);
                         const { quoteTokenId, baseTokenId } = await this._determinePair(quantityObj.symbol, quantityTokenId, pair);
@@ -237,8 +217,8 @@ class LoadExchangeData {
                         const toInsert = {
                             tokenAccountId,
                             actionId: await this.actionDao.getActionId(action, tokenAccountId),
-                            fromAccountId: await this.accountDao.getAccountId(from, AccountTypeIds.USER),
-                            toAccountId: await this.accountDao.getAccountId(to, AccountTypeIds.EXCHANGE),
+                            fromAccountId: await this.accountDao.getAccountId(from, AccountTypeIds.USER, NOT_APPLICABLE),
+                            toAccountId: await this.accountDao.getAccountId(to, AccountTypeIds.DAPP, UNKNOWN),
                             quantity: quantityObj.amount,
                             quantityTokenId,
                             orderTypeId: this._getOrderTypeId(orderType),
@@ -251,7 +231,7 @@ class LoadExchangeData {
                             hourOfDay: blockTime.getUTCHours(),
                             blockTime: TimeUtil.toUTCDateTimeNTZString(blockTime)
                         };
-                        await this._insertExchangeTrade(toInsert);
+                        await this.exchangeTradeDao.insert(toInsert);
                     } catch (error) {
                         logger.error(error);
                         throw error;

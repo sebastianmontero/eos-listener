@@ -118,11 +118,16 @@ class EOSListener {
 
     async addTableListeners({
         tables,
-        callbackFn,
-        streamOptions = {}
+        insertCallbackFn,
+        updateCallbackFn,
+        removeCallbackFn,
+        streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY }
     }) {
         const listenerConfig = {
             tables,
+            insertCallbackFn,
+            updateCallbackFn,
+            removeCallbackFn,
             streamOptions
         };
 
@@ -141,9 +146,10 @@ class EOSListener {
         insertCallbackFn,
         updateCallbackFn,
         removeCallbackFn,
-        streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY }
+        streamOptions,
     }) {
         tables.forEach(table => {
+            console.log('Table: ', table);
             this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
                 try {
                     if (message.type == InboundMessageType.TABLE_DELTA) {

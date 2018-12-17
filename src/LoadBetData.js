@@ -2,8 +2,8 @@ const figlet = require('figlet');
 const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
 const { TimeUtil, Util } = require('./util');
-const { AccountTypeIds, SpecialValues } = require('./const');
-const { AccountDao, ActionDao, TokenDao } = require('./dao');
+const { AccountTypeIds, SpecialValues, DappTypeIds } = require('./const');
+const { AccountDao, ActionDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
@@ -28,6 +28,8 @@ class LoadBetData {
         this.accountDao = new AccountDao(this.snowflake);
         this.actionDao = new ActionDao(this.snowflake);
         this.tokenDao = new TokenDao(this.snowflake);
+        this.dappTableDao = new DappTableDao(this.snowflake);
+        this.betDao = new BetDao(this.snowflake);
 
     }
 
@@ -53,70 +55,52 @@ class LoadBetData {
 
     }
 
-    async _insertExchangeTrade({
-        tokenAccountId,
-        actionId,
-        fromAccountId,
-        toAccountId,
-        quantity,
-        quantityTokenId,
-        orderTypeId,
-        quoteTokenId,
-        baseTokenId,
-        tradeQuantity,
-        tradePrice,
-        channelId,
-        dayId,
-        hourOfDay,
-        blockTime
-    }) {
-
-        await this.snowflake.execute(`INSERT INTO exchange_trades(
-            token_account_id,
-            action_id,
-            from_account_id,
-            to_account_id,
-            quantity,
-            quantity_token_id,
-            order_type_id,
-            quote_token_id,
-            base_token_id,
-            trade_quantity,
-            trade_price,
-            channel_id,
-            day_id,
-            hour_of_day,
-            block_time
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                tokenAccountId,
-                actionId,
-                fromAccountId,
-                toAccountId,
-                quantity,
-                quantityTokenId,
-                orderTypeId,
-                quoteTokenId,
-                baseTokenId,
-                tradeQuantity,
-                tradePrice,
-                channelId,
-                dayId,
-                hourOfDay,
-                blockTime
-
-            ]);
+    async _getGamblingDappTableListeners() {
+        const dappTables = await this.dappTableDao.selectByDappTypeId(DappTypeIds.GAMBLING);
+        let listeners = [];
+        for (let dappTable of dappTables) {
+            listeners.push({
+                dappTableId: dappTable.DAPP_TABLE_ID,
+                code: dappTable.CODE_ACCOUNT_NAME,
+                scope: dappTable.SCOPE_ACCOUNT_NAME,
+                table: dappTable.DAPP_TABLE_NAME,
+            });
+        }
+        return listeners;
     }
 
+
     async start() {
-        const {
-            betTables
-        } = this.config;
 
         this.printFiglet();
 
         try {
-            this.listener.addTableListeners({ tables: betTables });
+            await this.snowflake.connect();
+            console.log("Getting gambling table listeners:");
+            const betTables = await this._getGamblingDappTableListeners();
+            console.log(betTables);
+
+            this.listener.addTableListeners({
+                tables: betTables,
+                insertCallbackFn: async payload => {
+
+                    console.log('---INSERT---');
+                    console.dir(payload.message);
+                    console.dir(payload.dbop.new);
+                },
+                updateCallbackFn: async payload => {
+                    console.log('---UPDATE---');
+                    console.dir(payload.message);
+                    console.dir(payload.dbop.old);
+                    console.dir(payload.dbop.new);
+                },
+                removeCallbackFn: async payload => {
+                    console.log('---REMOVE---');
+                    console.dir(payload.message);
+                    console.dir(payload.dbop.old);
+                },
+
+            });
         } catch (error) {
             logger.error(error);
         }

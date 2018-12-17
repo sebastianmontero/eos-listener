@@ -29,7 +29,7 @@ class TokenDAO extends BaseDao {
     }
 
 
-    async updateAccountId(tokenId, accountId) {
+    async update(tokenId, accountId) {
         await this.snowflake.execute('UPDATE token SET account_id = :1 WHERE token_id = :2', [accountId, tokenId]);
     }
 
@@ -37,7 +37,7 @@ class TokenDAO extends BaseDao {
         if (accountId >= 0) {
             const token = await this.selectById(id);
             if (token.ACCOUNT_ID < 0) {
-                await this.updateAccountId(id, accountId);
+                await this.update(id, accountId);
             }
         }
     }
