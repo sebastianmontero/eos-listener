@@ -18,10 +18,10 @@ class BetDAO {
         betStatusId,
         placedDayId,
         placedHourOfDay,
-        placedBetTime,
+        placedTime,
         completedDayId,
         completedHourOfDay,
-        completedBetTime,
+        completedTime,
 
     }) {
 
@@ -37,10 +37,10 @@ class BetDAO {
                 bet_status_id,
                 placed_day_id,
                 placed_hour_of_day,
-                placed_bet_time,
+                placed_time,
                 completed_day_id,
                 completed_hour_of_day,
-                completed_bet_time,
+                completed_time
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 dappTableId,
@@ -53,10 +53,10 @@ class BetDAO {
                 betStatusId,
                 placedDayId,
                 placedHourOfDay,
-                placedBetTime,
+                placedTime,
                 completedDayId,
                 completedHourOfDay,
-                completedBetTime
+                completedTime
             ]
         );
     }
@@ -66,32 +66,50 @@ class BetDAO {
         dappTableId,
         gameBetId,
         winAmount,
+        winTokenId,
         betStatusId,
         completedDayId,
         completedHourOfDay,
-        completedBetTime,
+        completedTime,
     }) {
 
         await this.snowflake.execute(
             `UPDATE bet 
              SET win_amount = :1,
-                 bet_status_id = :2,
-                 completed_day_id = :3,
-                 completed_hour_of_day = :4,
-                 completed_bet_time = :5
-             WHERE dapp_table_id = :6 AND
-                   game_bet_id = :7`,
+                 win_token_id = :2,
+                 bet_status_id = :3,
+                 completed_day_id = :4,
+                 completed_hour_of_day = :5,
+                 completed_time = :6
+             WHERE dapp_table_id = :7 AND
+                   game_bet_id = :8`,
             [
                 winAmount,
+                winTokenId,
                 betStatusId,
                 completedDayId,
                 completedHourOfDay,
-                completedBetTime,
+                completedTime,
                 dappTableId,
                 gameBetId,
             ]
         );
     }
+
+    async remove({
+        dappTableId,
+        gameBetId,
+    }) {
+        const row = await this.snowflake.execute(
+            `DELETE 
+            FROM bet
+            WHERE dapp_table_id = :1 AND
+                  game_bet_id = :2`,
+            [dappTableId, gameBetId]
+        );
+        return row.length ? row.BET_ID : null;
+    }
+
 
     async selectId({
         dappTableId,

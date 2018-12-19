@@ -5,6 +5,8 @@ const DBOps = require('./DBOps');
 const ForkSteps = require('./ForkSteps');
 const TableListenerModes = require('./TableListenerModes');
 const DappTypeIds = require('./DappTypeIds');
+const DappIds = require('./DappIds');
+const BetStatusIds = require('./BetStatusIds');
 
 module.exports = {
     AccountTypeIds,
@@ -13,5 +15,7 @@ module.exports = {
     DBOps,
     ForkSteps,
     TableListenerModes,
-    DappTypeIds
+    DappTypeIds,
+    DappIds,
+    BetStatusIds,
 };

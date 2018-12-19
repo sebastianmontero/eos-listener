@@ -43,11 +43,14 @@ class DappTableDAO extends BaseDao {
         return await this.snowflake.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
-                    code_account_id, 
-                    scope_account_id
+                    code_account_id,
+                    ca.account_name code_account_name,
+                    scope_account_id,
+                    sa.account_name scope_account_name
             FROM dapp_table dt INNER JOIN
-                 account a ON dt.code_account_id = a.account_id
-            WHERE a.dapp_id = :1`,
+                account ca ON dt.code_account_id = ca.account_id INNER JOIN
+                account sa ON dt.scope_account_id = sa.account_id
+            WHERE ca.dapp_id = :1`,
             [dappId]
         );
     }

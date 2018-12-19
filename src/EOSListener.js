@@ -150,6 +150,7 @@ class EOSListener {
     }) {
         tables.forEach(table => {
             console.log('Table: ', table);
+            const { dappTableId } = table;
             this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
                 try {
                     if (message.type == InboundMessageType.TABLE_DELTA) {
@@ -159,7 +160,10 @@ class EOSListener {
                             data,
                             step,
                             dbop,
-                            message
+                            message,
+                            dappTableId,
+                            oldRow: dbop.old && dbop.old.json,
+                            newRow: dbop.new && dbop.new.json,
                         };
                         const isHistoryMode = mode === TableListenerModes.HISTORY;
                         if (step === ForkSteps.NEW || step === ForkSteps.REDO) {

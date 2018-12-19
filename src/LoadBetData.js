@@ -2,11 +2,12 @@ const figlet = require('figlet');
 const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
 const { TimeUtil, Util } = require('./util');
-const { AccountTypeIds, SpecialValues, DappTypeIds } = require('./const');
+const { AccountTypeIds, SpecialValues, DappTypeIds, DappIds, BetStatusIds } = require('./const');
 const { AccountDao, ActionDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
+const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
 class LoadBetData {
     constructor(config) {
@@ -55,8 +56,8 @@ class LoadBetData {
 
     }
 
-    async _getGamblingDappTableListeners() {
-        const dappTables = await this.dappTableDao.selectByDappTypeId(DappTypeIds.GAMBLING);
+    async _getGamblingDappTableListeners(dappId) {
+        const dappTables = await this.dappTableDao.selectByDappId(dappId);
         let listeners = [];
         for (let dappTable of dappTables) {
             listeners.push({
@@ -77,27 +78,89 @@ class LoadBetData {
         try {
             await this.snowflake.connect();
             console.log("Getting gambling table listeners:");
-            const betTables = await this._getGamblingDappTableListeners();
+            const betTables = await this._getGamblingDappTableListeners(DappIds.FISH_JOY);
             console.log(betTables);
 
             this.listener.addTableListeners({
                 tables: betTables,
                 insertCallbackFn: async payload => {
-
-                    console.log('---INSERT---');
+                    const { dappTableId, newRow, newRow: { id, buyer, eosToken, create_time, result } } = payload;
+                    console.log('---INSERT---', dappTableId);
                     console.dir(payload.message);
-                    console.dir(payload.dbop.new);
+                    console.log('New Row');
+                    console.dir(newRow);
+
+                    const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(eosToken);
+                    const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
+
+                    let winAmount, winTokenId, betStatusId;
+
+                    winTokenId = betTokenId;
+
+                    if (result == 1) {
+                        winAmount = betAmount;
+                        betStatusId = BetStatusIds.COMPLETED;
+                    } else {
+                        winAmount = 0;
+                        betStatusId = UNKNOWN;
+                    }
+                    const placedDate = new Date(create_time + 'Z');
+                    const placedDayId = TimeUtil.dayId(placedDate);
+
+                    const toInsert = {
+                        dappTableId,
+                        gameBetId: id,
+                        userAccountId: await this.accountDao.getAccountId(buyer, AccountTypeIds.USER, NOT_APPLICABLE),
+                        betAmount,
+                        betTokenId,
+                        winAmount,
+                        winTokenId,
+                        betStatusId,
+                        placedDayId,
+                        placedHourOfDay: placedDate.getUTCHours(),
+                        placedTime: create_time,
+                        completedDayId: UNKNOWN,
+                        completedHourOfDay: null,
+                        completedTime: null,
+                    };
+                    console.log(toInsert);
+                    await this.betDao.insert(toInsert);
                 },
                 updateCallbackFn: async payload => {
-                    console.log('---UPDATE---');
+                    const { dappTableId, newRow, newRow: { id, eosToken, result } } = payload;
+
+                    console.log('---UPDATE---', dappTableId);
                     console.dir(payload.message);
-                    console.dir(payload.dbop.old);
-                    console.dir(payload.dbop.new);
+                    console.log('New Row');
+                    console.dir(newRow);
+
+                    if (result == 1) {
+                        const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(eosToken);
+                        const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
+                        const toUpdate = {
+                            dappTableId,
+                            gameBetId: id,
+                            winAmount,
+                            winTokenId,
+                            betStatusId: BetStatusIds.COMPLETED,
+                            completedDayId: UNKNOWN,
+                            completedHourOfDay: null,
+                            completedTime: null,
+                        };
+                        console.log(toUpdate);
+                        await this.betDao.update(toUpdate);
+                    }
+
                 },
                 removeCallbackFn: async payload => {
-                    console.log('---REMOVE---');
+
+                    const { dappTableId, oldRow: { id } } = payload;
+                    console.log('---UPDATE---', dappTableId);
                     console.dir(payload.message);
-                    console.dir(payload.dbop.old);
+                    await this.betDao.remove({
+                        dappTableId,
+                        gameBetId: id,
+                    });
                 },
 
             });
