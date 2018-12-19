@@ -1,13 +1,14 @@
 const Lock = require('../lock/Lock');
 
 
+
 class BetDAO {
     constructor(snowflake) {
         this.lock = new Lock();
         this.snowflake = snowflake;
     }
 
-    async insert({
+    _toInsertArray({
         dappTableId,
         gameBetId,
         userAccountId,
@@ -24,6 +25,25 @@ class BetDAO {
         completedTime,
 
     }) {
+        return [
+            dappTableId,
+            gameBetId,
+            userAccountId,
+            betAmount,
+            betTokenId,
+            winAmount,
+            winTokenId,
+            betStatusId,
+            placedDayId,
+            placedHourOfDay,
+            placedTime,
+            completedDayId,
+            completedHourOfDay,
+            completedTime
+        ];
+    }
+
+    async _insert(values) {
 
         await this.snowflake.execute(
             `INSERT INTO bet (
@@ -42,23 +62,22 @@ class BetDAO {
                 completed_hour_of_day,
                 completed_time
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                dappTableId,
-                gameBetId,
-                userAccountId,
-                betAmount,
-                betTokenId,
-                winAmount,
-                winTokenId,
-                betStatusId,
-                placedDayId,
-                placedHourOfDay,
-                placedTime,
-                completedDayId,
-                completedHourOfDay,
-                completedTime
-            ]
+            values
         );
+    }
+
+    async insert(bets) {
+
+        if (!Array.isArray(bets)) {
+            bets = [bets];
+        }
+
+        let values = [];
+        for (let bet of bets) {
+            values.push(this._toInsertArray(bet));
+        }
+
+        await this._insert(values);
     }
 
 

@@ -80,7 +80,8 @@ class LoadBetData {
             console.log("Getting gambling table listeners:");
             const betTables = await this._getGamblingDappTableListeners(DappIds.FISH_JOY);
             console.log(betTables);
-
+            let batch = {};
+            let count = 0;
             this.listener.addTableListeners({
                 tables: betTables,
                 insertCallbackFn: async payload => {
@@ -123,8 +124,17 @@ class LoadBetData {
                         completedHourOfDay: null,
                         completedTime: null,
                     };
-                    console.log(toInsert);
-                    await this.betDao.insert(toInsert);
+                    batch[id] = toInsert;
+                    count++;
+                    console.log('Count: ', count);
+                    console.dir(toInsert);
+                    if (count > 100) {
+                        const batchArray = Object.values(batch);
+                        batch = [];
+                        count = 0;
+                        await this.betDao.insert(batchArray);
+                    }
+
                 },
                 updateCallbackFn: async payload => {
                     const { dappTableId, newRow, newRow: { id, eosToken, result } } = payload;
@@ -135,20 +145,27 @@ class LoadBetData {
                     console.dir(newRow);
 
                     if (result == 1) {
-                        const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(eosToken);
-                        const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
-                        const toUpdate = {
-                            dappTableId,
-                            gameBetId: id,
-                            winAmount,
-                            winTokenId,
-                            betStatusId: BetStatusIds.COMPLETED,
-                            completedDayId: UNKNOWN,
-                            completedHourOfDay: null,
-                            completedTime: null,
-                        };
-                        console.log(toUpdate);
-                        await this.betDao.update(toUpdate);
+                        if (id in batch) {
+                            let bet = batch[id];
+                            bet.winAmount = bet.betAmount;
+                            bet.betStatusId = BetStatusIds.COMPLETED;
+                            console.log('Found in batch, updated, id: ', id);
+                        } else {
+                            const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(eosToken);
+                            const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
+                            const toUpdate = {
+                                dappTableId,
+                                gameBetId: id,
+                                winAmount,
+                                winTokenId,
+                                betStatusId: BetStatusIds.COMPLETED,
+                                completedDayId: UNKNOWN,
+                                completedHourOfDay: null,
+                                completedTime: null,
+                            };
+                            console.log(toUpdate);
+                            await this.betDao.update(toUpdate);
+                        }
                     }
 
                 },
@@ -157,10 +174,17 @@ class LoadBetData {
                     const { dappTableId, oldRow: { id } } = payload;
                     console.log('---UPDATE---', dappTableId);
                     console.dir(payload.message);
-                    await this.betDao.remove({
-                        dappTableId,
-                        gameBetId: id,
-                    });
+                    if (id in batch) {
+                        count--;
+                        delete batch[id];
+                        console.log('Found in batch removed, id: ', id);
+                    } else {
+                        await this.betDao.remove({
+                            dappTableId,
+                            gameBetId: id,
+                        });
+                    }
+
                 },
 
             });
