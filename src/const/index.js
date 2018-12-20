@@ -7,6 +7,7 @@ const TableListenerModes = require('./TableListenerModes');
 const DappTypeIds = require('./DappTypeIds');
 const DappIds = require('./DappIds');
 const BetStatusIds = require('./BetStatusIds');
+const TokenIds = require('./TokenIds');
 
 module.exports = {
     AccountTypeIds,
@@ -18,4 +19,5 @@ module.exports = {
     DappTypeIds,
     DappIds,
     BetStatusIds,
+    TokenIds,
 };

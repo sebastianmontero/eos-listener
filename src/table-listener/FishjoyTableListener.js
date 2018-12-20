@@ -22,6 +22,7 @@ class FishjoyTableListener extends BaseBatchTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
+        this.batchSize = 20;
     }
 
     async _insert(batchArray) {

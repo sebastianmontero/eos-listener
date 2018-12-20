@@ -22,7 +22,6 @@ class FarmEOSTableListener extends BaseBatchTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
-        this.batchSize = 10;
     }
 
     async _insert(batchArray) {
