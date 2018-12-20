@@ -6,6 +6,8 @@ const { logger } = require('../Logger');
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
+const BET_COMPLETED = 2;
+
 class FarmEOSTableListener extends BaseBatchTableListener {
     constructor({
         accountDao,
@@ -20,6 +22,7 @@ class FarmEOSTableListener extends BaseBatchTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
+        this.batchSize = 10;
     }
 
     async _insert(batchArray) {
@@ -27,30 +30,32 @@ class FarmEOSTableListener extends BaseBatchTableListener {
     }
 
     async insert(payload) {
-        //const { dappTableId, newRow: { id, buyer, eosToken, create_time, result } } = payload;
-        const { dappTableId } = payload;
-        console.log('dappTableId: ', dappTableId);
-        /*const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(eosToken);
+        const {
+            dappTableId,
+            newRow: {
+                bet_id,
+                user_name,
+                bet_amount,
+                win_amount,
+                bet_time,
+                status,
+            }
+        } = payload;
+
+        const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(bet_amount);
+        const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(win_amount);
         const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
+        const winTokenId = betSymbol == winSymbol ? betTokenId : await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
 
-        let winAmount, winTokenId, betStatusId;
+        let betStatusId = status === BET_COMPLETED ? BetStatusIds.COMPLETED : BetStatusIds.PLACED;
 
-        winTokenId = betTokenId;
-
-        if (result == 1) {
-            winAmount = betAmount;
-            betStatusId = BetStatusIds.COMPLETED;
-        } else {
-            winAmount = 0;
-            betStatusId = UNKNOWN;
-        }
-        const placedDate = new Date(create_time + 'Z');
+        const placedDate = new Date(bet_time * 1000);
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {
             dappTableId,
-            gameBetId: id,
-            userAccountId: await this.accountDao.getAccountId(buyer, AccountTypeIds.USER, NOT_APPLICABLE),
+            gameBetId: bet_id,
+            userAccountId: await this.accountDao.getAccountId(user_name, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount,
             betTokenId,
             winAmount,
@@ -58,32 +63,30 @@ class FarmEOSTableListener extends BaseBatchTableListener {
             betStatusId,
             placedDayId,
             placedHourOfDay: placedDate.getUTCHours(),
-            placedTime: create_time,
+            placedTime: TimeUtil.toUTCDateTimeNTZString(placedDate),
             completedDayId: UNKNOWN,
             completedHourOfDay: null,
             completedTime: null,
         };
-        await this._addToBatch(id, toInsert);*/
+        await this._addToBatch(bet_id, toInsert);
 
     }
 
     async update(payload) {
-        //const { dappTableId, newRow: { id, eosToken, result } } = payload;
-        const { dappTableId } = payload;
-        /* if (result == 1) {
-            let bet = this._getObj(id);
+        const { dappTableId, newRow: { bet_id, win_amount, status } } = payload;
+
+        if (status === BET_COMPLETED) {
+            const { amount: winAmount } = Util.parseAsset(win_amount);
+            let bet = this._getObj(bet_id);
             if (bet) {
-                bet.winAmount = bet.betAmount;
+                bet.winAmount = winAmount;
                 bet.betStatusId = BetStatusIds.COMPLETED;
-                logger.debug('Found in batch, updated, id: ', id);
+                logger.debug('Found in batch, updated, id: ', bet_id);
             } else {
-                const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(eosToken);
-                const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
                 const toUpdate = {
                     dappTableId,
-                    gameBetId: id,
+                    gameBetId: bet_id,
                     winAmount,
-                    winTokenId,
                     betStatusId: BetStatusIds.COMPLETED,
                     completedDayId: UNKNOWN,
                     completedHourOfDay: null,
@@ -92,18 +95,18 @@ class FarmEOSTableListener extends BaseBatchTableListener {
                 logger.debug(toUpdate);
                 await this.betDao.update(toUpdate);
             }
-        } */
+        }
     }
 
     async remove(payload) {
-        //const { dappTableId, oldRow: { id } } = payload;
-        const { dappTableId } = payload;
-        /* if (!this._removeFromBatch(id)) {
+        const { dappTableId, oldRow: { bet_id } } = payload;
+
+        if (!this._removeFromBatch(bet_id)) {
             await this.betDao.remove({
                 dappTableId,
-                gameBetId: id,
+                gameBetId: bet_id,
             });
-        } */
+        }
     }
 }
 

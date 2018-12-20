@@ -6,6 +6,8 @@ const { logger } = require('../Logger');
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
+const WON_BET = 1; //It's known when bet is won, but are not able to determine between if the bet has been lost or it hasn't been completed
+
 class FishjoyTableListener extends BaseBatchTableListener {
     constructor({
         accountDao,
@@ -35,7 +37,7 @@ class FishjoyTableListener extends BaseBatchTableListener {
 
         winTokenId = betTokenId;
 
-        if (result == 1) {
+        if (result == WON_BET) {
             winAmount = betAmount;
             betStatusId = BetStatusIds.COMPLETED;
         } else {
@@ -68,20 +70,18 @@ class FishjoyTableListener extends BaseBatchTableListener {
     async update(payload) {
         const { dappTableId, newRow: { id, eosToken, result } } = payload;
 
-        if (result == 1) {
+        if (result == WON_BET) {
             let bet = this._getObj(id);
             if (bet) {
                 bet.winAmount = bet.betAmount;
                 bet.betStatusId = BetStatusIds.COMPLETED;
                 logger.debug('Found in batch, updated, id: ', id);
             } else {
-                const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(eosToken);
-                const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
+                const { amount: winAmount } = Util.parseAsset(eosToken);
                 const toUpdate = {
                     dappTableId,
                     gameBetId: id,
                     winAmount,
-                    winTokenId,
                     betStatusId: BetStatusIds.COMPLETED,
                     completedDayId: UNKNOWN,
                     completedHourOfDay: null,

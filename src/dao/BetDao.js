@@ -92,26 +92,32 @@ class BetDAO {
         completedTime,
     }) {
 
+        let winTokenIdStr = '';
+        let params = [
+            winAmount,
+            betStatusId,
+            completedDayId,
+            completedHourOfDay,
+            completedTime,
+            dappTableId,
+            gameBetId,
+        ];
+
+        if (winTokenId !== undefined) {
+            winTokenIdStr = 'win_token_id = :8,';
+            params.push(winTokenId);
+        }
         await this.snowflake.execute(
             `UPDATE bet 
              SET win_amount = :1,
-                 win_token_id = :2,
-                 bet_status_id = :3,
-                 completed_day_id = :4,
-                 completed_hour_of_day = :5,
-                 completed_time = :6
-             WHERE dapp_table_id = :7 AND
-                   game_bet_id = :8`,
-            [
-                winAmount,
-                winTokenId,
-                betStatusId,
-                completedDayId,
-                completedHourOfDay,
-                completedTime,
-                dappTableId,
-                gameBetId,
-            ]
+                 ${winTokenIdStr}
+                 bet_status_id = :2,
+                 completed_day_id = :3,
+                 completed_hour_of_day = :4,
+                 completed_time = :5
+             WHERE dapp_table_id = :6 AND
+                   game_bet_id = :7`,
+            params
         );
     }
 
