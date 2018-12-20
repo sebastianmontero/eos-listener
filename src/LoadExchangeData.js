@@ -187,13 +187,11 @@ class LoadExchangeData {
 
         try {
             await this.snowflake.connect();
-            console.log("Getting action traces:");
             const actionTraces = await this._getActionTraces();
-            console.log("Action Traces:")
-            console.dir(actionTraces);
+            logger.debug("Action Traces:", actionTraces);
             const actionFilters = await this._getActionFilters();
+            logger.debug("Action Filters:", actionFilters);
 
-            console.dir(actionFilters);
             this.listener.addActionTraces({
                 actionTraces,
                 actionFilters,

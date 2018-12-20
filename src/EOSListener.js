@@ -116,40 +116,24 @@ class EOSListener {
         });
     }
 
-    async addTableListeners({
-        tables,
-        insertCallbackFn,
-        updateCallbackFn,
-        removeCallbackFn,
-        streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY }
-    }) {
-        const listenerConfig = {
-            tables,
-            insertCallbackFn,
-            updateCallbackFn,
-            removeCallbackFn,
-            streamOptions
-        };
+    async addTableListeners(listenerObj) {
 
-        this._addedTableListeners.push(listenerConfig);
+
+        this._addedTableListeners.push(listenerObj);
         try {
             await this.client.connect();
             logger.info("Connected to mainet!");
         } catch (error) {
             logger.error(error);
         }
-        this._addTableListeners(listenerConfig);
+        await this._addTableListeners(listenerObj);
     }
 
-    _addTableListeners({
-        tables,
-        insertCallbackFn,
-        updateCallbackFn,
-        removeCallbackFn,
-        streamOptions,
-    }) {
+    async _addTableListeners(listenerObj) {
+        let tables = await listenerObj.getTables();
+        logger.debug('Table listeners: ', tables);
+        const { streamOptions } = listenerObj;
         tables.forEach(table => {
-            console.log('Table: ', table);
             const { dappTableId } = table;
             this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
                 try {
@@ -168,19 +152,19 @@ class EOSListener {
                         const isHistoryMode = mode === TableListenerModes.HISTORY;
                         if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
                             if (op === DBOps.INSERT) {
-                                insertCallbackFn(payload);
+                                listenerObj.insert(payload);
                             } else if (op === DBOps.UPDATE) {
-                                updateCallbackFn(payload);
+                                listenerObj.update(payload);
                             } else if (op === DBOps.REMOVE && !isHistoryMode) {
-                                removeCallbackFn(payload);
+                                listenerObj.remove(payload);
                             }
                         } else if (step === ForkSteps.UNDO) {
                             if (op === DBOps.INSERT && !isHistoryMode) {
-                                insertCallbackFn(payload);
+                                listenerObj.insert(payload);
                             } else if (op === DBOps.UPDATE) {
-                                updateCallbackFn(payload);
+                                listenerObj.update(payload);
                             } else if (op === DBOps.REMOVE) {
-                                removeCallbackFn(payload);
+                                listenerObj.remove(payload);
                             }
                         }
                     }
