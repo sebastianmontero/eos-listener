@@ -152,18 +152,24 @@ class EOSListener {
                         const isHistoryMode = mode === TableListenerModes.HISTORY;
                         if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
                             if (op === DBOps.INSERT) {
+                                logger.debug('Insert new o redo:', payload);
                                 listenerObj.insert(payload);
                             } else if (op === DBOps.UPDATE) {
+                                logger.debug('Update new o redo:', payload);
                                 listenerObj.update(payload);
                             } else if (op === DBOps.REMOVE && !isHistoryMode) {
+                                logger.debug('Remove new o redo:', payload);
                                 listenerObj.remove(payload);
                             }
                         } else if (step === ForkSteps.UNDO) {
                             if (op === DBOps.INSERT && !isHistoryMode) {
+                                logger.debug('Insert undo:', payload);
                                 listenerObj.insert(payload);
                             } else if (op === DBOps.UPDATE) {
+                                logger.debug('Update undo:', payload);
                                 listenerObj.update(payload);
                             } else if (op === DBOps.REMOVE) {
+                                logger.debug('Remove undo:', payload);
                                 listenerObj.remove(payload);
                             }
                         }

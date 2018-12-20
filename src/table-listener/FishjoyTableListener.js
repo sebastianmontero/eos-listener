@@ -28,9 +28,6 @@ class FishjoyTableListener extends BaseBatchTableListener {
 
     async insert(payload) {
         const { dappTableId, newRow: { id, buyer, eosToken, create_time, result } } = payload;
-        logger.debug('---INSERT---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
-
         const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(eosToken);
         const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
@@ -71,9 +68,6 @@ class FishjoyTableListener extends BaseBatchTableListener {
     async update(payload) {
         const { dappTableId, newRow: { id, eosToken, result } } = payload;
 
-        logger.debug('---UPDATE---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
-
         if (result == 1) {
             let bet = this._getObj(id);
             if (bet) {
@@ -101,8 +95,6 @@ class FishjoyTableListener extends BaseBatchTableListener {
 
     async remove(payload) {
         const { dappTableId, oldRow: { id } } = payload;
-        logger.debug('---REMOVE---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
         if (!this._removeFromBatch(id)) {
             await this.betDao.remove({
                 dappTableId,

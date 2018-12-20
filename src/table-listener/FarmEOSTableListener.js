@@ -29,9 +29,7 @@ class FarmEOSTableListener extends BaseBatchTableListener {
     async insert(payload) {
         //const { dappTableId, newRow: { id, buyer, eosToken, create_time, result } } = payload;
         const { dappTableId } = payload;
-        logger.debug('---INSERT---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
-
+        console.log('dappTableId: ', dappTableId);
         /*const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(eosToken);
         const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
@@ -72,9 +70,6 @@ class FarmEOSTableListener extends BaseBatchTableListener {
     async update(payload) {
         //const { dappTableId, newRow: { id, eosToken, result } } = payload;
         const { dappTableId } = payload;
-        logger.debug('---UPDATE---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
-
         /* if (result == 1) {
             let bet = this._getObj(id);
             if (bet) {
@@ -103,8 +98,6 @@ class FarmEOSTableListener extends BaseBatchTableListener {
     async remove(payload) {
         //const { dappTableId, oldRow: { id } } = payload;
         const { dappTableId } = payload;
-        logger.debug('---REMOVE---, dappTableId: ', dappTableId);
-        logger.debug('Table delta message: ', payload.message);
         /* if (!this._removeFromBatch(id)) {
             await this.betDao.remove({
                 dappTableId,
