@@ -16,6 +16,7 @@ class BaseBatchTableListener extends BaseTableListener {
         });
         this.count = 0;
         this.batch = {}
+        this.batchSize = 20;
     }
 
     async _insert(batchArray) {
@@ -28,7 +29,7 @@ class BaseBatchTableListener extends BaseTableListener {
         this.count++;
         logger.debug('Count: ', this.count);
         logger.debug(toInsert);
-        if (this.count > 100) {
+        if (this.count > this.batchSize) {
             const batchArray = Object.values(this.batch);
             this.batch = [];
             this.count = 0;
