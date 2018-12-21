@@ -3,7 +3,13 @@ const Snowflake = require('snowflake-promise').Snowflake;
 const EOSListener = require('./EOSListener');
 const { AccountDao, ActionDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
-const { FishjoyTableListener, FarmEOSTableListener, EOSBetTableListener, FastwinTableListener } = require('./table-listener');
+const {
+    FishjoyTableListener,
+    FarmEOSTableListener,
+    EOSBetTableListener,
+    FastwinTableListener,
+    EndlessDiceTableListener,
+} = require('./table-listener');
 
 class LoadBetData {
     constructor(config) {
@@ -65,18 +71,21 @@ class LoadBetData {
                 dappTableDao: this.dappTableDao,
                 betDao: this.betDao
             };
-            /* let fishJoyTableListener = new FishjoyTableListener(config);
+            let fishJoyTableListener = new FishjoyTableListener(config);
             logger.debug('Adding Fishjoy Table Listener');
-            this.listener.addTableListeners(fishJoyTableListener);  */
-            /* let farmEOSTableListener = new FarmEOSTableListener(config);
+            this.listener.addTableListeners(fishJoyTableListener);
+            let farmEOSTableListener = new FarmEOSTableListener(config);
             logger.debug('Adding FarmEOS Table Listener');
-            this.listener.addTableListeners(farmEOSTableListener); */
-            /* let eosBetTableListener = new EOSBetTableListener(config);
+            this.listener.addTableListeners(farmEOSTableListener);
+            let eosBetTableListener = new EOSBetTableListener(config);
             logger.debug('Adding EOSBet Table Listener');
-            this.listener.addTableListeners(eosBetTableListener); */
+            this.listener.addTableListeners(eosBetTableListener);
             let fastwinTableListener = new FastwinTableListener(config);
             logger.debug('Adding Fastwin Table Listener');
             this.listener.addTableListeners(fastwinTableListener);
+            let endlessDiceTableListener = new EndlessDiceTableListener(config);
+            logger.debug('Adding Endless Table Listener');
+            this.listener.addTableListeners(endlessDiceTableListener);
         } catch (error) {
             logger.error(error);
         }
