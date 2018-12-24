@@ -27,6 +27,16 @@ class AccountDAO extends BaseDao {
         return rows.length ? rows[0] : null;
     }
 
+    async select() {
+        return await this.snowflake.execute(
+            `SELECT account_id, 
+                    account_name, 
+                    account_type_id, 
+                    dapp_id 
+            FROM account
+            WHERE account_id > 0`);
+    }
+
     async selectByDappType(dappTypeId) {
         const rows = await this.snowflake.execute(
             `SELECT a.account_id, 

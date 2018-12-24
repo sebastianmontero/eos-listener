@@ -1,7 +1,7 @@
-const LoadExchangeData = require('./LoadExchangeData');
+const ExchangeDataLoader = require('./ExchangeDataLoader');
 const config = require('config');
 const logger = require('./Logger');
 
 logger.configure('load-exchange-data');
-const loader = new LoadExchangeData(config);
+const loader = new ExchangeDataLoader(config);
 loader.start();

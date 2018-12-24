@@ -10,7 +10,7 @@ const { logger } = require('./Logger');
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
-class LoadExchangeData {
+class ExchangeDataLoader {
     constructor(config) {
         this.config = config;
         const {
@@ -242,4 +242,4 @@ class LoadExchangeData {
     }
 }
 
-module.exports = LoadExchangeData;
+module.exports = ExchangeDataLoader;

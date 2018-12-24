@@ -11,7 +11,7 @@ const {
     EndlessDiceTableListener,
 } = require('./table-listener');
 
-class LoadBetData {
+class BetDataLoader {
     constructor(config) {
         this.config = config;
         const {
@@ -92,4 +92,4 @@ class LoadBetData {
     }
 }
 
-module.exports = LoadBetData;
+module.exports = BetDataLoader;

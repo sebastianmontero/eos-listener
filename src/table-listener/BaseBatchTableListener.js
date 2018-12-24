@@ -16,7 +16,7 @@ class BaseBatchTableListener extends BaseTableListener {
         });
         this.count = 0;
         this.batch = {}
-        this.batchSize = 10;
+        this.batchSize = 20;
     }
 
     async _insert(batchArray) {

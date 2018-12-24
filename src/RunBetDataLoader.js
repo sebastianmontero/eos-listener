@@ -1,7 +1,7 @@
-const LoadBetData = require('./LoadBetData');
+const BetDataLoader = require('./BetDataLoader');
 const config = require('config');
 const logger = require('./Logger');
 
 logger.configure('load-bet-data');
-const loader = new LoadBetData(config);
+const loader = new BetDataLoader(config);
 loader.start();

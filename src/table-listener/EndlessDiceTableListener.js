@@ -6,8 +6,6 @@ const { logger } = require('../Logger');
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
-const BET_COMPLETED = 2;
-
 class EndlessDiceTableListener extends BaseBatchTableListener {
     constructor({
         accountDao,
