@@ -154,7 +154,10 @@ VALUES (-1, 'Unknown', -1),
        (21, 'DeltaDex', 2),
        (22, 'EOSDAQ', 2),
        (23, 'FarmEOS', 3),
-       (24, 'Fishjoy', 3);
+       (24, 'Fishjoy', 3),
+       (25, 'EOSBet', 3),
+       (26, 'Fastwin', 3),
+       (27, 'Endless Dice', 3);
 
 CREATE OR REPLACE TABLE account_type (
   account_type_id number(2,0) NOT NULL,
@@ -211,7 +214,12 @@ VALUES (-1, 'Unknown', -1, -1),
        (30, 'eosdaqooo11o', 1, 22),
        (31, 'eosdaqooo111', 1, 22),
        (32, 'farmeosbank1', 1, 23),
-       (33, 'fishjoyadmin', 1, 24);
+       (33, 'fishjoyadmin', 1, 24),
+       (34, 'eosbetdice11', 1, 25),
+       (35, 'eosbaccarat1', 1, 25),
+       (36, 'eosbetcrash1', 1, 25),
+       (37, 'fastwindice1', 1, 26),
+       (38, 'endlessdicex', 1, 27);
 
 
 CREATE OR REPLACE TABLE action (
@@ -305,7 +313,12 @@ VALUES(1, 'bets', 32, 32),
       (2, 'rouls', 32, 32),
       (3, 'mines', 32, 32),
       (4, 'bjs', 32, 32),
-      (5, 'betticket21', 33, 33);
+      (5, 'betticket21', 33, 33),
+      (6, 'activebets', 34, 34),
+      (7, 'activebets', 35, 35),
+      (8, 'activebets', 36, 36),
+      (9, 'activebets', 37, 37),
+      (10, 'bets', 38, 38);
 
 CREATE OR REPLACE TABLE bet_status (
     bet_status_id NUMBER(1, 0),
@@ -344,3 +357,4 @@ CREATE OR REPLACE TABLE bet (
     CONSTRAINT fk_bet_day1 FOREIGN KEY (placed_day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT fk_bet_day2 FOREIGN KEY (completed_day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
+
