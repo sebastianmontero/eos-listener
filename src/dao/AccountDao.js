@@ -11,7 +11,7 @@ class AccountDAO extends BaseDao {
     }
 
     async _selectId({ accountName }) {
-        const rows = await this.snowflake.execute('SELECT account_id FROM account WHERE account_name = :1', [accountName]);
+        const rows = await this.snowflake.execute('SELECT account_id FROM account WHERE account_name = :1', [accountName.toLowerCase()]);
         return rows.length ? rows[0].ACCOUNT_ID : null;
     }
 
@@ -37,6 +37,19 @@ class AccountDAO extends BaseDao {
             WHERE account_id > 0`);
     }
 
+    selectStream() {
+        return this.snowflake.createStatement({
+            sqlText:
+                `SELECT account_id, 
+                    account_name, 
+                    account_type_id, 
+                    dapp_id 
+                FROM account
+                WHERE account_id > 0`,
+            streamResult: true
+        });
+    }
+
     async selectByDappType(dappTypeId) {
         const rows = await this.snowflake.execute(
             `SELECT a.account_id, 
@@ -54,7 +67,7 @@ class AccountDAO extends BaseDao {
         await this.snowflake.execute(
             `INSERT INTO account (account_name, account_type_id, dapp_id)
              VALUES (?, ?, ?)`,
-            [accountName, accountTypeId, dapp_id]);
+            [accountName.toLowerCase(), accountTypeId, dapp_id]);
     }
 
     async insert(accountName, accountTypeId, dapp_id) {

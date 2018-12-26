@@ -358,3 +358,13 @@ CREATE OR REPLACE TABLE bet (
     CONSTRAINT fk_bet_day2 FOREIGN KEY (completed_day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+CREATE OR REPLACE TABLE account_balance (
+  account_id int NOT NULL,
+  day_id NUMBER(7, 0) NOT NULL,
+  liquid number(24, 9) NOT NULL,
+  staked number(24, 9) NOT NULL,
+  refund number(24, 9) NOT NULL,
+  PRIMARY KEY (account_id, day_id),
+  CONSTRAINT fk_account_balance_account1 FOREIGN KEY (account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT fk_account_balance_day1 FOREIGN KEY (day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
+);

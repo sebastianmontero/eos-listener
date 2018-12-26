@@ -6,6 +6,7 @@ const TokenDao = require('./TokenDao');
 const BetDao = require('./BetDao');
 const ExchangeTradeDao = require('./ExchangeTradeDao')
 const DappTableDao = require('./DappTableDao');
+const AccountBalanceDao = require('./AccountBalanceDao');
 
 module.exports = {
     AccountDao,
@@ -16,4 +17,5 @@ module.exports = {
     BetDao,
     ExchangeTradeDao,
     DappTableDao,
+    AccountBalanceDao,
 };
