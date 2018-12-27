@@ -119,7 +119,8 @@ VALUES (-2, 'Not Applicable'),
        (2, 'Exchange'),
        (3, 'Gambling'),
        (4, 'Gaming'),
-       (5, 'Social');
+       (5, 'Social'),
+       (6, 'EOS Admin');
 
 CREATE OR REPLACE TABLE dapp (
     dapp_id int NOT NULL AUTOINCREMENT START 100,
@@ -157,7 +158,8 @@ VALUES (-1, 'Unknown', -1),
        (24, 'Fishjoy', 3),
        (25, 'EOSBet', 3),
        (26, 'Fastwin', 3),
-       (27, 'Endless Dice', 3);
+       (27, 'Endless Dice', 3),
+       (28, 'EOSIO', 6);
 
 CREATE OR REPLACE TABLE account_type (
   account_type_id number(2,0) NOT NULL,
@@ -168,7 +170,8 @@ CREATE OR REPLACE TABLE account_type (
 INSERT INTO account_type (account_type_id, account_type_desc)
 VALUES (-1, 'Unknown'),
        (1, 'Dapp'),
-       (2, 'User');
+       (2, 'User'),
+       (3, 'Block Producer');
 
 CREATE OR REPLACE TABLE account (
   account_id int NOT NULL AUTOINCREMENT START 100,
@@ -219,7 +222,8 @@ VALUES (-1, 'Unknown', -1, -1),
        (35, 'eosbaccarat1', 1, 25),
        (36, 'eosbetcrash1', 1, 25),
        (37, 'fastwindice1', 1, 26),
-       (38, 'endlessdicex', 1, 27);
+       (38, 'endlessdicex', 1, 27),
+       (39, 'eosio', 1, 28);
 
 
 CREATE OR REPLACE TABLE action (
@@ -318,7 +322,9 @@ VALUES(1, 'bets', 32, 32),
       (7, 'activebets', 35, 35),
       (8, 'activebets', 36, 36),
       (9, 'activebets', 37, 37),
-      (10, 'bets', 38, 38);
+      (10, 'bets', 38, 38),
+      (11, 'producers', 39, 39),
+      (12, 'voters', 39, 39);
 
 CREATE OR REPLACE TABLE bet_status (
     bet_status_id NUMBER(1, 0),
@@ -367,4 +373,14 @@ CREATE OR REPLACE TABLE account_balance (
   PRIMARY KEY (account_id, day_id),
   CONSTRAINT fk_account_balance_account1 FOREIGN KEY (account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT fk_account_balance_day1 FOREIGN KEY (day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+CREATE OR REPLACE TABLE block_producer (
+  account_id int NOT NULL,
+  is_active boolean NOT NULL,
+  url varchar(1000),
+  total_votes number(38,17) NOT NULL,
+  location number(5, 0) NOT NULL,
+  PRIMARY KEY (account_id),
+  CONSTRAINT fk_block_producer_account1 FOREIGN KEY (account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );

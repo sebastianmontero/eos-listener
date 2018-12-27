@@ -125,14 +125,13 @@ class BetDAO {
         dappTableId,
         gameBetId,
     }) {
-        const row = await this.snowflake.execute(
+        await this.snowflake.execute(
             `DELETE 
             FROM bet
             WHERE dapp_table_id = :1 AND
                   game_bet_id = :2`,
             [dappTableId, gameBetId]
         );
-        return row.length ? row.BET_ID : null;
     }
 
 
