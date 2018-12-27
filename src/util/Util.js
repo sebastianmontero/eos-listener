@@ -37,7 +37,7 @@ class Util {
         const result = parseAssetRegex.exec(value);
         if (result) {
             return {
-                amount: result[1],
+                amount: Number(result[1]),
                 symbol: result[2],
             };
         }

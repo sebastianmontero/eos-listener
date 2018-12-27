@@ -24,6 +24,9 @@ class TimeUtil {
         return new Date(Date.UTC(dayDate.getUTCFullYear(), dayDate.getUTCMonth(), dayDate.getUTCDate()));
     }
     static dayId(dayDate) {
+        if (!dayDate) {
+            dayDate = new Date();
+        }
         return TimeUtil.dayDiff(this.toUTCDate(dayDate), baseDate);
     }
 

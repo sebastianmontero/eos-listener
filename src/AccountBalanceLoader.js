@@ -4,6 +4,8 @@ const Snowflake = require('snowflake-promise').Snowflake;
 const { AccountDao } = require('./dao');
 const { AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
+const { Util, TimeUtil } = require('./util');
+const { logger } = require('./Logger');
 
 class AccountBalanceLoader {
 
@@ -14,7 +16,6 @@ class AccountBalanceLoader {
             available: httpEndpoints.map(endpoint => endpoint + '/v1/chain/get_account'),
             inuse: []
         };
-        console.dir(this.endpoints);
         this.streamMargin = 5;
         this.accountsFetched = 0;
         this.accountsStreamed = 0;
@@ -24,30 +25,17 @@ class AccountBalanceLoader {
         this.accountBalanceDao = new AccountBalanceDao(this.snowflake);
     }
 
-    /* async start() {
-        console.log('Loading account balances...');
-        await this.snowflake.connect();
-        const accounts = await this.accountDao.select();
-        for (let account of accounts) {
-            const accountDetails = await this._getAccountDetails(account.ACCOUNT_NAME);
-             this._getAccountDetails(account.ACCOUNT_NAME).then(accountDetails => {
-                if (accountDetails) {
-                    const { voter_info } = accountDetails;
-                    if (voter_info && voter_info.producers.length > 0) {
-                        console.log('Account: ', accountDetails);
-                    } 
-                }
-            }); 
-        }
-    } */
-
     async start() {
-        console.log('Loading account balances...');
+        const date = new Date();
+        this.dayId = TimeUtil.dayId(date);
+        logger.debug('Loading account balances.... For date: ', date);
         await this.snowflake.connect();
+        logger.debug('Deleting existing account balances for date: ', date);
+        this.accountBalanceDao.deleteByDayId(this.dayId);
         this.statement = this.accountDao.selectStream();
         await this.statement.execute();
         this.numAccounts = this.statement.getNumRows();
-        console.log('Num accounts: ', this.numAccounts);
+        logger.debug('Num accounts: ', this.numAccounts);
         this._streamRows();
 
     }
@@ -60,39 +48,55 @@ class AccountBalanceLoader {
         let end = start + this.endpoints.available.length + this.streamMargin;
         end = Math.min(end, this.numAccounts);
         this.accountsStreamed = end;
-        console.log(`Streaming from: ${start} to ${end}`);
         this.statement.streamRows({ start: start, end: end - 1 })
-            .on('error', console.error)
+            .on('error', logger.error)
             .on('data', async account => {
-                //this._getAccountDetails(account.ACCOUNT_NAME);
                 const accountDetails = await this._getAccountDetails(account.ACCOUNT_NAME);
                 this.accountsFetched++;
                 if (this._streamMore()) {
                     this._streamRows();
                 }
-                this.account
+                if (accountDetails) {
+                    const { core_liquid_balance, voter_info, refund_request } = accountDetails;
+                    const liquidObj = Util.parseAsset(core_liquid_balance)
+                    const liquid = liquidObj ? liquidObj.amount : 0;
+                    let staked = 0;
+                    if (voter_info) {
+                        staked = voter_info.staked / 1000;
+                    }
+                    let refund = 0;
+                    if (refund_request) {
+                        const { net_amount, cpu_amount } = refund_request;
+                        let refundNetObj = Util.parseAsset(net_amount);
+                        let refundCPUObj = Util.parseAsset(cpu_amount);
+                        let refundNet = refundNetObj ? refundNetObj.amount : 0;
+                        let refundCPU = refundCPUObj ? refundCPUObj.amount : 0;
+                        refund = refundCPU + refundNet;
+                    }
+                    const toInsert = {
+                        accountId: account.ACCOUNT_ID,
+                        dayId: this.dayId,
+                        liquid,
+                        staked,
+                        refund,
+                    };
+                    logger.debug('To insert: ', toInsert);
+                    await this.accountBalanceDao.insertBatch(toInsert);
+                }
+                if (this.numAccounts <= this.accountsFetched) {
+                    this.accountBalanceDao.flush();
+                }
+
             })
-            .on('end', () => console.log('All accounts have been streamed'));
+            .on('end', () => { });
     }
 
     _streamMore() {
         return (this.accountsStreamed - this.accountsFetched) <= this.streamMargin;
     }
 
-    /*async _getAccountDetails(accountName) {
-        try {
-            console.log('Getting account for: ', accountName);
-            return await this.rpc.get_account(accountName);
-        } catch (error) {
-            console.log(`Account: ${accountName} does not exist.`);
-            console.error(error);
-            return null;
-        }
-
-    }*/
-
     async _getAccountDetails(accountName) {
-        //console.log('Getting account for: ', accountName);
+        logger.debug('Getting account for: ', accountName);
         const payload = {
             account_name: accountName
         };
@@ -113,7 +117,6 @@ class AccountBalanceLoader {
                 headers: { 'Content-Type': 'application/json' }
 
             });
-            //console.log(response);
 
             const { status } = response;
             if (status === HttpStatus.BAD_GATEWAY) {
@@ -124,9 +127,9 @@ class AccountBalanceLoader {
             }
             if (status === HttpStatus.OK) {
                 account = await response.json();
-                console.log('Fetched: ', accountName);
+                //console.log('Fetched: ', accountName);
             } else {
-                console.log(`Invalid account name: ${accountName}, status: ${status}, endpoint: ${endpoint}`);
+                logger.error(`Invalid account name: ${accountName}, status: ${status}, endpoint: ${endpoint}`);
             }
             inuse.splice(inusePos, 1);
             available.push(endpoint);
@@ -134,7 +137,7 @@ class AccountBalanceLoader {
 
         } catch (error) {
             inuse.splice(inusePos, 1);
-            console.log(`Invalid endpoint:${endpoint}. Removing from available endpoints`);
+            logger.error(`Invalid endpoint:${endpoint}. Removing from available endpoints. Account name: ${accountName}`);
             account = await this._getAccountDetails(accountName);
         }
         return account;
