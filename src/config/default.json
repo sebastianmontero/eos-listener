@@ -2,7 +2,7 @@
     // get eosws_token from: https://dfuse.io/#subscribe
     "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NDU4NzYyODAsImp0aSI6IjQxZDU4ODBkLTQzY2QtNDRlMy05NzJmLWJhZWQ5ZTE3ZmE4MCIsImlhdCI6MTU0MzI4NDI4MCwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWUxWHNxQm8xVmowREJma3RnYVVuOHZsc2NzMDU4VzMxNTVQcmJJczlWWlFTUXdBL0NMUnRIZ2cyNmRsek1HRFZ5aFpFcHhyaWh0UTN0aDJoVFFDMEd1Qmh1OWlxNjVmTXA1WkFObmFZOWUyVWg4TytqcGhMLzlGYjJUMjBETEdxeEN5WkRubz0iLCJ0aWVyIjoiYmV0YS12MSIsInYiOjF9.wKULM0SVvmLva_VX7XouxE47uwYcNkx3TD1TkrLugOkC6RjPPcWfUJqsX9wjJGdhgl4u22hojksYE3482klsEA",
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
-    "eosjsEndpoints": [
+    "httpEndpoints": [
         "https://api.eosnewyork.io",
         "https://api.eosio.cr:80",
         "https://api.eosdetroit.io:443",

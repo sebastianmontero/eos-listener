@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const HttpStatus = require('http-status-codes');
 const Snowflake = require('snowflake-promise').Snowflake;
 const { AccountDao } = require('./dao');
 const { AccountBalanceDao } = require('./dao');
@@ -8,14 +9,19 @@ class AccountBalanceLoader {
 
     constructor(config) {
         this.config = config;
-        const { eosjsEndpoints, db } = config;
+        const { httpEndpoints, db } = config;
         this.endpoints = {
-            available: eosjsEndpoints.slice(),
+            available: httpEndpoints.map(endpoint => endpoint + '/v1/chain/get_account'),
             inuse: []
         };
-        this.lock = new Lock();
+        console.dir(this.endpoints);
+        this.streamMargin = 5;
+        this.accountsFetched = 0;
+        this.accountsStreamed = 0;
+        this.lock = new Lock(httpEndpoints.length);
         this.snowflake = new Snowflake(db);
         this.accountDao = new AccountDao(this.snowflake);
+        this.accountBalanceDao = new AccountBalanceDao(this.snowflake);
     }
 
     /* async start() {
@@ -38,18 +44,39 @@ class AccountBalanceLoader {
     async start() {
         console.log('Loading account balances...');
         await this.snowflake.connect();
-        const statement = this.accountDao.selectStream();
-        await statement.execute();
-        this.start = 0;
-        this.end = 0;
-        statement.streamRows({ start: this.start, end: this.end })
+        this.statement = this.accountDao.selectStream();
+        await this.statement.execute();
+        this.numAccounts = this.statement.getNumRows();
+        console.log('Num accounts: ', this.numAccounts);
+        this._streamRows();
+
+    }
+
+    _streamRows() {
+        if (this.numAccounts <= this.accountsStreamed) {
+            return;
+        }
+        const start = this.accountsStreamed;
+        let end = start + this.endpoints.available.length + this.streamMargin;
+        end = Math.min(end, this.numAccounts);
+        this.accountsStreamed = end;
+        console.log(`Streaming from: ${start} to ${end}`);
+        this.statement.streamRows({ start: start, end: end - 1 })
             .on('error', console.error)
-            .on('data', account => {
+            .on('data', async account => {
                 //this._getAccountDetails(account.ACCOUNT_NAME);
-                this._getAccountDetails('eosdactoken');
+                const accountDetails = await this._getAccountDetails(account.ACCOUNT_NAME);
+                this.accountsFetched++;
+                if (this._streamMore()) {
+                    this._streamRows();
+                }
+                this.account
             })
             .on('end', () => console.log('All accounts have been streamed'));
+    }
 
+    _streamMore() {
+        return (this.accountsStreamed - this.accountsFetched) <= this.streamMargin;
     }
 
     /*async _getAccountDetails(accountName) {
@@ -65,37 +92,52 @@ class AccountBalanceLoader {
     }*/
 
     async _getAccountDetails(accountName) {
-        try {
-            console.log('Getting account for: ', accountName);
-            const payload = {
-                account_name: accountName
-            };
-            const { available, inuse } = this.endpoints;
-            if (available.length === 0) {
-                if (inuse.length === 0) {
-                    throw new Error('No http api endpoints available to query account details');
-                }
-                await this.lock.acquire();
-            }
+        //console.log('Getting account for: ', accountName);
+        const payload = {
+            account_name: accountName
+        };
+        const { available, inuse } = this.endpoints;
+        const inusePos = inuse.length;
+        if (available.length === 0 && inusePos === 0) {
+            throw new Error('No http api endpoints available to query account details');
+        }
+        await this.lock.acquire();
 
-            const res = await fetch('https://api.eosnewyork.io/v1/chain/get_account', {
+        const endpoint = available.pop();
+        inuse.push(endpoint);
+        let account = null;
+        try {
+            const response = await fetch(endpoint, {
                 method: 'post',
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'application/json' }
 
             });
-            console.log(res);
-            console.log('Status: ', res.status);
-            const json = await res.json();
-            console.log(json);
-            console.log(json.error.details);
+            //console.log(response);
 
-            return null;
+            const { status } = response;
+            if (status === HttpStatus.BAD_GATEWAY) {
+                throw new Error('Bad gateway');
+            }
+            if (status === HttpStatus.SERVICE_UNAVAILABLE) {
+                throw new Error('Service Unavailable');
+            }
+            if (status === HttpStatus.OK) {
+                account = await response.json();
+                console.log('Fetched: ', accountName);
+            } else {
+                console.log(`Invalid account name: ${accountName}, status: ${status}, endpoint: ${endpoint}`);
+            }
+            inuse.splice(inusePos, 1);
+            available.push(endpoint);
+            this.lock.release();
+
         } catch (error) {
-            console.log(`Account: ${accountName} does not exist.`);
-            console.error(error);
-            return null;
+            inuse.splice(inusePos, 1);
+            console.log(`Invalid endpoint:${endpoint}. Removing from available endpoints`);
+            account = await this._getAccountDetails(accountName);
         }
+        return account;
 
     }
 }
