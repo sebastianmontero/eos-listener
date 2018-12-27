@@ -23,8 +23,12 @@ class BaseBatchTableListener extends BaseTableListener {
         throw new Error('Method must be overriden by subclass');
     }
 
-    async _addToBatch(id, toInsert) {
+    _getBatchId(id) {
+        return id.id || id;
+    }
 
+    async _addToBatch(id, toInsert) {
+        const _id = id.id || id;
         this.batch[id] = toInsert;
         this.count++;
         logger.debug('Count: ', this.count);
