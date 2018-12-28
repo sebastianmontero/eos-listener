@@ -1,7 +1,8 @@
 const { logger } = require('../Logger');
 
 class BaseBatchDAO {
-    constructor(batchSize) {
+    constructor(batchId, batchSize) {
+        this.batchId = batchId;
         this.count = 0;
         this.batch = {}
         this.batchSize = batchSize;
@@ -15,12 +16,16 @@ class BaseBatchDAO {
         throw new Error('Method must be overriden by subclass');
     }
 
-    _getBatchId(id) {
-        return id.id || id;
+    _getBatchId(obj) {
+        return obj[this.batchId];
     }
 
-    async batchInsert(id, obj) {
-        const _id = this._getBatchId(id);
+    /**
+     * 
+     * @param {value|obj} obj should include the batch and table id 
+     */
+    async batchInsert(obj) {
+        const _id = this._getBatchId(obj);
         this.batch[_id] = obj;
         this.count++;
         logger.debug('Count: ', this.count);
@@ -49,7 +54,7 @@ class BaseBatchDAO {
 
     /**
      * 
-     * @param {value|obj} obj should include the batch and table id 
+     * @param {obj} obj should include the batch and table id 
      */
     async batchUpdate(obj) {
         if (!this._updateBatchObj(obj)) {
@@ -57,15 +62,19 @@ class BaseBatchDAO {
         }
     }
 
-    async batchRemove(id) {
-        const _id = this._getBatchId(id);
+    /**
+     * 
+     * @param {obj} obj should include the batch and table id 
+     */
+    async batchRemove(obj) {
+        const _id = this._getBatchId(obj);
 
         if (_id in this.batch) {
             this.count--;
             delete this.batch[_id];
             logger.debug('Found in batch removed, id: ', _id);
         } else {
-            await this._remove(id);
+            await this._remove(obj);
         }
     }
 

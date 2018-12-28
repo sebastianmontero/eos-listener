@@ -81,7 +81,7 @@ class AccountBalanceLoader {
                         refund,
                     };
                     logger.debug('To insert: ', toInsert);
-                    await this.accountBalanceDao.insertBatch(toInsert);
+                    await this.accountBalanceDao.batchInsert(toInsert);
                 }
                 if (this.numAccounts <= this.accountsFetched) {
                     this.accountBalanceDao.flush();
