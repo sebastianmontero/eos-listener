@@ -71,13 +71,13 @@ class BetDataLoader {
                 dappTableDao: this.dappTableDao,
                 betDao: this.betDao
             };
-            /* let fishJoyTableListener = new FishjoyTableListener(config);
+            let fishJoyTableListener = new FishjoyTableListener(config);
             logger.debug('Adding Fishjoy Table Listener');
-            this.listener.addTableListeners(fishJoyTableListener); */
+            this.listener.addTableListeners(fishJoyTableListener);
             let farmEOSTableListener = new FarmEOSTableListener(config);
             logger.debug('Adding FarmEOS Table Listener');
             this.listener.addTableListeners(farmEOSTableListener);
-            /* let eosBetTableListener = new EOSBetTableListener(config);
+            let eosBetTableListener = new EOSBetTableListener(config);
             logger.debug('Adding EOSBet Table Listener');
             this.listener.addTableListeners(eosBetTableListener);
             let fastwinTableListener = new FastwinTableListener(config);
@@ -85,7 +85,7 @@ class BetDataLoader {
             this.listener.addTableListeners(fastwinTableListener);
             let endlessDiceTableListener = new EndlessDiceTableListener(config);
             logger.debug('Adding Endless Table Listener');
-            this.listener.addTableListeners(endlessDiceTableListener); */
+            this.listener.addTableListeners(endlessDiceTableListener);
         } catch (error) {
             logger.error(error);
         }

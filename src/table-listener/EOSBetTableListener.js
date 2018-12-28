@@ -1,4 +1,4 @@
-const BaseBatchTableListener = require('./BaseBatchTableListener');
+const BaseTableListener = require('./BaseTableListener');
 const { TimeUtil } = require('../util');
 const { AccountTypeIds, SpecialValues, DappIds, TokenIds } = require('../const');
 const { logger } = require('../Logger');
@@ -6,7 +6,7 @@ const { logger } = require('../Logger');
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
-class EOSBetTableListener extends BaseBatchTableListener {
+class EOSBetTableListener extends BaseTableListener {
     constructor({
         accountDao,
         tokenDao,
@@ -20,10 +20,6 @@ class EOSBetTableListener extends BaseBatchTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
-    }
-
-    async _insert(batchArray) {
-        await this.betDao.insert(batchArray);
     }
 
     async insert(payload) {
@@ -56,7 +52,7 @@ class EOSBetTableListener extends BaseBatchTableListener {
             completedHourOfDay: null,
             completedTime: null,
         };
-        await this._addToBatch(id, toInsert);
+        await this.betDao.batchInsert(toInsert);
 
     }
 
@@ -67,12 +63,10 @@ class EOSBetTableListener extends BaseBatchTableListener {
 
     async remove(payload) {
         const { dappTableId, oldRow: { id } } = payload;
-        if (!this._removeFromBatch(id)) {
-            await this.betDao.remove({
-                dappTableId,
-                gameBetId: id,
-            });
-        }
+        await this.betDao.batchRemove({
+            dappTableId,
+            gameBetId: id,
+        });
     }
 }
 
