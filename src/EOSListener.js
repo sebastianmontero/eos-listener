@@ -135,9 +135,25 @@ class EOSListener {
         const { streamOptions } = listenerObj;
         tables.forEach(table => {
             const { dappTableId } = table;
+            let processDeltas = streamOptions.fetch ? false : true;
             this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
                 try {
-                    if (message.type == InboundMessageType.TABLE_DELTA) {
+                    if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
+                        const { data, data: { rows } } = message;
+                        console.log("Number of block producers: ", rows.length);
+                        for (let row of rows) {
+                            let payload = {
+                                data,
+                                dappTableId,
+                                newRow: row.json,
+                                message,
+                                step: ForkSteps.NEW,
+                            };
+                            logger.debug('Insert table snapshot:', row);
+                            listenerObj.insert(payload);
+                        }
+                        processDeltas = true;
+                    } else if (message.type == InboundMessageType.TABLE_DELTA && processDeltas) {
                         const { data, data: { step, dbop, dbop: { op } } } = message;
                         const { mode } = streamOptions;
                         let payload = {

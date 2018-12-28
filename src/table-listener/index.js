@@ -3,6 +3,7 @@ const FarmEOSTableListener = require('./FarmEOSTableListener');
 const EOSBetTableListener = require('./EOSBetTableListener');
 const FastwinTableListener = require('./FastwinTableListener');
 const EndlessDiceTableListener = require('./EndlessDiceTableListener');
+const BlockProducerTableListener = require('./BlockProducerTableListener');
 
 module.exports = {
     FishjoyTableListener,
@@ -10,4 +11,5 @@ module.exports = {
     EOSBetTableListener,
     FastwinTableListener,
     EndlessDiceTableListener,
+    BlockProducerTableListener,
 };

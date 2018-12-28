@@ -1,6 +1,5 @@
-
 const BaseTableListener = require('./BaseTableListener');
-const { AccountTypeIds, SpecialValues, DappTableIds } = require('../const');
+const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes } = require('../const');
 
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
@@ -12,12 +11,14 @@ class BlockProducerTableListener extends BaseTableListener {
         blockProducerDao,
     }) {
         super({
-            dappId: DappTableIds.EOS_BET,
+            dappTableId: DappTableIds.EOSIO_PRODUCERS,
             accountDao,
             tokenDao,
             dappTableDao,
         });
         this.blockProducerDao = blockProducerDao;
+        this.streamOptions.fetch = true;
+        this.streamOptions.mode = TableListenerModes.REPLICATE;
     }
 
     async _processPayload(payload) {
@@ -41,11 +42,13 @@ class BlockProducerTableListener extends BaseTableListener {
     }
 
     async insert(payload) {
-        await this.blockProducerDao.batchInsert(this._processPayload(payload));
+        const toInsert = await this._processPayload(payload);
+        await this.blockProducerDao.batchInsert(toInsert);
     }
 
     async update(payload) {
-        await this.blockProducerDao.batchUpdate(this._processPayload(payload));
+        const toUpdate = await this._processPayload(payload);
+        await this.blockProducerDao.batchUpdate(toUpdate);
     }
 
     async remove(payload) {
