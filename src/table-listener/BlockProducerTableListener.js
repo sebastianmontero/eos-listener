@@ -1,10 +1,7 @@
 
 const BaseTableListener = require('./BaseTableListener');
-const { TimeUtil } = require('../util');
-const { AccountTypeIds, SpecialValues, DappTableIds, TokenIds } = require('../const');
-const { logger } = require('../Logger');
+const { AccountTypeIds, SpecialValues, DappTableIds } = require('../const');
 
-const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
 class BlockProducerTableListener extends BaseTableListener {
