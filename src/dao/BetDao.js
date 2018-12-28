@@ -1,10 +1,8 @@
-const Lock = require('../lock/Lock');
+const BaseBatchDao = require('./BaseBatchDao');
 
-
-
-class BetDAO {
-    constructor(snowflake) {
-        this.lock = new Lock();
+class BetDAO extends BaseBatchDao {
+    constructor(batchSize, snowflake) {
+        super('gameBetId', batchSize);
         this.snowflake = snowflake;
     }
 
@@ -66,22 +64,7 @@ class BetDAO {
         );
     }
 
-    async insert(bets) {
-
-        if (!Array.isArray(bets)) {
-            bets = [bets];
-        }
-
-        let values = [];
-        for (let bet of bets) {
-            values.push(this._toInsertArray(bet));
-        }
-
-        await this._insert(values);
-    }
-
-
-    async update({
+    async _update({
         dappTableId,
         gameBetId,
         winAmount,
@@ -121,7 +104,7 @@ class BetDAO {
         );
     }
 
-    async remove({
+    async _remove({
         dappTableId,
         gameBetId,
     }) {
