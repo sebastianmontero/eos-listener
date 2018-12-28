@@ -1,22 +1,28 @@
 const { TableListenerModes } = require('../const');
 
 class BaseTableListener {
+    /**
+     * dappId or dappTableId must be specified
+     * @param {*} param0 
+     */
     constructor({
         dappId,
+        dappTableId,
         accountDao,
         tokenDao,
         dappTableDao,
     }) {
         this.dappId = dappId;
-        this.tables;
+        this.dappTableId = dappTableId;
+        this.tables = null;
         this.accountDao = accountDao;
         this.tokenDao = tokenDao;
         this.dappTableDao = dappTableDao;
         this.streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY };
     }
 
-    async _getDappTableListeners(dappId) {
-        const dappTables = await this.dappTableDao.selectByDappId(dappId);
+    async _getDappTableListeners() {
+        const dappTables = this.dappId ? await this.dappTableDao.selectByDappId(this.dappId) : await this.dappTableDao.select(this.dappTableId);
         let listeners = [];
         for (let dappTable of dappTables) {
             listeners.push({
@@ -31,7 +37,7 @@ class BaseTableListener {
 
     async getTables() {
         if (!this.tables) {
-            this.tables = await this._getDappTableListeners(this.dappId);
+            this.tables = await this._getDappTableListeners();
         }
         return this.tables;
     }

@@ -8,6 +8,7 @@ const DappTypeIds = require('./DappTypeIds');
 const DappIds = require('./DappIds');
 const BetStatusIds = require('./BetStatusIds');
 const TokenIds = require('./TokenIds');
+const DappTableIds = require('./DappTableIds');
 
 module.exports = {
     AccountTypeIds,
@@ -20,4 +21,5 @@ module.exports = {
     DappIds,
     BetStatusIds,
     TokenIds,
+    DappTableIds,
 };

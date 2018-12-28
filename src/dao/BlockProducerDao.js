@@ -1,38 +1,46 @@
-class BlockProducerDAO {
+const BaseBatchDao = require('./BaseBatchDao');
+
+class BlockProducerDAO extends BaseBatchDao {
     constructor(snowflake) {
+        super('accountId', 20);
         this.snowflake = snowflake;
     }
 
-    async insert({
+    _toInsertArray({
         accountId,
         isActive,
         url,
         totalVotes,
         location,
     }) {
-        await this._insert([
+        return [
             accountId,
             isActive,
             url,
             totalVotes,
             location,
-        ]);
+        ];
+    }
+
+    async insert(obj) {
+        await this._insert(this._toInsertArray(obj));
     }
 
     async _insert(values) {
 
-        await this.snowflake.execute(`INSERT INTO block_producer(
-            account_id,
-            is_active,
-            url,
-            total_votes,
-            location
-        ) VALUES(?, ?, ?, ?, ?)`,
+        await this.snowflake.execute(
+            `INSERT INTO block_producer(
+                account_id,
+                is_active,
+                url,
+                total_votes,
+                location
+            ) VALUES(?, ?, ?, ?, ?)`,
             values);
     }
 
 
-    async update({
+    async _update({
         accountId,
         isActive,
         url,
@@ -56,7 +64,7 @@ class BlockProducerDAO {
         );
     }
 
-    async remove({
+    async _remove({
         accountId
     }) {
         await this.snowflake.execute(

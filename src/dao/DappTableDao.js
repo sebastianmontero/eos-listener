@@ -39,6 +39,22 @@ class DappTableDAO extends BaseDao {
         return await this._getId({ dappTableName, codeAccountId, scopeAccountId });
     }
 
+    async select(dappTableId) {
+        return await this.snowflake.execute(
+            `SELECT dapp_table_id, 
+                    dapp_table_name, 
+                    code_account_id,
+                    ca.account_name code_account_name,
+                    scope_account_id,
+                    sa.account_name scope_account_name
+            FROM dapp_table dt INNER JOIN
+                account ca ON dt.code_account_id = ca.account_id INNER JOIN
+                account sa ON dt.scope_account_id = sa.account_id
+            WHERE dt.dapp_table_id = :1`,
+            [dappTableId]
+        );
+    }
+
     async selectByDappId(dappId) {
         return await this.snowflake.execute(
             `SELECT dapp_table_id, 

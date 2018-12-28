@@ -1,79 +1,66 @@
-const BaseBatchTableListener = require('./BaseBatchTableListener');
+
+const BaseTableListener = require('./BaseTableListener');
 const { TimeUtil } = require('../util');
-const { AccountTypeIds, SpecialValues, DappIds, TokenIds } = require('../const');
+const { AccountTypeIds, SpecialValues, DappTableIds, TokenIds } = require('../const');
 const { logger } = require('../Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
-class EOSBetTableListener extends BaseBatchTableListener {
+class BlockProducerTableListener extends BaseTableListener {
     constructor({
         accountDao,
         tokenDao,
         dappTableDao,
-        betDao
+        blockProducerDao,
     }) {
         super({
-            dappId: DappIds.EOS_BET,
+            dappId: DappTableIds.EOS_BET,
             accountDao,
             tokenDao,
             dappTableDao,
         });
-        this.betDao = betDao;
+        this.blockProducerDao = blockProducerDao;
     }
 
-    async _insert(batchArray) {
-        await this.betDao.insert(batchArray);
-    }
-
-    async insert(payload) {
+    async _processPayload(payload) {
         const {
-            dappTableId,
             newRow: {
-                id,
-                bettor,
-                bet_amt,
-                bet_time,
+                owner,
+                total_votes,
+                is_active,
+                url,
+                location,
             }
         } = payload;
 
-        const placedDate = new Date(bet_time + 'Z');
-        const placedDayId = TimeUtil.dayId(placedDate);
-
-        const toInsert = {
-            dappTableId,
-            gameBetId: id,
-            userAccountId: await this.accountDao.getAccountId(bettor, AccountTypeIds.USER, NOT_APPLICABLE),
-            betAmount: bet_amt,
-            betTokenId: TokenIds.EOS,
-            winAmount: null,
-            winTokenId: TokenIds.EOS,
-            betStatusId: UNKNOWN,
-            placedDayId,
-            placedHourOfDay: placedDate.getUTCHours(),
-            placedTime: bet_time,
-            completedDayId: UNKNOWN,
-            completedHourOfDay: null,
-            completedTime: null,
+        return {
+            accountId: await this._getAccountId(owner),
+            isActive: Number(is_active) === 1,
+            url,
+            totalVotes: total_votes,
+            location,
         };
-        await this._addToBatch(id, toInsert);
+    }
 
+    async insert(payload) {
+        await this.blockProducerDao.batchInsert(this._processPayload(payload));
     }
 
     async update(payload) {
-        const { dappTableId, newRow: { id } } = payload;
-        logger.debug("EOS Bet Update, nothing to update, id: " + id);
+        await this.blockProducerDao.batchUpdate(this._processPayload(payload));
     }
 
     async remove(payload) {
-        const { dappTableId, oldRow: { id } } = payload;
-        if (!this._removeFromBatch(id)) {
-            await this.betDao.remove({
-                dappTableId,
-                gameBetId: id,
-            });
-        }
+        const { oldRow: { owner } } = payload;
+        await this.betDao.remove({
+            accountId: await this._getAccountId(owner),
+        });
+    }
+
+    async _getAccountId(owner) {
+        return await this.accountDao.getAccountId(owner, AccountTypeIds.BLOCK_PRODUCER, NOT_APPLICABLE);
     }
 }
 
-module.exports = EOSBetTableListener;
+module.exports = BlockProducerTableListener;
