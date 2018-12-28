@@ -28,8 +28,8 @@ class BaseBatchDAO {
         const _id = this._getBatchId(obj);
         this.batch[_id] = obj;
         this.count++;
-        logger.debug('Count: ', this.count);
-        logger.debug(obj);
+        logger.debug('Batch count: ', this.count);
+        logger.debug('In batchInsert, toInsert:', obj);
         if (this.count >= this.batchSize) {
             await this.flush();
         }
@@ -57,6 +57,7 @@ class BaseBatchDAO {
      * @param {obj} obj should include the batch and table id 
      */
     async batchUpdate(obj) {
+        logger.debug('In batchUpdate, toUpdate:', obj);
         if (!this._updateBatchObj(obj)) {
             await this._update(obj);
         }
@@ -67,6 +68,7 @@ class BaseBatchDAO {
      * @param {obj} obj should include the batch and table id 
      */
     async batchRemove(obj) {
+        logger.debug('In batchRemove, toRemove:', obj);
         const _id = this._getBatchId(obj);
 
         if (_id in this.batch) {

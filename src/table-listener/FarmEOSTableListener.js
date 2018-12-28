@@ -1,14 +1,13 @@
-const BaseBatchTableListener = require('./BaseBatchTableListener');
+const BaseTableListener = require('./BaseTableListener');
 const { TimeUtil, Util } = require('../util');
 const { AccountTypeIds, SpecialValues, DappIds, BetStatusIds } = require('../const');
-const { logger } = require('../Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
 const BET_COMPLETED = 2;
 
-class FarmEOSTableListener extends BaseBatchTableListener {
+class FarmEOSTableListener extends BaseTableListener {
     constructor({
         accountDao,
         tokenDao,
@@ -22,10 +21,6 @@ class FarmEOSTableListener extends BaseBatchTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
-    }
-
-    async _insert(batchArray) {
-        await this.betDao.insert(batchArray);
     }
 
     async insert(payload) {
@@ -67,7 +62,7 @@ class FarmEOSTableListener extends BaseBatchTableListener {
             completedHourOfDay: null,
             completedTime: null,
         };
-        await this._addToBatch(bet_id, toInsert);
+        await this.betDao.batchInsert(toInsert);
 
     }
 
@@ -76,36 +71,25 @@ class FarmEOSTableListener extends BaseBatchTableListener {
 
         if (status === BET_COMPLETED) {
             const { amount: winAmount } = Util.parseAsset(win_amount);
-            let bet = this._getObj(bet_id);
-            if (bet) {
-                bet.winAmount = winAmount;
-                bet.betStatusId = BetStatusIds.COMPLETED;
-                logger.debug('Found in batch, updated, id: ', bet_id);
-            } else {
-                const toUpdate = {
-                    dappTableId,
-                    gameBetId: bet_id,
-                    winAmount,
-                    betStatusId: BetStatusIds.COMPLETED,
-                    completedDayId: UNKNOWN,
-                    completedHourOfDay: null,
-                    completedTime: null,
-                };
-                logger.debug(toUpdate);
-                await this.betDao.update(toUpdate);
-            }
+            const toUpdate = {
+                dappTableId,
+                gameBetId: bet_id,
+                winAmount,
+                betStatusId: BetStatusIds.COMPLETED,
+                completedDayId: UNKNOWN,
+                completedHourOfDay: null,
+                completedTime: null,
+            };
+            await this.betDao.batchUpdate(toUpdate);
         }
     }
 
     async remove(payload) {
         const { dappTableId, oldRow: { bet_id } } = payload;
-
-        if (!this._removeFromBatch(bet_id)) {
-            await this.betDao.remove({
-                dappTableId,
-                gameBetId: bet_id,
-            });
-        }
+        this.betDao.batchRemove({
+            dappTableId,
+            gameBetId: bet_id,
+        });
     }
 }
 

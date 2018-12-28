@@ -2,7 +2,7 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class BetDAO extends BaseBatchDao {
     constructor(batchSize, snowflake) {
-        super('gameBetId', batchSize);
+        super('gameBetId', 20);
         this.snowflake = snowflake;
     }
 
