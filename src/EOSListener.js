@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/eosws-js');
 const { logger } = require('./Logger');
 const { DBOps, ForkSteps, TableListenerModes } = require('./const');
+const { Util } = require('./util');
 
 
 class EOSListener {
@@ -132,7 +133,7 @@ class EOSListener {
     async _addTableListeners(listenerObj) {
         let tables = await listenerObj.getTables();
         logger.debug('Table listeners: ', tables);
-        const { streamOptions } = listenerObj;
+        const { streamOptions, fieldsOfInterest } = listenerObj;
         tables.forEach(table => {
             const { dappTableId } = table;
             let processDeltas = streamOptions.fetch ? false : true;
@@ -141,29 +142,32 @@ class EOSListener {
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
                         console.log("Number of block producers: ", rows.length);
-                        for (let row of rows) {
-                            let payload = {
-                                data,
-                                dappTableId,
-                                newRow: row.json,
-                                message,
-                                step: ForkSteps.NEW,
-                            };
-                            logger.debug('Insert table snapshot:', row);
-                            listenerObj.insert(payload);
-                        }
+                        listenerObj.snapshot({
+                            data,
+                            dappTableId,
+                            rows: rows.map(row => row.json),
+                            message,
+                            step: ForkSteps.NEW,
+                        });
                         processDeltas = true;
                     } else if (message.type == InboundMessageType.TABLE_DELTA && processDeltas) {
                         const { data, data: { step, dbop, dbop: { op } } } = message;
                         const { mode } = streamOptions;
+                        const oldRow = dbop.old && dbop.old.json;
+                        const newRow = dbop.new && dbop.new.json;
+
+                        if (oldRow && newRow && fieldsOfInterest && !Util.havePropsChanged(oldRow, newRow, fieldsOfInterest)) {
+                            return;
+                        }
+
                         let payload = {
                             data,
                             step,
                             dbop,
                             message,
                             dappTableId,
-                            oldRow: dbop.old && dbop.old.json,
-                            newRow: dbop.new && dbop.new.json,
+                            oldRow,
+                            newRow,
                         };
                         const isHistoryMode = mode === TableListenerModes.HISTORY;
                         if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
@@ -197,8 +201,6 @@ class EOSListener {
 
         });
     }
-
-
 }
 
 module.exports = EOSListener;

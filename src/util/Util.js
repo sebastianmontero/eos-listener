@@ -43,6 +43,15 @@ class Util {
         }
         return null;
     }
+
+    static havePropsChanged(oldObj, newObj, props) {
+        for (let prop of props) {
+            if (oldObj[prop] != newObj[prop]) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 module.exports = Util;

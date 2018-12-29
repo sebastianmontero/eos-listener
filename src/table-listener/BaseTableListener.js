@@ -15,6 +15,7 @@ class BaseTableListener {
         this.dappId = dappId;
         this.dappTableId = dappTableId;
         this.tables = null;
+        this.fieldsOfInterest = null;
         this.accountDao = accountDao;
         this.tokenDao = tokenDao;
         this.dappTableDao = dappTableDao;
@@ -52,6 +53,10 @@ class BaseTableListener {
 
     async remove(payload) {
         throw new Error('Method must be overriden by subclass');
+    }
+
+    async snapshot(payload) {
+        throw new Error('Method must be overriden by subclass if fetch StreamOption is true.');
     }
 
 }

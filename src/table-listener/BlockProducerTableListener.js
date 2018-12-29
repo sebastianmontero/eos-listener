@@ -19,21 +19,25 @@ class BlockProducerTableListener extends BaseTableListener {
         this.blockProducerDao = blockProducerDao;
         this.streamOptions.fetch = true;
         this.streamOptions.mode = TableListenerModes.REPLICATE;
+        this.fieldsOfInterest = [
+            'is_active',
+            'url',
+            'total_votes',
+            'location',
+        ];
     }
 
-    async _processPayload(payload) {
+    _extractFields(row) {
         const {
-            newRow: {
-                owner,
-                total_votes,
-                is_active,
-                url,
-                location,
-            }
-        } = payload;
+            owner,
+            total_votes,
+            is_active,
+            url,
+            location,
+        } = row;
 
         return {
-            accountId: await this._getAccountId(owner),
+            accountName: owner,
             isActive: Number(is_active) === 1,
             url,
             totalVotes: total_votes,
@@ -41,13 +45,42 @@ class BlockProducerTableListener extends BaseTableListener {
         };
     }
 
+    async _processRow(row) {
+        let processed = this._extractFields(row);
+        processed.accountId = await this._getAccountId(processed.accountName);
+        return processed;
+    }
+
+    async snapshot(payload) {
+        const { rows } = payload;
+        console.log('Started processing snapshot', new Date());
+        for (let row of rows) {
+            const toInsert = this._extractFields(row);
+            this.blockProducerDao.batchInsert(toInsert);
+        }
+        console.log('batch inserts finished', new Date());
+        let promises = [];
+        for (let row of rows) {
+            promises.push(this._update(row));
+        }
+        await Promise.all(promises);
+        console.log('Resolved accounts', new Date());
+        await this.blockProducerDao.flush();
+        this.blockProducerDao.batchSize = 1;
+        console.log('Finished processing snapshot', new Date());
+    }
+
     async insert(payload) {
-        const toInsert = await this._processPayload(payload);
+        const toInsert = await this._processRow(payload.newRow);
         await this.blockProducerDao.batchInsert(toInsert);
     }
 
     async update(payload) {
-        const toUpdate = await this._processPayload(payload);
+        await this._update(payload.newRow);
+    }
+
+    async _update(newRow) {
+        let toUpdate = await this._processRow(newRow);
         await this.blockProducerDao.batchUpdate(toUpdate);
     }
 

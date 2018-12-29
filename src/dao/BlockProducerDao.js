@@ -2,7 +2,7 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class BlockProducerDAO extends BaseBatchDao {
     constructor(snowflake) {
-        super('accountId', 100);
+        super('accountName', 600);
         this.snowflake = snowflake;
     }
 
