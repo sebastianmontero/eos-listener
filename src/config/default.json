@@ -42,12 +42,10 @@
     "streamOptions": {},
     "post_to": "http://localhost:4001/handler",
     "db": {
-        "account": "DG09598",
-        "username": "smontero",
-        "password": "N7}FoQ|hqv6n",
-        "database": "eos_datastore",
-        "schema": "public",
-        "warehouse": "BLOCKCHAIN_ANALYTICS"
+        "host": "localhost",
+        "user": "eosdsuser",
+        "password": "eosdsuser",
+        "database": "eos_datastore"
     },
     "keyDictionary": {
         "orderType": {

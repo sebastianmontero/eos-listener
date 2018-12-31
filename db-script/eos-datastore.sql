@@ -1,386 +1,731 @@
-use eos_datastore;
+-- MySQL dump 10.13  Distrib 5.7.24, for Linux (x86_64)
+--
+-- Host: 127.0.0.1    Database: eos_datastore
+-- ------------------------------------------------------
+-- Server version	5.7.24-0ubuntu0.16.04.1
 
-CREATE OR REPLACE TABLE time_type (
-  time_type_id number(2,0) NOT NULL,
-  time_type_desc varchar(50) NOT NULL,
-  PRIMARY KEY (time_type_id)
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-CREATE OR REPLACE TABLE month_of_year (
-  month_of_year number(2,0) NOT NULL,
-  month_of_year_name varchar(50) NOT NULL,
-  PRIMARY KEY (month_of_year)
-);
+--
+-- Table structure for table `account`
+--
 
-CREATE OR REPLACE TABLE year (
-  year_id number(4,0) NOT NULL,
-  time_type_id number(2,0) NOT NULL,
-  year_date date DEFAULT NULL,
-  year_duration number(3,0) DEFAULT NULL,
-  prev_year_id number(4,0) DEFAULT NULL,
-  PRIMARY KEY (year_id),
-  CONSTRAINT fk_year_time_type1 FOREIGN KEY (time_type_id) REFERENCES time_type (time_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+DROP TABLE IF EXISTS `account`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `account` (
+  `account_id` int(11) NOT NULL AUTO_INCREMENT,
+  `account_name` varchar(50) NOT NULL,
+  `account_type_id` tinyint(4) NOT NULL,
+  `dapp_id` int(11) NOT NULL,
+  PRIMARY KEY (`account_id`),
+  KEY `fk_account_account_type_idx` (`account_type_id`),
+  KEY `fk_account_dapp_idx` (`dapp_id`),
+  CONSTRAINT `fk_account_account_type` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`account_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_account_dapp` FOREIGN KEY (`dapp_id`) REFERENCES `dapp` (`dapp_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `account`
+--
 
-CREATE OR REPLACE TABLE quarter (
-  quarter_id number(5,0) NOT NULL,
-  time_type_id number(2,0) NOT NULL,
-  quarter_desc varchar(50) DEFAULT NULL,
-  quarter_date date DEFAULT NULL,
-  quarter_duration number(2,0) DEFAULT NULL,
-  prev_quarter_id number(5,0) DEFAULT NULL,
-  ly_quarter_id number(5,0) DEFAULT NULL,
-  year_id number(4,0) NOT NULL,
-  PRIMARY KEY (quarter_id),
-  CONSTRAINT fk_quarter_time_type1 FOREIGN KEY (time_type_id) REFERENCES time_type (time_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_quarter_year1 FOREIGN KEY (year_id) REFERENCES year (year_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+LOCK TABLES `account` WRITE;
+/*!40000 ALTER TABLE `account` DISABLE KEYS */;
+INSERT INTO `account` VALUES (-1,'Unknown',-1,-1),(1,'eosio.token',1,1),(2,'eosblackteam',1,2),(3,'parslseed123',1,3),(4,'eosiomeetone',1,4),(5,'everipediaiq',1,5),(6,'octtothemoon',1,6),(7,'eosdactoken',1,7),(8,'trybenetwork',1,8),(9,'therealkarma',1,9),(10,'bntbntbntbnt',1,10),(11,'eosadddddddd',1,11),(12,'ednazztoken',1,12),(13,'newdexpocket',1,13),(14,'dexeoswallet',1,14),(15,'whaleextrust',1,15),(16,'findexfindex',1,16),(17,'btexexchange',1,17),(18,'exchangename',1,18),(19,'OneDex123451',1,19),(20,'dex.io',1,20),(21,'deltadexcode',1,21),(22,'eosdaqooooo1',1,22),(23,'eosdaqooooo2',1,22),(24,'eosdaqooooo4',1,22),(25,'eosdaqoooo54',1,22),(26,'eosdaqoooo11',1,22),(27,'eosdaqooo1oo',1,22),(28,'eosdaqooo1o2',1,22),(29,'eosdaqooo1o5',1,22),(30,'eosdaqooo11o',1,22),(31,'eosdaqooo111',1,22),(32,'farmeosbank1',1,23),(33,'fishjoyadmin',1,24),(34,'eosbetdice11',1,25),(35,'eosbaccarat1',1,25),(36,'eosbetcrash1',1,25),(37,'fastwindice1',1,26),(38,'endlessdicex',1,27),(39,'eosio',1,28);
+/*!40000 ALTER TABLE `account` ENABLE KEYS */;
+UNLOCK TABLES;
 
-CREATE OR REPLACE TABLE month (
-  month_id number(6,0) NOT NULL,
-  time_type_id number(2,0) NOT NULL,
-  month_desc varchar(50) DEFAULT NULL,
-  month_date date DEFAULT NULL,
-  month_duration number(2,0) DEFAULT NULL,
-  prev_month_id number(6,0) DEFAULT NULL,
-  ly_month_id number(6,0) DEFAULT NULL,
-  month_of_year number(2,0) NOT NULL,
-  quarter_id number(5,0) NOT NULL,
-  year_id number(4,0) NOT NULL,
-  PRIMARY KEY (month_id),
-  CONSTRAINT fk_month_month_of_year1 FOREIGN KEY (month_of_year) REFERENCES month_of_year (month_of_year) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_month_quarter1 FOREIGN KEY (quarter_id) REFERENCES quarter (quarter_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_month_time_type1 FOREIGN KEY (time_type_id) REFERENCES time_type (time_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_month_year1 FOREIGN KEY (year_id) REFERENCES year (year_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Table structure for table `account_balance`
+--
 
-CREATE OR REPLACE TABLE day (
-  day_id number(7,0) NOT NULL,
-  time_type_id number(2,0) NOT NULL,
-  day_date date DEFAULT NULL,
-  prev_day_id number(7,0) DEFAULT NULL,
-  lm_day_id number(7,0) DEFAULT NULL,
-  ly_day_id number(7,0) DEFAULT NULL,
-  month_id number(6,0) NOT NULL,
-  quarter_id number(5,0) NOT NULL,
-  year_id number(4,0) NOT NULL,
-  PRIMARY KEY (day_id),
-  CONSTRAINT fk_day_month1 FOREIGN KEY (month_id) REFERENCES month (month_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_day_quarter1 FOREIGN KEY (quarter_id) REFERENCES quarter (quarter_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_day_time_type1 FOREIGN KEY (time_type_id) REFERENCES time_type (time_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_day_year1 FOREIGN KEY (year_id) REFERENCES year (year_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+DROP TABLE IF EXISTS `account_balance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `account_balance` (
+  `account_id` int(11) NOT NULL,
+  `day_id` mediumint(9) NOT NULL,
+  `liquid` decimal(24,9) NOT NULL,
+  `staked` decimal(24,9) NOT NULL,
+  `refund` decimal(24,9) NOT NULL,
+  PRIMARY KEY (`account_id`,`day_id`),
+  KEY `fk_account_balance_day_1_idx` (`day_id`),
+  CONSTRAINT `fk_account_balance_account_1` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_account_balance_day_1` FOREIGN KEY (`day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE ytm_month (
-  month_id number(6,0) NOT NULL,
-  ytm_month_id number(6,0) NOT NULL,
-  PRIMARY KEY (month_id,ytm_month_id),
-  CONSTRAINT fk_ytm_month_month1 FOREIGN KEY (month_id) REFERENCES month (month_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_ytm_month_month2 FOREIGN KEY (ytm_month_id) REFERENCES month (month_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Dumping data for table `account_balance`
+--
 
-INSERT INTO month_of_year 
-VALUES (-4,'Hasn\'t Happened'),
-       (-3,'Corrupted'),
-       (-2,'Not Applicable'),
-       (-1,'Unknown'),
-       (0,'Normal'),
-       (1,'Jan'),
-       (2,'Feb'),
-       (3,'Mar'),
-       (4,'Apr'),
-       (5,'May'),
-       (6,'Jun'),
-       (7,'Jul'),
-       (8,'Aug'),
-       (9,'Sep'),
-       (10,'Oct'),
-       (11,'Nov'),
-       (12,'Dec');
+LOCK TABLES `account_balance` WRITE;
+/*!40000 ALTER TABLE `account_balance` DISABLE KEYS */;
+/*!40000 ALTER TABLE `account_balance` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO time_type 
-VALUES (-4,'Hasn\'t Happened'),
-       (-3,'Corrupted'),
-       (-2,'Not Applicable'),
-       (-1,'Unknown'),
-       (0,'Normal');
+--
+-- Table structure for table `account_type`
+--
 
-CREATE OR REPLACE TABLE dapp_type (
-  dapp_type_id number(3,0) NOT NULL,
-  dapp_type_desc varchar(50) NOT NULL,
-  PRIMARY KEY (dapp_type_id)
-);
+DROP TABLE IF EXISTS `account_type`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `account_type` (
+  `account_type_id` tinyint(4) NOT NULL,
+  `account_type_desc` varchar(50) NOT NULL,
+  PRIMARY KEY (`account_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-INSERT INTO dapp_type (dapp_type_id, dapp_type_desc)
-VALUES (-2, 'Not Applicable'),
-       (-1, 'Unknown'),
-       (1, 'Token'),
-       (2, 'Exchange'),
-       (3, 'Gambling'),
-       (4, 'Gaming'),
-       (5, 'Social'),
-       (6, 'EOS Admin');
+--
+-- Dumping data for table `account_type`
+--
 
-CREATE OR REPLACE TABLE dapp (
-    dapp_id int NOT NULL AUTOINCREMENT START 100,
-    dapp_name VARCHAR(50) NOT NULL UNIQUE,
-    dapp_type_id number(3,0) NOT NULL,
-    PRIMARY KEY (dapp_id),
-    CONSTRAINT fk_dapp_dapp_type FOREIGN KEY (dapp_type_id) REFERENCES  dapp_type (dapp_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+LOCK TABLES `account_type` WRITE;
+/*!40000 ALTER TABLE `account_type` DISABLE KEYS */;
+INSERT INTO `account_type` VALUES (-1,'Unknown'),(1,'Dapp'),(2,'User'),(3,'Block Producer');
+/*!40000 ALTER TABLE `account_type` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO dapp (dapp_id, dapp_name, dapp_type_id)
-VALUES (-1, 'Unknown', -1),
-       (1, 'EOS Token', 1),
-       (2, 'EOS Black Token', 1),
-       (3, 'Parsl SEED Token', 1),
-       (4, 'MEETONE Token', 1),
-       (5, 'Everopedia IQ Token', 1),
-       (6, 'OCT Token', 1),
-       (7, 'EOSDAC Token', 1),
-       (8, 'TRYBE Token', 1),
-       (9, 'KARMA Token', 1),
-       (10, 'BNT Token', 1),
-       (11, 'ADD Token', 1),
-       (12, 'EDNA Token', 1),
-       (13, 'Newdex', 2),
-       (14, 'DEXEOS', 2),
-       (15, 'WhaleEX', 2),
-       (16, 'Findex', 2),
-       (17, 'BTEX', 2),
-       (18, 'Namedex', 2),
-       (19, 'OneDex', 2),
-       (20, 'dex.io', 2),
-       (21, 'DeltaDex', 2),
-       (22, 'EOSDAQ', 2),
-       (23, 'FarmEOS', 3),
-       (24, 'Fishjoy', 3),
-       (25, 'EOSBet', 3),
-       (26, 'Fastwin', 3),
-       (27, 'Endless Dice', 3),
-       (28, 'EOSIO', 6);
+--
+-- Table structure for table `action`
+--
 
-CREATE OR REPLACE TABLE account_type (
-  account_type_id number(2,0) NOT NULL,
-  account_type_desc varchar(50) NOT NULL,
-  PRIMARY KEY (account_type_id)
-);
+DROP TABLE IF EXISTS `action`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `action` (
+  `action_id` int(11) NOT NULL AUTO_INCREMENT,
+  `action_name` varchar(50) NOT NULL,
+  `account_id` int(11) NOT NULL,
+  PRIMARY KEY (`action_id`),
+  UNIQUE KEY `unq_action_name_account` (`action_name`,`account_id`),
+  KEY `fk_action__account_idx` (`account_id`),
+  CONSTRAINT `fk_action__account` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-INSERT INTO account_type (account_type_id, account_type_desc)
-VALUES (-1, 'Unknown'),
-       (1, 'Dapp'),
-       (2, 'User'),
-       (3, 'Block Producer');
+--
+-- Dumping data for table `action`
+--
 
-CREATE OR REPLACE TABLE account (
-  account_id int NOT NULL AUTOINCREMENT START 100,
-  account_name varchar(50) NOT NULL UNIQUE,
-  account_type_id number(2,0) NOT NULL,
-  dapp_id int NOT NULL,
-  PRIMARY KEY (account_id),
-  CONSTRAINT fk_account_account_type FOREIGN KEY (account_type_id) REFERENCES  account_type (account_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_account_dapp FOREIGN KEY (dapp_id) REFERENCES  dapp (dapp_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+LOCK TABLES `action` WRITE;
+/*!40000 ALTER TABLE `action` DISABLE KEYS */;
+/*!40000 ALTER TABLE `action` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO account (account_id, account_name, account_type_id, dapp_id)
-VALUES (-1, 'Unknown', -1, -1),
-       (1, 'eosio.token', 1, 1),
-       (2, 'eosblackteam', 1, 2),
-       (3, 'parslseed123', 1, 3),
-       (4, 'eosiomeetone', 1, 4),
-       (5, 'everipediaiq', 1, 5),
-       (6, 'octtothemoon', 1, 6),
-       (7, 'eosdactoken', 1, 7),
-       (8, 'trybenetwork', 1, 8),
-       (9, 'therealkarma', 1, 9),
-       (10, 'bntbntbntbnt', 1, 10),
-       (11, 'eosadddddddd', 1, 11),
-       (12, 'ednazztoken', 1, 12),
-       (13, 'newdexpocket', 1, 13),
-       (14, 'dexeoswallet', 1, 14),
-       (15, 'whaleextrust', 1, 15),
-       (16, 'findexfindex', 1, 16),
-       (17, 'btexexchange', 1, 17),
-       (18, 'exchangename', 1, 18),
-       (19, 'OneDex123451', 1, 19),
-       (20, 'dex.io', 1, 20),
-       (21, 'deltadexcode', 1, 21),
-       (22, 'eosdaqooooo1', 1, 22),
-       (23, 'eosdaqooooo2', 1, 22),
-       (24, 'eosdaqooooo4', 1, 22),
-       (25, 'eosdaqoooo54', 1, 22),
-       (26, 'eosdaqoooo11', 1, 22),
-       (27, 'eosdaqooo1oo', 1, 22),
-       (28, 'eosdaqooo1o2', 1, 22),
-       (29, 'eosdaqooo1o5', 1, 22),
-       (30, 'eosdaqooo11o', 1, 22),
-       (31, 'eosdaqooo111', 1, 22),
-       (32, 'farmeosbank1', 1, 23),
-       (33, 'fishjoyadmin', 1, 24),
-       (34, 'eosbetdice11', 1, 25),
-       (35, 'eosbaccarat1', 1, 25),
-       (36, 'eosbetcrash1', 1, 25),
-       (37, 'fastwindice1', 1, 26),
-       (38, 'endlessdicex', 1, 27),
-       (39, 'eosio', 1, 28);
+--
+-- Table structure for table `bet`
+--
 
+DROP TABLE IF EXISTS `bet`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bet` (
+  `bet_id` int(11) NOT NULL AUTO_INCREMENT,
+  `dapp_table_id` int(11) NOT NULL,
+  `game_bet_id` varchar(50) NOT NULL,
+  `user_account_id` int(11) NOT NULL,
+  `bet_amount` decimal(24,9) NOT NULL,
+  `bet_token_id` int(11) NOT NULL,
+  `win_amount` decimal(24,9) DEFAULT NULL,
+  `win_token_id` int(11) NOT NULL,
+  `bet_status_id` tinyint(4) NOT NULL,
+  `placed_day_id` mediumint(9) NOT NULL,
+  `placed_hour_of_day` tinyint(4) NOT NULL,
+  `placed_time` datetime NOT NULL,
+  `completed_day_id` mediumint(9) NOT NULL,
+  `completed_hour_of_day` tinyint(4) DEFAULT NULL,
+  `completed_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`bet_id`),
+  UNIQUE KEY `unq_dapp_table_game_bet_id` (`dapp_table_id`,`game_bet_id`),
+  KEY `fk_bet_dapp_table_idx` (`dapp_table_id`),
+  KEY `fk_bet_account_1_idx` (`user_account_id`),
+  KEY `fk_bet_token_1_idx` (`bet_token_id`),
+  KEY `fk_bet_token_2_idx` (`win_token_id`),
+  KEY `fk_bet_bet_status_1_idx` (`bet_status_id`),
+  KEY `fk_bet_day_1_idx` (`placed_day_id`),
+  KEY `fk_bet__day_2_idx` (`completed_day_id`),
+  CONSTRAINT `fk_bet__day_2` FOREIGN KEY (`completed_day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_account_1` FOREIGN KEY (`user_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_bet_status_1` FOREIGN KEY (`bet_status_id`) REFERENCES `bet_status` (`bet_status_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_dapp_table` FOREIGN KEY (`dapp_table_id`) REFERENCES `dapp_table` (`dapp_table_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_day_1` FOREIGN KEY (`placed_day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_token_1` FOREIGN KEY (`bet_token_id`) REFERENCES `token` (`token_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bet_token_2` FOREIGN KEY (`win_token_id`) REFERENCES `token` (`token_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE action (
-  action_id int NOT NULL AUTOINCREMENT,
-  action_name varchar(50) NOT NULL,
-  account_id int NOT NULL,
-  PRIMARY KEY (action_id),
-  CONSTRAINT unq_idx UNIQUE(action_name, account_id)
-);
+--
+-- Dumping data for table `bet`
+--
 
-CREATE OR REPLACE TABLE channel (
-  channel_id number(2,0) NOT NULL AUTOINCREMENT,
-  channel_name varchar(50) NOT NULL UNIQUE,
-  PRIMARY KEY (channel_id)
-);
+LOCK TABLES `bet` WRITE;
+/*!40000 ALTER TABLE `bet` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bet` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO channel (channel_id, channel_name)
-VALUES (-1, 'Unknown');
+--
+-- Table structure for table `bet_status`
+--
 
+DROP TABLE IF EXISTS `bet_status`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bet_status` (
+  `bet_status_id` tinyint(4) NOT NULL,
+  `bet_status_desc` varchar(50) NOT NULL,
+  PRIMARY KEY (`bet_status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE order_type (
-  order_type_id number(2,0) NOT NULL,
-  order_type_name varchar(50) NOT NULL UNIQUE,
-  PRIMARY KEY (order_type_id)
-);
+--
+-- Dumping data for table `bet_status`
+--
 
-INSERT INTO order_type (order_type_id, order_type_name)
-VALUES (-1, 'Unknown'),
-       (1, 'BUY'),
-       (2, 'BUY-LIMIT'),
-       (3, 'SELL'),
-       (4, 'SELL-LIMIT'),
-       (5, 'CANCEL');
+LOCK TABLES `bet_status` WRITE;
+/*!40000 ALTER TABLE `bet_status` DISABLE KEYS */;
+INSERT INTO `bet_status` VALUES (-1,'Unknown'),(1,'PLACED'),(2,'COMPLETED');
+/*!40000 ALTER TABLE `bet_status` ENABLE KEYS */;
+UNLOCK TABLES;
 
-CREATE OR REPLACE TABLE token (
-  token_id int NOT NULL AUTOINCREMENT START 100,
-  token_name varchar(50) NOT NULL UNIQUE,
-  account_id int NOT NULL,
-  PRIMARY KEY (token_id),
-  CONSTRAINT fk_token_account FOREIGN KEY (account_id) REFERENCES  account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Table structure for table `block_producer`
+--
 
-INSERT INTO token (token_id, token_name, account_id)
-VALUES (-1, 'Unknown', -1),
-       (1, 'EOS', 1);
+DROP TABLE IF EXISTS `block_producer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `block_producer` (
+  `account_id` int(11) NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `url` varchar(1000) DEFAULT NULL,
+  `location` smallint(6) NOT NULL,
+  PRIMARY KEY (`account_id`),
+  CONSTRAINT `fk_block_producer_account_1` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE exchange_trade (
-  exchange_trade_id int NOT NULL AUTOINCREMENT,
-  token_account_id int NOT NULL,
-  action_id int NOT NULL,
-  from_account_id int NOT NULL,
-  to_account_id int NOT NULL,
-  quantity NUMBER(24, 9) NOT NULL,
-  quantity_token_id int NOT NULL,
-  order_type_id NUMBER(2, 0) NOT NULL,
-  quote_token_id int NOT NULL,
-  base_token_id int NOT NULL,
-  trade_quantity NUMBER(24, 9),
-  trade_price NUMBER(24, 9),
-  channel_id NUMBER(2,0) NOT NULL,
-  day_id NUMBER(7, 0) NOT NULL,
-  hour_of_day NUMBER(2,0) NOT NULL,
-  block_time datetime NOT NULL,
-  PRIMARY KEY (exchange_trade_id),
-  CONSTRAINT fk_exchange_trade_account1 FOREIGN KEY (token_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_action1 FOREIGN KEY (action_id) REFERENCES action (action_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_account2 FOREIGN KEY (from_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_account3 FOREIGN KEY (to_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_token1 FOREIGN KEY (quantity_token_id) REFERENCES token (token_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_order_type1 FOREIGN KEY (order_type_id) REFERENCES order_type (order_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_exchange_trade_token2 FOREIGN KEY (quote_token_id) REFERENCES token (token_id) ON DELETE NO ACTION ON UPDATE NO ACTION,                                                                          
-  CONSTRAINT fk_exchange_trade_token3 FOREIGN KEY (base_token_id) REFERENCES token (token_id) ON DELETE NO ACTION ON UPDATE NO ACTION,                                                                                  
-  CONSTRAINT fk_exchange_trade_channel FOREIGN KEY (channel_id) REFERENCES channel (channel_id) ON DELETE NO ACTION ON UPDATE NO ACTION,                                                                                     
-  CONSTRAINT fk_exchange_trade_day FOREIGN KEY (day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Dumping data for table `block_producer`
+--
 
+LOCK TABLES `block_producer` WRITE;
+/*!40000 ALTER TABLE `block_producer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `block_producer` ENABLE KEYS */;
+UNLOCK TABLES;
 
-CREATE OR REPLACE TABLE dapp_table(
-    dapp_table_id int NOT NULL AUTOINCREMENT START 100,
-    dapp_table_name VARCHAR(50) NOT NULL,
-    code_account_id int NOT NULL,
-    scope_account_id int NOT NULL,
-    PRIMARY KEY (dapp_table_id),
-    CONSTRAINT unq_idx1 UNIQUE(dapp_table_name, code_account_id, scope_account_id),
-    CONSTRAINT fk_dapp_table_account1 FOREIGN KEY (code_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_dapp_table_account2 FOREIGN KEY (scope_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Table structure for table `channel`
+--
 
-INSERT INTO dapp_table (dapp_table_id, dapp_table_name, code_account_id, scope_account_id)
-VALUES(1, 'bets', 32, 32),
-      (2, 'rouls', 32, 32),
-      (3, 'mines', 32, 32),
-      (4, 'bjs', 32, 32),
-      (5, 'betticket21', 33, 33),
-      (6, 'activebets', 34, 34),
-      (7, 'activebets', 35, 35),
-      (8, 'activebets', 36, 36),
-      (9, 'activebets', 37, 37),
-      (10, 'bets', 38, 38),
-      (11, 'producers', 39, 39),
-      (12, 'voters', 39, 39);
+DROP TABLE IF EXISTS `channel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `channel` (
+  `channel_id` tinyint(4) NOT NULL,
+  `channel_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`channel_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE bet_status (
-    bet_status_id NUMBER(1, 0),
-    bet_status_desc VARCHAR(50),
-    PRIMARY KEY (bet_status_id)
-);
+--
+-- Dumping data for table `channel`
+--
 
-INSERT INTO bet_status (bet_status_id, bet_status_desc)
-VALUES (-1, 'Unknown'),
-       (1, 'PLACED'),
-       (2, 'COMPLETED');
+LOCK TABLES `channel` WRITE;
+/*!40000 ALTER TABLE `channel` DISABLE KEYS */;
+INSERT INTO `channel` VALUES (-1,'Unknown');
+/*!40000 ALTER TABLE `channel` ENABLE KEYS */;
+UNLOCK TABLES;
 
-CREATE OR REPLACE TABLE bet (
-    bet_id int NOT NULL AUTOINCREMENT,
-    dapp_table_id int NOT NULL,
-    game_bet_id int NOT NULL,
-    user_account_id int NOT NULL,
-    bet_amount number(24, 9) NOT NULL,
-    bet_token_id int NOT NULL,
-    win_amount number(24, 9),
-    win_token_id int NOT NULL,
-    bet_status_id number(1, 0) NOT NULL,
-    placed_day_id NUMBER(7, 0) NOT NULL,
-    placed_hour_of_day NUMBER(2,0) NOT NULL,
-    placed_time datetime NOT NULL,
-    completed_day_id NUMBER(7, 0) NOT NULL,
-    completed_hour_of_day NUMBER(2,0),
-    completed_time datetime,
-    PRIMARY KEY (bet_id),
-    CONSTRAINT unq_idx1 UNIQUE(dapp_table_id, bet_id),
-    CONSTRAINT fk_bet_dapp_table1 FOREIGN KEY (dapp_table_id) REFERENCES dapp_table (dapp_table_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_token1 FOREIGN KEY (bet_token_id) REFERENCES token (token_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_token2 FOREIGN KEY (win_token_id) REFERENCES token (token_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_account1 FOREIGN KEY (user_account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_bet_status FOREIGN KEY (bet_status_id) REFERENCES bet_status (bet_status_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_day1 FOREIGN KEY (placed_day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT fk_bet_day2 FOREIGN KEY (completed_day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Table structure for table `dapp`
+--
 
-CREATE OR REPLACE TABLE account_balance (
-  account_id int NOT NULL,
-  day_id NUMBER(7, 0) NOT NULL,
-  liquid number(24, 9) NOT NULL,
-  staked number(24, 9) NOT NULL,
-  refund number(24, 9) NOT NULL,
-  PRIMARY KEY (account_id, day_id),
-  CONSTRAINT fk_account_balance_account1 FOREIGN KEY (account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT fk_account_balance_day1 FOREIGN KEY (day_id) REFERENCES day (day_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+DROP TABLE IF EXISTS `dapp`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dapp` (
+  `dapp_id` int(11) NOT NULL AUTO_INCREMENT,
+  `dapp_name` varchar(50) NOT NULL,
+  `dapp_type_id` tinyint(4) NOT NULL,
+  PRIMARY KEY (`dapp_id`),
+  KEY `fk_dapp_dapp_type_idx` (`dapp_type_id`),
+  CONSTRAINT `fk_dapp_dapp_type` FOREIGN KEY (`dapp_type_id`) REFERENCES `dapp_type` (`dapp_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-CREATE OR REPLACE TABLE block_producer (
-  account_id int NOT NULL,
-  is_active boolean NOT NULL,
-  url varchar(1000),
-  total_votes number(38,17) NOT NULL,
-  location number(5, 0) NOT NULL,
-  PRIMARY KEY (account_id),
-  CONSTRAINT fk_block_producer_account1 FOREIGN KEY (account_id) REFERENCES account (account_id) ON DELETE NO ACTION ON UPDATE NO ACTION
-);
+--
+-- Dumping data for table `dapp`
+--
+
+LOCK TABLES `dapp` WRITE;
+/*!40000 ALTER TABLE `dapp` DISABLE KEYS */;
+INSERT INTO `dapp` VALUES (-1,'Unknown',-1),(1,'EOS Token',1),(2,'EOS Black Token',1),(3,'Parsl SEED Token',1),(4,'MEETONE Token',1),(5,'Everopedia IQ Token',1),(6,'OCT Token',1),(7,'EOSDAC Token',1),(8,'TRYBE Token',1),(9,'KARMA Token',1),(10,'BNT Token',1),(11,'ADD Token',1),(12,'EDNA Token',1),(13,'Newdex',2),(14,'DEXEOS',2),(15,'WhaleEX',2),(16,'Findex',2),(17,'BTEX',2),(18,'Namedex',2),(19,'OneDex',2),(20,'dex.io',2),(21,'DeltaDex',2),(22,'EOSDAQ',2),(23,'FarmEOS',3),(24,'Fishjoy',3),(25,'EOSBet',3),(26,'Fastwin',3),(27,'Endless Dice',3),(28,'EOSIO',6);
+/*!40000 ALTER TABLE `dapp` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dapp_table`
+--
+
+DROP TABLE IF EXISTS `dapp_table`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dapp_table` (
+  `dapp_table_id` int(11) NOT NULL AUTO_INCREMENT,
+  `dapp_table_name` varchar(50) NOT NULL,
+  `code_account_id` int(11) NOT NULL,
+  `scope_account_id` int(11) NOT NULL,
+  PRIMARY KEY (`dapp_table_id`),
+  UNIQUE KEY `unq_table_name_code_account_scope_account` (`dapp_table_name`,`code_account_id`,`scope_account_id`),
+  KEY `fk_dapp_table_account_1_idx` (`code_account_id`),
+  KEY `fk_dapp_table_account_2_idx` (`scope_account_id`),
+  CONSTRAINT `fk_dapp_table_account_1` FOREIGN KEY (`code_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_dapp_table_account_2` FOREIGN KEY (`scope_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dapp_table`
+--
+
+LOCK TABLES `dapp_table` WRITE;
+/*!40000 ALTER TABLE `dapp_table` DISABLE KEYS */;
+INSERT INTO `dapp_table` VALUES (6,'activebets',34,34),(7,'activebets',35,35),(8,'activebets',36,36),(9,'activebets',37,37),(1,'bets',32,32),(10,'bets',38,38),(5,'betticket21',33,33),(4,'bjs',32,32),(3,'mines',32,32),(11,'producers',39,39),(2,'rouls',32,32),(12,'voters',39,39);
+/*!40000 ALTER TABLE `dapp_table` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dapp_type`
+--
+
+DROP TABLE IF EXISTS `dapp_type`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dapp_type` (
+  `dapp_type_id` tinyint(4) NOT NULL,
+  `dapp_type_desc` varchar(50) NOT NULL,
+  PRIMARY KEY (`dapp_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dapp_type`
+--
+
+LOCK TABLES `dapp_type` WRITE;
+/*!40000 ALTER TABLE `dapp_type` DISABLE KEYS */;
+INSERT INTO `dapp_type` VALUES (-2,'Not Applicable'),(-1,'Unknown'),(1,'Token'),(2,'Exchange'),(3,'Gambling'),(4,'Gaming'),(5,'Social'),(6,'EOS Admin');
+/*!40000 ALTER TABLE `dapp_type` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `day`
+--
+
+DROP TABLE IF EXISTS `day`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `day` (
+  `day_id` mediumint(9) NOT NULL,
+  `time_type_id` tinyint(4) NOT NULL,
+  `day_date` date DEFAULT NULL,
+  `prev_day_id` int(11) DEFAULT NULL,
+  `lm_day_id` int(11) DEFAULT NULL,
+  `ly_day_id` int(11) DEFAULT NULL,
+  `month_id` mediumint(9) NOT NULL,
+  `quarter_id` smallint(6) NOT NULL,
+  `year_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`day_id`),
+  KEY `fk_day_month1` (`month_id`),
+  KEY `fk_day_quarter1` (`quarter_id`),
+  KEY `fk_day_time_type1` (`time_type_id`),
+  KEY `fk_day_year1` (`year_id`),
+  CONSTRAINT `fk_day_month1` FOREIGN KEY (`month_id`) REFERENCES `month` (`month_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_day_quarter1` FOREIGN KEY (`quarter_id`) REFERENCES `quarter` (`quarter_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_day_time_type1` FOREIGN KEY (`time_type_id`) REFERENCES `time_type` (`time_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_day_year1` FOREIGN KEY (`year_id`) REFERENCES `year` (`year_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `day`
+--
+
+LOCK TABLES `day` WRITE;
+/*!40000 ALTER TABLE `day` DISABLE KEYS */;
+INSERT INTO `day` VALUES (-4,-4,NULL,NULL,NULL,NULL,-4,-4,-4),(-3,-3,NULL,NULL,NULL,NULL,-3,-3,-3),(-2,-2,NULL,NULL,NULL,NULL,-2,-2,-2),(-1,-1,NULL,NULL,NULL,NULL,-1,-1,-1),(17167,0,'2017-01-01',17166,17136,16801,201701,20171,2017),(17168,0,'2017-01-02',17167,17137,16802,201701,20171,2017),(17169,0,'2017-01-03',17168,17138,16803,201701,20171,2017),(17170,0,'2017-01-04',17169,17139,16804,201701,20171,2017),(17171,0,'2017-01-05',17170,17140,16805,201701,20171,2017),(17172,0,'2017-01-06',17171,17141,16806,201701,20171,2017),(17173,0,'2017-01-07',17172,17142,16807,201701,20171,2017),(17174,0,'2017-01-08',17173,17143,16808,201701,20171,2017),(17175,0,'2017-01-09',17174,17144,16809,201701,20171,2017),(17176,0,'2017-01-10',17175,17145,16810,201701,20171,2017),(17177,0,'2017-01-11',17176,17146,16811,201701,20171,2017),(17178,0,'2017-01-12',17177,17147,16812,201701,20171,2017),(17179,0,'2017-01-13',17178,17148,16813,201701,20171,2017),(17180,0,'2017-01-14',17179,17149,16814,201701,20171,2017),(17181,0,'2017-01-15',17180,17150,16815,201701,20171,2017),(17182,0,'2017-01-16',17181,17151,16816,201701,20171,2017),(17183,0,'2017-01-17',17182,17152,16817,201701,20171,2017),(17184,0,'2017-01-18',17183,17153,16818,201701,20171,2017),(17185,0,'2017-01-19',17184,17154,16819,201701,20171,2017),(17186,0,'2017-01-20',17185,17155,16820,201701,20171,2017),(17187,0,'2017-01-21',17186,17156,16821,201701,20171,2017),(17188,0,'2017-01-22',17187,17157,16822,201701,20171,2017),(17189,0,'2017-01-23',17188,17158,16823,201701,20171,2017),(17190,0,'2017-01-24',17189,17159,16824,201701,20171,2017),(17191,0,'2017-01-25',17190,17160,16825,201701,20171,2017),(17192,0,'2017-01-26',17191,17161,16826,201701,20171,2017),(17193,0,'2017-01-27',17192,17162,16827,201701,20171,2017),(17194,0,'2017-01-28',17193,17163,16828,201701,20171,2017),(17195,0,'2017-01-29',17194,17164,16829,201701,20171,2017),(17196,0,'2017-01-30',17195,17165,16830,201701,20171,2017),(17197,0,'2017-01-31',17196,17166,16831,201701,20171,2017),(17198,0,'2017-02-01',17197,17167,16832,201702,20171,2017),(17199,0,'2017-02-02',17198,17168,16833,201702,20171,2017),(17200,0,'2017-02-03',17199,17169,16834,201702,20171,2017),(17201,0,'2017-02-04',17200,17170,16835,201702,20171,2017),(17202,0,'2017-02-05',17201,17171,16836,201702,20171,2017),(17203,0,'2017-02-06',17202,17172,16837,201702,20171,2017),(17204,0,'2017-02-07',17203,17173,16838,201702,20171,2017),(17205,0,'2017-02-08',17204,17174,16839,201702,20171,2017),(17206,0,'2017-02-09',17205,17175,16840,201702,20171,2017),(17207,0,'2017-02-10',17206,17176,16841,201702,20171,2017),(17208,0,'2017-02-11',17207,17177,16842,201702,20171,2017),(17209,0,'2017-02-12',17208,17178,16843,201702,20171,2017),(17210,0,'2017-02-13',17209,17179,16844,201702,20171,2017),(17211,0,'2017-02-14',17210,17180,16845,201702,20171,2017),(17212,0,'2017-02-15',17211,17181,16846,201702,20171,2017),(17213,0,'2017-02-16',17212,17182,16847,201702,20171,2017),(17214,0,'2017-02-17',17213,17183,16848,201702,20171,2017),(17215,0,'2017-02-18',17214,17184,16849,201702,20171,2017),(17216,0,'2017-02-19',17215,17185,16850,201702,20171,2017),(17217,0,'2017-02-20',17216,17186,16851,201702,20171,2017),(17218,0,'2017-02-21',17217,17187,16852,201702,20171,2017),(17219,0,'2017-02-22',17218,17188,16853,201702,20171,2017),(17220,0,'2017-02-23',17219,17189,16854,201702,20171,2017),(17221,0,'2017-02-24',17220,17190,16855,201702,20171,2017),(17222,0,'2017-02-25',17221,17191,16856,201702,20171,2017),(17223,0,'2017-02-26',17222,17192,16857,201702,20171,2017),(17224,0,'2017-02-27',17223,17193,16858,201702,20171,2017),(17225,0,'2017-02-28',17224,17194,16859,201702,20171,2017),(17226,0,'2017-03-01',17225,17198,16861,201703,20171,2017),(17227,0,'2017-03-02',17226,17199,16862,201703,20171,2017),(17228,0,'2017-03-03',17227,17200,16863,201703,20171,2017),(17229,0,'2017-03-04',17228,17201,16864,201703,20171,2017),(17230,0,'2017-03-05',17229,17202,16865,201703,20171,2017),(17231,0,'2017-03-06',17230,17203,16866,201703,20171,2017),(17232,0,'2017-03-07',17231,17204,16867,201703,20171,2017),(17233,0,'2017-03-08',17232,17205,16868,201703,20171,2017),(17234,0,'2017-03-09',17233,17206,16869,201703,20171,2017),(17235,0,'2017-03-10',17234,17207,16870,201703,20171,2017),(17236,0,'2017-03-11',17235,17208,16871,201703,20171,2017),(17237,0,'2017-03-12',17236,17209,16872,201703,20171,2017),(17238,0,'2017-03-13',17237,17210,16873,201703,20171,2017),(17239,0,'2017-03-14',17238,17211,16874,201703,20171,2017),(17240,0,'2017-03-15',17239,17212,16875,201703,20171,2017),(17241,0,'2017-03-16',17240,17213,16876,201703,20171,2017),(17242,0,'2017-03-17',17241,17214,16877,201703,20171,2017),(17243,0,'2017-03-18',17242,17215,16878,201703,20171,2017),(17244,0,'2017-03-19',17243,17216,16879,201703,20171,2017),(17245,0,'2017-03-20',17244,17217,16880,201703,20171,2017),(17246,0,'2017-03-21',17245,17218,16881,201703,20171,2017),(17247,0,'2017-03-22',17246,17219,16882,201703,20171,2017),(17248,0,'2017-03-23',17247,17220,16883,201703,20171,2017),(17249,0,'2017-03-24',17248,17221,16884,201703,20171,2017),(17250,0,'2017-03-25',17249,17222,16885,201703,20171,2017),(17251,0,'2017-03-26',17250,17223,16886,201703,20171,2017),(17252,0,'2017-03-27',17251,17224,16887,201703,20171,2017),(17253,0,'2017-03-28',17252,17225,16888,201703,20171,2017),(17254,0,'2017-03-29',17253,17225,16889,201703,20171,2017),(17255,0,'2017-03-30',17254,17225,16890,201703,20171,2017),(17256,0,'2017-03-31',17255,17225,16891,201703,20171,2017),(17257,0,'2017-04-01',17256,17226,16892,201704,20172,2017),(17258,0,'2017-04-02',17257,17227,16893,201704,20172,2017),(17259,0,'2017-04-03',17258,17228,16894,201704,20172,2017),(17260,0,'2017-04-04',17259,17229,16895,201704,20172,2017),(17261,0,'2017-04-05',17260,17230,16896,201704,20172,2017),(17262,0,'2017-04-06',17261,17231,16897,201704,20172,2017),(17263,0,'2017-04-07',17262,17232,16898,201704,20172,2017),(17264,0,'2017-04-08',17263,17233,16899,201704,20172,2017),(17265,0,'2017-04-09',17264,17234,16900,201704,20172,2017),(17266,0,'2017-04-10',17265,17235,16901,201704,20172,2017),(17267,0,'2017-04-11',17266,17236,16902,201704,20172,2017),(17268,0,'2017-04-12',17267,17237,16903,201704,20172,2017),(17269,0,'2017-04-13',17268,17238,16904,201704,20172,2017),(17270,0,'2017-04-14',17269,17239,16905,201704,20172,2017),(17271,0,'2017-04-15',17270,17240,16906,201704,20172,2017),(17272,0,'2017-04-16',17271,17241,16907,201704,20172,2017),(17273,0,'2017-04-17',17272,17242,16908,201704,20172,2017),(17274,0,'2017-04-18',17273,17243,16909,201704,20172,2017),(17275,0,'2017-04-19',17274,17244,16910,201704,20172,2017),(17276,0,'2017-04-20',17275,17245,16911,201704,20172,2017),(17277,0,'2017-04-21',17276,17246,16912,201704,20172,2017),(17278,0,'2017-04-22',17277,17247,16913,201704,20172,2017),(17279,0,'2017-04-23',17278,17248,16914,201704,20172,2017),(17280,0,'2017-04-24',17279,17249,16915,201704,20172,2017),(17281,0,'2017-04-25',17280,17250,16916,201704,20172,2017),(17282,0,'2017-04-26',17281,17251,16917,201704,20172,2017),(17283,0,'2017-04-27',17282,17252,16918,201704,20172,2017),(17284,0,'2017-04-28',17283,17253,16919,201704,20172,2017),(17285,0,'2017-04-29',17284,17254,16920,201704,20172,2017),(17286,0,'2017-04-30',17285,17255,16921,201704,20172,2017),(17287,0,'2017-05-01',17286,17257,16922,201705,20172,2017),(17288,0,'2017-05-02',17287,17258,16923,201705,20172,2017),(17289,0,'2017-05-03',17288,17259,16924,201705,20172,2017),(17290,0,'2017-05-04',17289,17260,16925,201705,20172,2017),(17291,0,'2017-05-05',17290,17261,16926,201705,20172,2017),(17292,0,'2017-05-06',17291,17262,16927,201705,20172,2017),(17293,0,'2017-05-07',17292,17263,16928,201705,20172,2017),(17294,0,'2017-05-08',17293,17264,16929,201705,20172,2017),(17295,0,'2017-05-09',17294,17265,16930,201705,20172,2017),(17296,0,'2017-05-10',17295,17266,16931,201705,20172,2017),(17297,0,'2017-05-11',17296,17267,16932,201705,20172,2017),(17298,0,'2017-05-12',17297,17268,16933,201705,20172,2017),(17299,0,'2017-05-13',17298,17269,16934,201705,20172,2017),(17300,0,'2017-05-14',17299,17270,16935,201705,20172,2017),(17301,0,'2017-05-15',17300,17271,16936,201705,20172,2017),(17302,0,'2017-05-16',17301,17272,16937,201705,20172,2017),(17303,0,'2017-05-17',17302,17273,16938,201705,20172,2017),(17304,0,'2017-05-18',17303,17274,16939,201705,20172,2017),(17305,0,'2017-05-19',17304,17275,16940,201705,20172,2017),(17306,0,'2017-05-20',17305,17276,16941,201705,20172,2017),(17307,0,'2017-05-21',17306,17277,16942,201705,20172,2017),(17308,0,'2017-05-22',17307,17278,16943,201705,20172,2017),(17309,0,'2017-05-23',17308,17279,16944,201705,20172,2017),(17310,0,'2017-05-24',17309,17280,16945,201705,20172,2017),(17311,0,'2017-05-25',17310,17281,16946,201705,20172,2017),(17312,0,'2017-05-26',17311,17282,16947,201705,20172,2017),(17313,0,'2017-05-27',17312,17283,16948,201705,20172,2017),(17314,0,'2017-05-28',17313,17284,16949,201705,20172,2017),(17315,0,'2017-05-29',17314,17285,16950,201705,20172,2017),(17316,0,'2017-05-30',17315,17286,16951,201705,20172,2017),(17317,0,'2017-05-31',17316,17286,16952,201705,20172,2017),(17318,0,'2017-06-01',17317,17287,16953,201706,20172,2017),(17319,0,'2017-06-02',17318,17288,16954,201706,20172,2017),(17320,0,'2017-06-03',17319,17289,16955,201706,20172,2017),(17321,0,'2017-06-04',17320,17290,16956,201706,20172,2017),(17322,0,'2017-06-05',17321,17291,16957,201706,20172,2017),(17323,0,'2017-06-06',17322,17292,16958,201706,20172,2017),(17324,0,'2017-06-07',17323,17293,16959,201706,20172,2017),(17325,0,'2017-06-08',17324,17294,16960,201706,20172,2017),(17326,0,'2017-06-09',17325,17295,16961,201706,20172,2017),(17327,0,'2017-06-10',17326,17296,16962,201706,20172,2017),(17328,0,'2017-06-11',17327,17297,16963,201706,20172,2017),(17329,0,'2017-06-12',17328,17298,16964,201706,20172,2017),(17330,0,'2017-06-13',17329,17299,16965,201706,20172,2017),(17331,0,'2017-06-14',17330,17300,16966,201706,20172,2017),(17332,0,'2017-06-15',17331,17301,16967,201706,20172,2017),(17333,0,'2017-06-16',17332,17302,16968,201706,20172,2017),(17334,0,'2017-06-17',17333,17303,16969,201706,20172,2017),(17335,0,'2017-06-18',17334,17304,16970,201706,20172,2017),(17336,0,'2017-06-19',17335,17305,16971,201706,20172,2017),(17337,0,'2017-06-20',17336,17306,16972,201706,20172,2017),(17338,0,'2017-06-21',17337,17307,16973,201706,20172,2017),(17339,0,'2017-06-22',17338,17308,16974,201706,20172,2017),(17340,0,'2017-06-23',17339,17309,16975,201706,20172,2017),(17341,0,'2017-06-24',17340,17310,16976,201706,20172,2017),(17342,0,'2017-06-25',17341,17311,16977,201706,20172,2017),(17343,0,'2017-06-26',17342,17312,16978,201706,20172,2017),(17344,0,'2017-06-27',17343,17313,16979,201706,20172,2017),(17345,0,'2017-06-28',17344,17314,16980,201706,20172,2017),(17346,0,'2017-06-29',17345,17315,16981,201706,20172,2017),(17347,0,'2017-06-30',17346,17316,16982,201706,20172,2017),(17348,0,'2017-07-01',17347,17318,16983,201707,20173,2017),(17349,0,'2017-07-02',17348,17319,16984,201707,20173,2017),(17350,0,'2017-07-03',17349,17320,16985,201707,20173,2017),(17351,0,'2017-07-04',17350,17321,16986,201707,20173,2017),(17352,0,'2017-07-05',17351,17322,16987,201707,20173,2017),(17353,0,'2017-07-06',17352,17323,16988,201707,20173,2017),(17354,0,'2017-07-07',17353,17324,16989,201707,20173,2017),(17355,0,'2017-07-08',17354,17325,16990,201707,20173,2017),(17356,0,'2017-07-09',17355,17326,16991,201707,20173,2017),(17357,0,'2017-07-10',17356,17327,16992,201707,20173,2017),(17358,0,'2017-07-11',17357,17328,16993,201707,20173,2017),(17359,0,'2017-07-12',17358,17329,16994,201707,20173,2017),(17360,0,'2017-07-13',17359,17330,16995,201707,20173,2017),(17361,0,'2017-07-14',17360,17331,16996,201707,20173,2017),(17362,0,'2017-07-15',17361,17332,16997,201707,20173,2017),(17363,0,'2017-07-16',17362,17333,16998,201707,20173,2017),(17364,0,'2017-07-17',17363,17334,16999,201707,20173,2017),(17365,0,'2017-07-18',17364,17335,17000,201707,20173,2017),(17366,0,'2017-07-19',17365,17336,17001,201707,20173,2017),(17367,0,'2017-07-20',17366,17337,17002,201707,20173,2017),(17368,0,'2017-07-21',17367,17338,17003,201707,20173,2017),(17369,0,'2017-07-22',17368,17339,17004,201707,20173,2017),(17370,0,'2017-07-23',17369,17340,17005,201707,20173,2017),(17371,0,'2017-07-24',17370,17341,17006,201707,20173,2017),(17372,0,'2017-07-25',17371,17342,17007,201707,20173,2017),(17373,0,'2017-07-26',17372,17343,17008,201707,20173,2017),(17374,0,'2017-07-27',17373,17344,17009,201707,20173,2017),(17375,0,'2017-07-28',17374,17345,17010,201707,20173,2017),(17376,0,'2017-07-29',17375,17346,17011,201707,20173,2017),(17377,0,'2017-07-30',17376,17347,17012,201707,20173,2017),(17378,0,'2017-07-31',17377,17347,17013,201707,20173,2017),(17379,0,'2017-08-01',17378,17348,17014,201708,20173,2017),(17380,0,'2017-08-02',17379,17349,17015,201708,20173,2017),(17381,0,'2017-08-03',17380,17350,17016,201708,20173,2017),(17382,0,'2017-08-04',17381,17351,17017,201708,20173,2017),(17383,0,'2017-08-05',17382,17352,17018,201708,20173,2017),(17384,0,'2017-08-06',17383,17353,17019,201708,20173,2017),(17385,0,'2017-08-07',17384,17354,17020,201708,20173,2017),(17386,0,'2017-08-08',17385,17355,17021,201708,20173,2017),(17387,0,'2017-08-09',17386,17356,17022,201708,20173,2017),(17388,0,'2017-08-10',17387,17357,17023,201708,20173,2017),(17389,0,'2017-08-11',17388,17358,17024,201708,20173,2017),(17390,0,'2017-08-12',17389,17359,17025,201708,20173,2017),(17391,0,'2017-08-13',17390,17360,17026,201708,20173,2017),(17392,0,'2017-08-14',17391,17361,17027,201708,20173,2017),(17393,0,'2017-08-15',17392,17362,17028,201708,20173,2017),(17394,0,'2017-08-16',17393,17363,17029,201708,20173,2017),(17395,0,'2017-08-17',17394,17364,17030,201708,20173,2017),(17396,0,'2017-08-18',17395,17365,17031,201708,20173,2017),(17397,0,'2017-08-19',17396,17366,17032,201708,20173,2017),(17398,0,'2017-08-20',17397,17367,17033,201708,20173,2017),(17399,0,'2017-08-21',17398,17368,17034,201708,20173,2017),(17400,0,'2017-08-22',17399,17369,17035,201708,20173,2017),(17401,0,'2017-08-23',17400,17370,17036,201708,20173,2017),(17402,0,'2017-08-24',17401,17371,17037,201708,20173,2017),(17403,0,'2017-08-25',17402,17372,17038,201708,20173,2017),(17404,0,'2017-08-26',17403,17373,17039,201708,20173,2017),(17405,0,'2017-08-27',17404,17374,17040,201708,20173,2017),(17406,0,'2017-08-28',17405,17375,17041,201708,20173,2017),(17407,0,'2017-08-29',17406,17376,17042,201708,20173,2017),(17408,0,'2017-08-30',17407,17377,17043,201708,20173,2017),(17409,0,'2017-08-31',17408,17378,17044,201708,20173,2017),(17410,0,'2017-09-01',17409,17379,17045,201709,20173,2017),(17411,0,'2017-09-02',17410,17380,17046,201709,20173,2017),(17412,0,'2017-09-03',17411,17381,17047,201709,20173,2017),(17413,0,'2017-09-04',17412,17382,17048,201709,20173,2017),(17414,0,'2017-09-05',17413,17383,17049,201709,20173,2017),(17415,0,'2017-09-06',17414,17384,17050,201709,20173,2017),(17416,0,'2017-09-07',17415,17385,17051,201709,20173,2017),(17417,0,'2017-09-08',17416,17386,17052,201709,20173,2017),(17418,0,'2017-09-09',17417,17387,17053,201709,20173,2017),(17419,0,'2017-09-10',17418,17388,17054,201709,20173,2017),(17420,0,'2017-09-11',17419,17389,17055,201709,20173,2017),(17421,0,'2017-09-12',17420,17390,17056,201709,20173,2017),(17422,0,'2017-09-13',17421,17391,17057,201709,20173,2017),(17423,0,'2017-09-14',17422,17392,17058,201709,20173,2017),(17424,0,'2017-09-15',17423,17393,17059,201709,20173,2017),(17425,0,'2017-09-16',17424,17394,17060,201709,20173,2017),(17426,0,'2017-09-17',17425,17395,17061,201709,20173,2017),(17427,0,'2017-09-18',17426,17396,17062,201709,20173,2017),(17428,0,'2017-09-19',17427,17397,17063,201709,20173,2017),(17429,0,'2017-09-20',17428,17398,17064,201709,20173,2017),(17430,0,'2017-09-21',17429,17399,17065,201709,20173,2017),(17431,0,'2017-09-22',17430,17400,17066,201709,20173,2017),(17432,0,'2017-09-23',17431,17401,17067,201709,20173,2017),(17433,0,'2017-09-24',17432,17402,17068,201709,20173,2017),(17434,0,'2017-09-25',17433,17403,17069,201709,20173,2017),(17435,0,'2017-09-26',17434,17404,17070,201709,20173,2017),(17436,0,'2017-09-27',17435,17405,17071,201709,20173,2017),(17437,0,'2017-09-28',17436,17406,17072,201709,20173,2017),(17438,0,'2017-09-29',17437,17407,17073,201709,20173,2017),(17439,0,'2017-09-30',17438,17408,17074,201709,20173,2017),(17440,0,'2017-10-01',17439,17410,17075,201710,20174,2017),(17441,0,'2017-10-02',17440,17411,17076,201710,20174,2017),(17442,0,'2017-10-03',17441,17412,17077,201710,20174,2017),(17443,0,'2017-10-04',17442,17413,17078,201710,20174,2017),(17444,0,'2017-10-05',17443,17414,17079,201710,20174,2017),(17445,0,'2017-10-06',17444,17415,17080,201710,20174,2017),(17446,0,'2017-10-07',17445,17416,17081,201710,20174,2017),(17447,0,'2017-10-08',17446,17417,17082,201710,20174,2017),(17448,0,'2017-10-09',17447,17418,17083,201710,20174,2017),(17449,0,'2017-10-10',17448,17419,17084,201710,20174,2017),(17450,0,'2017-10-11',17449,17420,17085,201710,20174,2017),(17451,0,'2017-10-12',17450,17421,17086,201710,20174,2017),(17452,0,'2017-10-13',17451,17422,17087,201710,20174,2017),(17453,0,'2017-10-14',17452,17423,17088,201710,20174,2017),(17454,0,'2017-10-15',17453,17424,17089,201710,20174,2017),(17455,0,'2017-10-16',17454,17425,17090,201710,20174,2017),(17456,0,'2017-10-17',17455,17426,17091,201710,20174,2017),(17457,0,'2017-10-18',17456,17427,17092,201710,20174,2017),(17458,0,'2017-10-19',17457,17428,17093,201710,20174,2017),(17459,0,'2017-10-20',17458,17429,17094,201710,20174,2017),(17460,0,'2017-10-21',17459,17430,17095,201710,20174,2017),(17461,0,'2017-10-22',17460,17431,17096,201710,20174,2017),(17462,0,'2017-10-23',17461,17432,17097,201710,20174,2017),(17463,0,'2017-10-24',17462,17433,17098,201710,20174,2017),(17464,0,'2017-10-25',17463,17434,17099,201710,20174,2017),(17465,0,'2017-10-26',17464,17435,17100,201710,20174,2017),(17466,0,'2017-10-27',17465,17436,17101,201710,20174,2017),(17467,0,'2017-10-28',17466,17437,17102,201710,20174,2017),(17468,0,'2017-10-29',17467,17438,17103,201710,20174,2017),(17469,0,'2017-10-30',17468,17439,17104,201710,20174,2017),(17470,0,'2017-10-31',17469,17439,17105,201710,20174,2017),(17471,0,'2017-11-01',17470,17440,17106,201711,20174,2017),(17472,0,'2017-11-02',17471,17441,17107,201711,20174,2017),(17473,0,'2017-11-03',17472,17442,17108,201711,20174,2017),(17474,0,'2017-11-04',17473,17443,17109,201711,20174,2017),(17475,0,'2017-11-05',17474,17444,17110,201711,20174,2017),(17476,0,'2017-11-06',17475,17445,17111,201711,20174,2017),(17477,0,'2017-11-07',17476,17446,17112,201711,20174,2017),(17478,0,'2017-11-08',17477,17447,17113,201711,20174,2017),(17479,0,'2017-11-09',17478,17448,17114,201711,20174,2017),(17480,0,'2017-11-10',17479,17449,17115,201711,20174,2017),(17481,0,'2017-11-11',17480,17450,17116,201711,20174,2017),(17482,0,'2017-11-12',17481,17451,17117,201711,20174,2017),(17483,0,'2017-11-13',17482,17452,17118,201711,20174,2017),(17484,0,'2017-11-14',17483,17453,17119,201711,20174,2017),(17485,0,'2017-11-15',17484,17454,17120,201711,20174,2017),(17486,0,'2017-11-16',17485,17455,17121,201711,20174,2017),(17487,0,'2017-11-17',17486,17456,17122,201711,20174,2017),(17488,0,'2017-11-18',17487,17457,17123,201711,20174,2017),(17489,0,'2017-11-19',17488,17458,17124,201711,20174,2017),(17490,0,'2017-11-20',17489,17459,17125,201711,20174,2017),(17491,0,'2017-11-21',17490,17460,17126,201711,20174,2017),(17492,0,'2017-11-22',17491,17461,17127,201711,20174,2017),(17493,0,'2017-11-23',17492,17462,17128,201711,20174,2017),(17494,0,'2017-11-24',17493,17463,17129,201711,20174,2017),(17495,0,'2017-11-25',17494,17464,17130,201711,20174,2017),(17496,0,'2017-11-26',17495,17465,17131,201711,20174,2017),(17497,0,'2017-11-27',17496,17466,17132,201711,20174,2017),(17498,0,'2017-11-28',17497,17467,17133,201711,20174,2017),(17499,0,'2017-11-29',17498,17468,17134,201711,20174,2017),(17500,0,'2017-11-30',17499,17469,17135,201711,20174,2017),(17501,0,'2017-12-01',17500,17471,17136,201712,20174,2017),(17502,0,'2017-12-02',17501,17472,17137,201712,20174,2017),(17503,0,'2017-12-03',17502,17473,17138,201712,20174,2017),(17504,0,'2017-12-04',17503,17474,17139,201712,20174,2017),(17505,0,'2017-12-05',17504,17475,17140,201712,20174,2017),(17506,0,'2017-12-06',17505,17476,17141,201712,20174,2017),(17507,0,'2017-12-07',17506,17477,17142,201712,20174,2017),(17508,0,'2017-12-08',17507,17478,17143,201712,20174,2017),(17509,0,'2017-12-09',17508,17479,17144,201712,20174,2017),(17510,0,'2017-12-10',17509,17480,17145,201712,20174,2017),(17511,0,'2017-12-11',17510,17481,17146,201712,20174,2017),(17512,0,'2017-12-12',17511,17482,17147,201712,20174,2017),(17513,0,'2017-12-13',17512,17483,17148,201712,20174,2017),(17514,0,'2017-12-14',17513,17484,17149,201712,20174,2017),(17515,0,'2017-12-15',17514,17485,17150,201712,20174,2017),(17516,0,'2017-12-16',17515,17486,17151,201712,20174,2017),(17517,0,'2017-12-17',17516,17487,17152,201712,20174,2017),(17518,0,'2017-12-18',17517,17488,17153,201712,20174,2017),(17519,0,'2017-12-19',17518,17489,17154,201712,20174,2017),(17520,0,'2017-12-20',17519,17490,17155,201712,20174,2017),(17521,0,'2017-12-21',17520,17491,17156,201712,20174,2017),(17522,0,'2017-12-22',17521,17492,17157,201712,20174,2017),(17523,0,'2017-12-23',17522,17493,17158,201712,20174,2017),(17524,0,'2017-12-24',17523,17494,17159,201712,20174,2017),(17525,0,'2017-12-25',17524,17495,17160,201712,20174,2017),(17526,0,'2017-12-26',17525,17496,17161,201712,20174,2017),(17527,0,'2017-12-27',17526,17497,17162,201712,20174,2017),(17528,0,'2017-12-28',17527,17498,17163,201712,20174,2017),(17529,0,'2017-12-29',17528,17499,17164,201712,20174,2017),(17530,0,'2017-12-30',17529,17500,17165,201712,20174,2017),(17531,0,'2017-12-31',17530,17500,17166,201712,20174,2017),(17532,0,'2018-01-01',17531,17501,17167,201801,20181,2018),(17533,0,'2018-01-02',17532,17502,17168,201801,20181,2018),(17534,0,'2018-01-03',17533,17503,17169,201801,20181,2018),(17535,0,'2018-01-04',17534,17504,17170,201801,20181,2018),(17536,0,'2018-01-05',17535,17505,17171,201801,20181,2018),(17537,0,'2018-01-06',17536,17506,17172,201801,20181,2018),(17538,0,'2018-01-07',17537,17507,17173,201801,20181,2018),(17539,0,'2018-01-08',17538,17508,17174,201801,20181,2018),(17540,0,'2018-01-09',17539,17509,17175,201801,20181,2018),(17541,0,'2018-01-10',17540,17510,17176,201801,20181,2018),(17542,0,'2018-01-11',17541,17511,17177,201801,20181,2018),(17543,0,'2018-01-12',17542,17512,17178,201801,20181,2018),(17544,0,'2018-01-13',17543,17513,17179,201801,20181,2018),(17545,0,'2018-01-14',17544,17514,17180,201801,20181,2018),(17546,0,'2018-01-15',17545,17515,17181,201801,20181,2018),(17547,0,'2018-01-16',17546,17516,17182,201801,20181,2018),(17548,0,'2018-01-17',17547,17517,17183,201801,20181,2018),(17549,0,'2018-01-18',17548,17518,17184,201801,20181,2018),(17550,0,'2018-01-19',17549,17519,17185,201801,20181,2018),(17551,0,'2018-01-20',17550,17520,17186,201801,20181,2018),(17552,0,'2018-01-21',17551,17521,17187,201801,20181,2018),(17553,0,'2018-01-22',17552,17522,17188,201801,20181,2018),(17554,0,'2018-01-23',17553,17523,17189,201801,20181,2018),(17555,0,'2018-01-24',17554,17524,17190,201801,20181,2018),(17556,0,'2018-01-25',17555,17525,17191,201801,20181,2018),(17557,0,'2018-01-26',17556,17526,17192,201801,20181,2018),(17558,0,'2018-01-27',17557,17527,17193,201801,20181,2018),(17559,0,'2018-01-28',17558,17528,17194,201801,20181,2018),(17560,0,'2018-01-29',17559,17529,17195,201801,20181,2018),(17561,0,'2018-01-30',17560,17530,17196,201801,20181,2018),(17562,0,'2018-01-31',17561,17531,17197,201801,20181,2018),(17563,0,'2018-02-01',17562,17532,17198,201802,20181,2018),(17564,0,'2018-02-02',17563,17533,17199,201802,20181,2018),(17565,0,'2018-02-03',17564,17534,17200,201802,20181,2018),(17566,0,'2018-02-04',17565,17535,17201,201802,20181,2018),(17567,0,'2018-02-05',17566,17536,17202,201802,20181,2018),(17568,0,'2018-02-06',17567,17537,17203,201802,20181,2018),(17569,0,'2018-02-07',17568,17538,17204,201802,20181,2018),(17570,0,'2018-02-08',17569,17539,17205,201802,20181,2018),(17571,0,'2018-02-09',17570,17540,17206,201802,20181,2018),(17572,0,'2018-02-10',17571,17541,17207,201802,20181,2018),(17573,0,'2018-02-11',17572,17542,17208,201802,20181,2018),(17574,0,'2018-02-12',17573,17543,17209,201802,20181,2018),(17575,0,'2018-02-13',17574,17544,17210,201802,20181,2018),(17576,0,'2018-02-14',17575,17545,17211,201802,20181,2018),(17577,0,'2018-02-15',17576,17546,17212,201802,20181,2018),(17578,0,'2018-02-16',17577,17547,17213,201802,20181,2018),(17579,0,'2018-02-17',17578,17548,17214,201802,20181,2018),(17580,0,'2018-02-18',17579,17549,17215,201802,20181,2018),(17581,0,'2018-02-19',17580,17550,17216,201802,20181,2018),(17582,0,'2018-02-20',17581,17551,17217,201802,20181,2018),(17583,0,'2018-02-21',17582,17552,17218,201802,20181,2018),(17584,0,'2018-02-22',17583,17553,17219,201802,20181,2018),(17585,0,'2018-02-23',17584,17554,17220,201802,20181,2018),(17586,0,'2018-02-24',17585,17555,17221,201802,20181,2018),(17587,0,'2018-02-25',17586,17556,17222,201802,20181,2018),(17588,0,'2018-02-26',17587,17557,17223,201802,20181,2018),(17589,0,'2018-02-27',17588,17558,17224,201802,20181,2018),(17590,0,'2018-02-28',17589,17559,17225,201802,20181,2018),(17591,0,'2018-03-01',17590,17563,17226,201803,20181,2018),(17592,0,'2018-03-02',17591,17564,17227,201803,20181,2018),(17593,0,'2018-03-03',17592,17565,17228,201803,20181,2018),(17594,0,'2018-03-04',17593,17566,17229,201803,20181,2018),(17595,0,'2018-03-05',17594,17567,17230,201803,20181,2018),(17596,0,'2018-03-06',17595,17568,17231,201803,20181,2018),(17597,0,'2018-03-07',17596,17569,17232,201803,20181,2018),(17598,0,'2018-03-08',17597,17570,17233,201803,20181,2018),(17599,0,'2018-03-09',17598,17571,17234,201803,20181,2018),(17600,0,'2018-03-10',17599,17572,17235,201803,20181,2018),(17601,0,'2018-03-11',17600,17573,17236,201803,20181,2018),(17602,0,'2018-03-12',17601,17574,17237,201803,20181,2018),(17603,0,'2018-03-13',17602,17575,17238,201803,20181,2018),(17604,0,'2018-03-14',17603,17576,17239,201803,20181,2018),(17605,0,'2018-03-15',17604,17577,17240,201803,20181,2018),(17606,0,'2018-03-16',17605,17578,17241,201803,20181,2018),(17607,0,'2018-03-17',17606,17579,17242,201803,20181,2018),(17608,0,'2018-03-18',17607,17580,17243,201803,20181,2018),(17609,0,'2018-03-19',17608,17581,17244,201803,20181,2018),(17610,0,'2018-03-20',17609,17582,17245,201803,20181,2018),(17611,0,'2018-03-21',17610,17583,17246,201803,20181,2018),(17612,0,'2018-03-22',17611,17584,17247,201803,20181,2018),(17613,0,'2018-03-23',17612,17585,17248,201803,20181,2018),(17614,0,'2018-03-24',17613,17586,17249,201803,20181,2018),(17615,0,'2018-03-25',17614,17587,17250,201803,20181,2018),(17616,0,'2018-03-26',17615,17588,17251,201803,20181,2018),(17617,0,'2018-03-27',17616,17589,17252,201803,20181,2018),(17618,0,'2018-03-28',17617,17590,17253,201803,20181,2018),(17619,0,'2018-03-29',17618,17590,17254,201803,20181,2018),(17620,0,'2018-03-30',17619,17590,17255,201803,20181,2018),(17621,0,'2018-03-31',17620,17590,17256,201803,20181,2018),(17622,0,'2018-04-01',17621,17591,17257,201804,20182,2018),(17623,0,'2018-04-02',17622,17592,17258,201804,20182,2018),(17624,0,'2018-04-03',17623,17593,17259,201804,20182,2018),(17625,0,'2018-04-04',17624,17594,17260,201804,20182,2018),(17626,0,'2018-04-05',17625,17595,17261,201804,20182,2018),(17627,0,'2018-04-06',17626,17596,17262,201804,20182,2018),(17628,0,'2018-04-07',17627,17597,17263,201804,20182,2018),(17629,0,'2018-04-08',17628,17598,17264,201804,20182,2018),(17630,0,'2018-04-09',17629,17599,17265,201804,20182,2018),(17631,0,'2018-04-10',17630,17600,17266,201804,20182,2018),(17632,0,'2018-04-11',17631,17601,17267,201804,20182,2018),(17633,0,'2018-04-12',17632,17602,17268,201804,20182,2018),(17634,0,'2018-04-13',17633,17603,17269,201804,20182,2018),(17635,0,'2018-04-14',17634,17604,17270,201804,20182,2018),(17636,0,'2018-04-15',17635,17605,17271,201804,20182,2018),(17637,0,'2018-04-16',17636,17606,17272,201804,20182,2018),(17638,0,'2018-04-17',17637,17607,17273,201804,20182,2018),(17639,0,'2018-04-18',17638,17608,17274,201804,20182,2018),(17640,0,'2018-04-19',17639,17609,17275,201804,20182,2018),(17641,0,'2018-04-20',17640,17610,17276,201804,20182,2018),(17642,0,'2018-04-21',17641,17611,17277,201804,20182,2018),(17643,0,'2018-04-22',17642,17612,17278,201804,20182,2018),(17644,0,'2018-04-23',17643,17613,17279,201804,20182,2018),(17645,0,'2018-04-24',17644,17614,17280,201804,20182,2018),(17646,0,'2018-04-25',17645,17615,17281,201804,20182,2018),(17647,0,'2018-04-26',17646,17616,17282,201804,20182,2018),(17648,0,'2018-04-27',17647,17617,17283,201804,20182,2018),(17649,0,'2018-04-28',17648,17618,17284,201804,20182,2018),(17650,0,'2018-04-29',17649,17619,17285,201804,20182,2018),(17651,0,'2018-04-30',17650,17620,17286,201804,20182,2018),(17652,0,'2018-05-01',17651,17622,17287,201805,20182,2018),(17653,0,'2018-05-02',17652,17623,17288,201805,20182,2018),(17654,0,'2018-05-03',17653,17624,17289,201805,20182,2018),(17655,0,'2018-05-04',17654,17625,17290,201805,20182,2018),(17656,0,'2018-05-05',17655,17626,17291,201805,20182,2018),(17657,0,'2018-05-06',17656,17627,17292,201805,20182,2018),(17658,0,'2018-05-07',17657,17628,17293,201805,20182,2018),(17659,0,'2018-05-08',17658,17629,17294,201805,20182,2018),(17660,0,'2018-05-09',17659,17630,17295,201805,20182,2018),(17661,0,'2018-05-10',17660,17631,17296,201805,20182,2018),(17662,0,'2018-05-11',17661,17632,17297,201805,20182,2018),(17663,0,'2018-05-12',17662,17633,17298,201805,20182,2018),(17664,0,'2018-05-13',17663,17634,17299,201805,20182,2018),(17665,0,'2018-05-14',17664,17635,17300,201805,20182,2018),(17666,0,'2018-05-15',17665,17636,17301,201805,20182,2018),(17667,0,'2018-05-16',17666,17637,17302,201805,20182,2018),(17668,0,'2018-05-17',17667,17638,17303,201805,20182,2018),(17669,0,'2018-05-18',17668,17639,17304,201805,20182,2018),(17670,0,'2018-05-19',17669,17640,17305,201805,20182,2018),(17671,0,'2018-05-20',17670,17641,17306,201805,20182,2018),(17672,0,'2018-05-21',17671,17642,17307,201805,20182,2018),(17673,0,'2018-05-22',17672,17643,17308,201805,20182,2018),(17674,0,'2018-05-23',17673,17644,17309,201805,20182,2018),(17675,0,'2018-05-24',17674,17645,17310,201805,20182,2018),(17676,0,'2018-05-25',17675,17646,17311,201805,20182,2018),(17677,0,'2018-05-26',17676,17647,17312,201805,20182,2018),(17678,0,'2018-05-27',17677,17648,17313,201805,20182,2018),(17679,0,'2018-05-28',17678,17649,17314,201805,20182,2018),(17680,0,'2018-05-29',17679,17650,17315,201805,20182,2018),(17681,0,'2018-05-30',17680,17651,17316,201805,20182,2018),(17682,0,'2018-05-31',17681,17651,17317,201805,20182,2018),(17683,0,'2018-06-01',17682,17652,17318,201806,20182,2018),(17684,0,'2018-06-02',17683,17653,17319,201806,20182,2018),(17685,0,'2018-06-03',17684,17654,17320,201806,20182,2018),(17686,0,'2018-06-04',17685,17655,17321,201806,20182,2018),(17687,0,'2018-06-05',17686,17656,17322,201806,20182,2018),(17688,0,'2018-06-06',17687,17657,17323,201806,20182,2018),(17689,0,'2018-06-07',17688,17658,17324,201806,20182,2018),(17690,0,'2018-06-08',17689,17659,17325,201806,20182,2018),(17691,0,'2018-06-09',17690,17660,17326,201806,20182,2018),(17692,0,'2018-06-10',17691,17661,17327,201806,20182,2018),(17693,0,'2018-06-11',17692,17662,17328,201806,20182,2018),(17694,0,'2018-06-12',17693,17663,17329,201806,20182,2018),(17695,0,'2018-06-13',17694,17664,17330,201806,20182,2018),(17696,0,'2018-06-14',17695,17665,17331,201806,20182,2018),(17697,0,'2018-06-15',17696,17666,17332,201806,20182,2018),(17698,0,'2018-06-16',17697,17667,17333,201806,20182,2018),(17699,0,'2018-06-17',17698,17668,17334,201806,20182,2018),(17700,0,'2018-06-18',17699,17669,17335,201806,20182,2018),(17701,0,'2018-06-19',17700,17670,17336,201806,20182,2018),(17702,0,'2018-06-20',17701,17671,17337,201806,20182,2018),(17703,0,'2018-06-21',17702,17672,17338,201806,20182,2018),(17704,0,'2018-06-22',17703,17673,17339,201806,20182,2018),(17705,0,'2018-06-23',17704,17674,17340,201806,20182,2018),(17706,0,'2018-06-24',17705,17675,17341,201806,20182,2018),(17707,0,'2018-06-25',17706,17676,17342,201806,20182,2018),(17708,0,'2018-06-26',17707,17677,17343,201806,20182,2018),(17709,0,'2018-06-27',17708,17678,17344,201806,20182,2018),(17710,0,'2018-06-28',17709,17679,17345,201806,20182,2018),(17711,0,'2018-06-29',17710,17680,17346,201806,20182,2018),(17712,0,'2018-06-30',17711,17681,17347,201806,20182,2018),(17713,0,'2018-07-01',17712,17683,17348,201807,20183,2018),(17714,0,'2018-07-02',17713,17684,17349,201807,20183,2018),(17715,0,'2018-07-03',17714,17685,17350,201807,20183,2018),(17716,0,'2018-07-04',17715,17686,17351,201807,20183,2018),(17717,0,'2018-07-05',17716,17687,17352,201807,20183,2018),(17718,0,'2018-07-06',17717,17688,17353,201807,20183,2018),(17719,0,'2018-07-07',17718,17689,17354,201807,20183,2018),(17720,0,'2018-07-08',17719,17690,17355,201807,20183,2018),(17721,0,'2018-07-09',17720,17691,17356,201807,20183,2018),(17722,0,'2018-07-10',17721,17692,17357,201807,20183,2018),(17723,0,'2018-07-11',17722,17693,17358,201807,20183,2018),(17724,0,'2018-07-12',17723,17694,17359,201807,20183,2018),(17725,0,'2018-07-13',17724,17695,17360,201807,20183,2018),(17726,0,'2018-07-14',17725,17696,17361,201807,20183,2018),(17727,0,'2018-07-15',17726,17697,17362,201807,20183,2018),(17728,0,'2018-07-16',17727,17698,17363,201807,20183,2018),(17729,0,'2018-07-17',17728,17699,17364,201807,20183,2018),(17730,0,'2018-07-18',17729,17700,17365,201807,20183,2018),(17731,0,'2018-07-19',17730,17701,17366,201807,20183,2018),(17732,0,'2018-07-20',17731,17702,17367,201807,20183,2018),(17733,0,'2018-07-21',17732,17703,17368,201807,20183,2018),(17734,0,'2018-07-22',17733,17704,17369,201807,20183,2018),(17735,0,'2018-07-23',17734,17705,17370,201807,20183,2018),(17736,0,'2018-07-24',17735,17706,17371,201807,20183,2018),(17737,0,'2018-07-25',17736,17707,17372,201807,20183,2018),(17738,0,'2018-07-26',17737,17708,17373,201807,20183,2018),(17739,0,'2018-07-27',17738,17709,17374,201807,20183,2018),(17740,0,'2018-07-28',17739,17710,17375,201807,20183,2018),(17741,0,'2018-07-29',17740,17711,17376,201807,20183,2018),(17742,0,'2018-07-30',17741,17712,17377,201807,20183,2018),(17743,0,'2018-07-31',17742,17712,17378,201807,20183,2018),(17744,0,'2018-08-01',17743,17713,17379,201808,20183,2018),(17745,0,'2018-08-02',17744,17714,17380,201808,20183,2018),(17746,0,'2018-08-03',17745,17715,17381,201808,20183,2018),(17747,0,'2018-08-04',17746,17716,17382,201808,20183,2018),(17748,0,'2018-08-05',17747,17717,17383,201808,20183,2018),(17749,0,'2018-08-06',17748,17718,17384,201808,20183,2018),(17750,0,'2018-08-07',17749,17719,17385,201808,20183,2018),(17751,0,'2018-08-08',17750,17720,17386,201808,20183,2018),(17752,0,'2018-08-09',17751,17721,17387,201808,20183,2018),(17753,0,'2018-08-10',17752,17722,17388,201808,20183,2018),(17754,0,'2018-08-11',17753,17723,17389,201808,20183,2018),(17755,0,'2018-08-12',17754,17724,17390,201808,20183,2018),(17756,0,'2018-08-13',17755,17725,17391,201808,20183,2018),(17757,0,'2018-08-14',17756,17726,17392,201808,20183,2018),(17758,0,'2018-08-15',17757,17727,17393,201808,20183,2018),(17759,0,'2018-08-16',17758,17728,17394,201808,20183,2018),(17760,0,'2018-08-17',17759,17729,17395,201808,20183,2018),(17761,0,'2018-08-18',17760,17730,17396,201808,20183,2018),(17762,0,'2018-08-19',17761,17731,17397,201808,20183,2018),(17763,0,'2018-08-20',17762,17732,17398,201808,20183,2018),(17764,0,'2018-08-21',17763,17733,17399,201808,20183,2018),(17765,0,'2018-08-22',17764,17734,17400,201808,20183,2018),(17766,0,'2018-08-23',17765,17735,17401,201808,20183,2018),(17767,0,'2018-08-24',17766,17736,17402,201808,20183,2018),(17768,0,'2018-08-25',17767,17737,17403,201808,20183,2018),(17769,0,'2018-08-26',17768,17738,17404,201808,20183,2018),(17770,0,'2018-08-27',17769,17739,17405,201808,20183,2018),(17771,0,'2018-08-28',17770,17740,17406,201808,20183,2018),(17772,0,'2018-08-29',17771,17741,17407,201808,20183,2018),(17773,0,'2018-08-30',17772,17742,17408,201808,20183,2018),(17774,0,'2018-08-31',17773,17743,17409,201808,20183,2018),(17775,0,'2018-09-01',17774,17744,17410,201809,20183,2018),(17776,0,'2018-09-02',17775,17745,17411,201809,20183,2018),(17777,0,'2018-09-03',17776,17746,17412,201809,20183,2018),(17778,0,'2018-09-04',17777,17747,17413,201809,20183,2018),(17779,0,'2018-09-05',17778,17748,17414,201809,20183,2018),(17780,0,'2018-09-06',17779,17749,17415,201809,20183,2018),(17781,0,'2018-09-07',17780,17750,17416,201809,20183,2018),(17782,0,'2018-09-08',17781,17751,17417,201809,20183,2018),(17783,0,'2018-09-09',17782,17752,17418,201809,20183,2018),(17784,0,'2018-09-10',17783,17753,17419,201809,20183,2018),(17785,0,'2018-09-11',17784,17754,17420,201809,20183,2018),(17786,0,'2018-09-12',17785,17755,17421,201809,20183,2018),(17787,0,'2018-09-13',17786,17756,17422,201809,20183,2018),(17788,0,'2018-09-14',17787,17757,17423,201809,20183,2018),(17789,0,'2018-09-15',17788,17758,17424,201809,20183,2018),(17790,0,'2018-09-16',17789,17759,17425,201809,20183,2018),(17791,0,'2018-09-17',17790,17760,17426,201809,20183,2018),(17792,0,'2018-09-18',17791,17761,17427,201809,20183,2018),(17793,0,'2018-09-19',17792,17762,17428,201809,20183,2018),(17794,0,'2018-09-20',17793,17763,17429,201809,20183,2018),(17795,0,'2018-09-21',17794,17764,17430,201809,20183,2018),(17796,0,'2018-09-22',17795,17765,17431,201809,20183,2018),(17797,0,'2018-09-23',17796,17766,17432,201809,20183,2018),(17798,0,'2018-09-24',17797,17767,17433,201809,20183,2018),(17799,0,'2018-09-25',17798,17768,17434,201809,20183,2018),(17800,0,'2018-09-26',17799,17769,17435,201809,20183,2018),(17801,0,'2018-09-27',17800,17770,17436,201809,20183,2018),(17802,0,'2018-09-28',17801,17771,17437,201809,20183,2018),(17803,0,'2018-09-29',17802,17772,17438,201809,20183,2018),(17804,0,'2018-09-30',17803,17773,17439,201809,20183,2018),(17805,0,'2018-10-01',17804,17775,17440,201810,20184,2018),(17806,0,'2018-10-02',17805,17776,17441,201810,20184,2018),(17807,0,'2018-10-03',17806,17777,17442,201810,20184,2018),(17808,0,'2018-10-04',17807,17778,17443,201810,20184,2018),(17809,0,'2018-10-05',17808,17779,17444,201810,20184,2018),(17810,0,'2018-10-06',17809,17780,17445,201810,20184,2018),(17811,0,'2018-10-07',17810,17781,17446,201810,20184,2018),(17812,0,'2018-10-08',17811,17782,17447,201810,20184,2018),(17813,0,'2018-10-09',17812,17783,17448,201810,20184,2018),(17814,0,'2018-10-10',17813,17784,17449,201810,20184,2018),(17815,0,'2018-10-11',17814,17785,17450,201810,20184,2018),(17816,0,'2018-10-12',17815,17786,17451,201810,20184,2018),(17817,0,'2018-10-13',17816,17787,17452,201810,20184,2018),(17818,0,'2018-10-14',17817,17788,17453,201810,20184,2018),(17819,0,'2018-10-15',17818,17789,17454,201810,20184,2018),(17820,0,'2018-10-16',17819,17790,17455,201810,20184,2018),(17821,0,'2018-10-17',17820,17791,17456,201810,20184,2018),(17822,0,'2018-10-18',17821,17792,17457,201810,20184,2018),(17823,0,'2018-10-19',17822,17793,17458,201810,20184,2018),(17824,0,'2018-10-20',17823,17794,17459,201810,20184,2018),(17825,0,'2018-10-21',17824,17795,17460,201810,20184,2018),(17826,0,'2018-10-22',17825,17796,17461,201810,20184,2018),(17827,0,'2018-10-23',17826,17797,17462,201810,20184,2018),(17828,0,'2018-10-24',17827,17798,17463,201810,20184,2018),(17829,0,'2018-10-25',17828,17799,17464,201810,20184,2018),(17830,0,'2018-10-26',17829,17800,17465,201810,20184,2018),(17831,0,'2018-10-27',17830,17801,17466,201810,20184,2018),(17832,0,'2018-10-28',17831,17802,17467,201810,20184,2018),(17833,0,'2018-10-29',17832,17803,17468,201810,20184,2018),(17834,0,'2018-10-30',17833,17804,17469,201810,20184,2018),(17835,0,'2018-10-31',17834,17804,17470,201810,20184,2018),(17836,0,'2018-11-01',17835,17805,17471,201811,20184,2018),(17837,0,'2018-11-02',17836,17806,17472,201811,20184,2018),(17838,0,'2018-11-03',17837,17807,17473,201811,20184,2018),(17839,0,'2018-11-04',17838,17808,17474,201811,20184,2018),(17840,0,'2018-11-05',17839,17809,17475,201811,20184,2018),(17841,0,'2018-11-06',17840,17810,17476,201811,20184,2018),(17842,0,'2018-11-07',17841,17811,17477,201811,20184,2018),(17843,0,'2018-11-08',17842,17812,17478,201811,20184,2018),(17844,0,'2018-11-09',17843,17813,17479,201811,20184,2018),(17845,0,'2018-11-10',17844,17814,17480,201811,20184,2018),(17846,0,'2018-11-11',17845,17815,17481,201811,20184,2018),(17847,0,'2018-11-12',17846,17816,17482,201811,20184,2018),(17848,0,'2018-11-13',17847,17817,17483,201811,20184,2018),(17849,0,'2018-11-14',17848,17818,17484,201811,20184,2018),(17850,0,'2018-11-15',17849,17819,17485,201811,20184,2018),(17851,0,'2018-11-16',17850,17820,17486,201811,20184,2018),(17852,0,'2018-11-17',17851,17821,17487,201811,20184,2018),(17853,0,'2018-11-18',17852,17822,17488,201811,20184,2018),(17854,0,'2018-11-19',17853,17823,17489,201811,20184,2018),(17855,0,'2018-11-20',17854,17824,17490,201811,20184,2018),(17856,0,'2018-11-21',17855,17825,17491,201811,20184,2018),(17857,0,'2018-11-22',17856,17826,17492,201811,20184,2018),(17858,0,'2018-11-23',17857,17827,17493,201811,20184,2018),(17859,0,'2018-11-24',17858,17828,17494,201811,20184,2018),(17860,0,'2018-11-25',17859,17829,17495,201811,20184,2018),(17861,0,'2018-11-26',17860,17830,17496,201811,20184,2018),(17862,0,'2018-11-27',17861,17831,17497,201811,20184,2018),(17863,0,'2018-11-28',17862,17832,17498,201811,20184,2018),(17864,0,'2018-11-29',17863,17833,17499,201811,20184,2018),(17865,0,'2018-11-30',17864,17834,17500,201811,20184,2018),(17866,0,'2018-12-01',17865,17836,17501,201812,20184,2018),(17867,0,'2018-12-02',17866,17837,17502,201812,20184,2018),(17868,0,'2018-12-03',17867,17838,17503,201812,20184,2018),(17869,0,'2018-12-04',17868,17839,17504,201812,20184,2018),(17870,0,'2018-12-05',17869,17840,17505,201812,20184,2018),(17871,0,'2018-12-06',17870,17841,17506,201812,20184,2018),(17872,0,'2018-12-07',17871,17842,17507,201812,20184,2018),(17873,0,'2018-12-08',17872,17843,17508,201812,20184,2018),(17874,0,'2018-12-09',17873,17844,17509,201812,20184,2018),(17875,0,'2018-12-10',17874,17845,17510,201812,20184,2018),(17876,0,'2018-12-11',17875,17846,17511,201812,20184,2018),(17877,0,'2018-12-12',17876,17847,17512,201812,20184,2018),(17878,0,'2018-12-13',17877,17848,17513,201812,20184,2018),(17879,0,'2018-12-14',17878,17849,17514,201812,20184,2018),(17880,0,'2018-12-15',17879,17850,17515,201812,20184,2018),(17881,0,'2018-12-16',17880,17851,17516,201812,20184,2018),(17882,0,'2018-12-17',17881,17852,17517,201812,20184,2018),(17883,0,'2018-12-18',17882,17853,17518,201812,20184,2018),(17884,0,'2018-12-19',17883,17854,17519,201812,20184,2018),(17885,0,'2018-12-20',17884,17855,17520,201812,20184,2018),(17886,0,'2018-12-21',17885,17856,17521,201812,20184,2018),(17887,0,'2018-12-22',17886,17857,17522,201812,20184,2018),(17888,0,'2018-12-23',17887,17858,17523,201812,20184,2018),(17889,0,'2018-12-24',17888,17859,17524,201812,20184,2018),(17890,0,'2018-12-25',17889,17860,17525,201812,20184,2018),(17891,0,'2018-12-26',17890,17861,17526,201812,20184,2018),(17892,0,'2018-12-27',17891,17862,17527,201812,20184,2018),(17893,0,'2018-12-28',17892,17863,17528,201812,20184,2018),(17894,0,'2018-12-29',17893,17864,17529,201812,20184,2018),(17895,0,'2018-12-30',17894,17865,17530,201812,20184,2018),(17896,0,'2018-12-31',17895,17865,17531,201812,20184,2018),(17897,0,'2019-01-01',17896,17866,17532,201901,20191,2019),(17898,0,'2019-01-02',17897,17867,17533,201901,20191,2019),(17899,0,'2019-01-03',17898,17868,17534,201901,20191,2019),(17900,0,'2019-01-04',17899,17869,17535,201901,20191,2019),(17901,0,'2019-01-05',17900,17870,17536,201901,20191,2019),(17902,0,'2019-01-06',17901,17871,17537,201901,20191,2019),(17903,0,'2019-01-07',17902,17872,17538,201901,20191,2019),(17904,0,'2019-01-08',17903,17873,17539,201901,20191,2019),(17905,0,'2019-01-09',17904,17874,17540,201901,20191,2019),(17906,0,'2019-01-10',17905,17875,17541,201901,20191,2019),(17907,0,'2019-01-11',17906,17876,17542,201901,20191,2019),(17908,0,'2019-01-12',17907,17877,17543,201901,20191,2019),(17909,0,'2019-01-13',17908,17878,17544,201901,20191,2019),(17910,0,'2019-01-14',17909,17879,17545,201901,20191,2019),(17911,0,'2019-01-15',17910,17880,17546,201901,20191,2019),(17912,0,'2019-01-16',17911,17881,17547,201901,20191,2019),(17913,0,'2019-01-17',17912,17882,17548,201901,20191,2019),(17914,0,'2019-01-18',17913,17883,17549,201901,20191,2019),(17915,0,'2019-01-19',17914,17884,17550,201901,20191,2019),(17916,0,'2019-01-20',17915,17885,17551,201901,20191,2019),(17917,0,'2019-01-21',17916,17886,17552,201901,20191,2019),(17918,0,'2019-01-22',17917,17887,17553,201901,20191,2019),(17919,0,'2019-01-23',17918,17888,17554,201901,20191,2019),(17920,0,'2019-01-24',17919,17889,17555,201901,20191,2019),(17921,0,'2019-01-25',17920,17890,17556,201901,20191,2019),(17922,0,'2019-01-26',17921,17891,17557,201901,20191,2019),(17923,0,'2019-01-27',17922,17892,17558,201901,20191,2019),(17924,0,'2019-01-28',17923,17893,17559,201901,20191,2019),(17925,0,'2019-01-29',17924,17894,17560,201901,20191,2019),(17926,0,'2019-01-30',17925,17895,17561,201901,20191,2019),(17927,0,'2019-01-31',17926,17896,17562,201901,20191,2019),(17928,0,'2019-02-01',17927,17897,17563,201902,20191,2019),(17929,0,'2019-02-02',17928,17898,17564,201902,20191,2019),(17930,0,'2019-02-03',17929,17899,17565,201902,20191,2019),(17931,0,'2019-02-04',17930,17900,17566,201902,20191,2019),(17932,0,'2019-02-05',17931,17901,17567,201902,20191,2019),(17933,0,'2019-02-06',17932,17902,17568,201902,20191,2019),(17934,0,'2019-02-07',17933,17903,17569,201902,20191,2019),(17935,0,'2019-02-08',17934,17904,17570,201902,20191,2019),(17936,0,'2019-02-09',17935,17905,17571,201902,20191,2019),(17937,0,'2019-02-10',17936,17906,17572,201902,20191,2019),(17938,0,'2019-02-11',17937,17907,17573,201902,20191,2019),(17939,0,'2019-02-12',17938,17908,17574,201902,20191,2019),(17940,0,'2019-02-13',17939,17909,17575,201902,20191,2019),(17941,0,'2019-02-14',17940,17910,17576,201902,20191,2019),(17942,0,'2019-02-15',17941,17911,17577,201902,20191,2019),(17943,0,'2019-02-16',17942,17912,17578,201902,20191,2019),(17944,0,'2019-02-17',17943,17913,17579,201902,20191,2019),(17945,0,'2019-02-18',17944,17914,17580,201902,20191,2019),(17946,0,'2019-02-19',17945,17915,17581,201902,20191,2019),(17947,0,'2019-02-20',17946,17916,17582,201902,20191,2019),(17948,0,'2019-02-21',17947,17917,17583,201902,20191,2019),(17949,0,'2019-02-22',17948,17918,17584,201902,20191,2019),(17950,0,'2019-02-23',17949,17919,17585,201902,20191,2019),(17951,0,'2019-02-24',17950,17920,17586,201902,20191,2019),(17952,0,'2019-02-25',17951,17921,17587,201902,20191,2019),(17953,0,'2019-02-26',17952,17922,17588,201902,20191,2019),(17954,0,'2019-02-27',17953,17923,17589,201902,20191,2019),(17955,0,'2019-02-28',17954,17924,17590,201902,20191,2019),(17956,0,'2019-03-01',17955,17928,17591,201903,20191,2019),(17957,0,'2019-03-02',17956,17929,17592,201903,20191,2019),(17958,0,'2019-03-03',17957,17930,17593,201903,20191,2019),(17959,0,'2019-03-04',17958,17931,17594,201903,20191,2019),(17960,0,'2019-03-05',17959,17932,17595,201903,20191,2019),(17961,0,'2019-03-06',17960,17933,17596,201903,20191,2019),(17962,0,'2019-03-07',17961,17934,17597,201903,20191,2019),(17963,0,'2019-03-08',17962,17935,17598,201903,20191,2019),(17964,0,'2019-03-09',17963,17936,17599,201903,20191,2019),(17965,0,'2019-03-10',17964,17937,17600,201903,20191,2019),(17966,0,'2019-03-11',17965,17938,17601,201903,20191,2019),(17967,0,'2019-03-12',17966,17939,17602,201903,20191,2019),(17968,0,'2019-03-13',17967,17940,17603,201903,20191,2019),(17969,0,'2019-03-14',17968,17941,17604,201903,20191,2019),(17970,0,'2019-03-15',17969,17942,17605,201903,20191,2019),(17971,0,'2019-03-16',17970,17943,17606,201903,20191,2019),(17972,0,'2019-03-17',17971,17944,17607,201903,20191,2019),(17973,0,'2019-03-18',17972,17945,17608,201903,20191,2019),(17974,0,'2019-03-19',17973,17946,17609,201903,20191,2019),(17975,0,'2019-03-20',17974,17947,17610,201903,20191,2019),(17976,0,'2019-03-21',17975,17948,17611,201903,20191,2019),(17977,0,'2019-03-22',17976,17949,17612,201903,20191,2019),(17978,0,'2019-03-23',17977,17950,17613,201903,20191,2019),(17979,0,'2019-03-24',17978,17951,17614,201903,20191,2019),(17980,0,'2019-03-25',17979,17952,17615,201903,20191,2019),(17981,0,'2019-03-26',17980,17953,17616,201903,20191,2019),(17982,0,'2019-03-27',17981,17954,17617,201903,20191,2019),(17983,0,'2019-03-28',17982,17955,17618,201903,20191,2019),(17984,0,'2019-03-29',17983,17955,17619,201903,20191,2019),(17985,0,'2019-03-30',17984,17955,17620,201903,20191,2019),(17986,0,'2019-03-31',17985,17955,17621,201903,20191,2019),(17987,0,'2019-04-01',17986,17956,17622,201904,20192,2019),(17988,0,'2019-04-02',17987,17957,17623,201904,20192,2019),(17989,0,'2019-04-03',17988,17958,17624,201904,20192,2019),(17990,0,'2019-04-04',17989,17959,17625,201904,20192,2019),(17991,0,'2019-04-05',17990,17960,17626,201904,20192,2019),(17992,0,'2019-04-06',17991,17961,17627,201904,20192,2019),(17993,0,'2019-04-07',17992,17962,17628,201904,20192,2019),(17994,0,'2019-04-08',17993,17963,17629,201904,20192,2019),(17995,0,'2019-04-09',17994,17964,17630,201904,20192,2019),(17996,0,'2019-04-10',17995,17965,17631,201904,20192,2019),(17997,0,'2019-04-11',17996,17966,17632,201904,20192,2019),(17998,0,'2019-04-12',17997,17967,17633,201904,20192,2019),(17999,0,'2019-04-13',17998,17968,17634,201904,20192,2019),(18000,0,'2019-04-14',17999,17969,17635,201904,20192,2019),(18001,0,'2019-04-15',18000,17970,17636,201904,20192,2019),(18002,0,'2019-04-16',18001,17971,17637,201904,20192,2019),(18003,0,'2019-04-17',18002,17972,17638,201904,20192,2019),(18004,0,'2019-04-18',18003,17973,17639,201904,20192,2019),(18005,0,'2019-04-19',18004,17974,17640,201904,20192,2019),(18006,0,'2019-04-20',18005,17975,17641,201904,20192,2019),(18007,0,'2019-04-21',18006,17976,17642,201904,20192,2019),(18008,0,'2019-04-22',18007,17977,17643,201904,20192,2019),(18009,0,'2019-04-23',18008,17978,17644,201904,20192,2019),(18010,0,'2019-04-24',18009,17979,17645,201904,20192,2019),(18011,0,'2019-04-25',18010,17980,17646,201904,20192,2019),(18012,0,'2019-04-26',18011,17981,17647,201904,20192,2019),(18013,0,'2019-04-27',18012,17982,17648,201904,20192,2019),(18014,0,'2019-04-28',18013,17983,17649,201904,20192,2019),(18015,0,'2019-04-29',18014,17984,17650,201904,20192,2019),(18016,0,'2019-04-30',18015,17985,17651,201904,20192,2019),(18017,0,'2019-05-01',18016,17987,17652,201905,20192,2019),(18018,0,'2019-05-02',18017,17988,17653,201905,20192,2019),(18019,0,'2019-05-03',18018,17989,17654,201905,20192,2019),(18020,0,'2019-05-04',18019,17990,17655,201905,20192,2019),(18021,0,'2019-05-05',18020,17991,17656,201905,20192,2019),(18022,0,'2019-05-06',18021,17992,17657,201905,20192,2019),(18023,0,'2019-05-07',18022,17993,17658,201905,20192,2019),(18024,0,'2019-05-08',18023,17994,17659,201905,20192,2019),(18025,0,'2019-05-09',18024,17995,17660,201905,20192,2019),(18026,0,'2019-05-10',18025,17996,17661,201905,20192,2019),(18027,0,'2019-05-11',18026,17997,17662,201905,20192,2019),(18028,0,'2019-05-12',18027,17998,17663,201905,20192,2019),(18029,0,'2019-05-13',18028,17999,17664,201905,20192,2019),(18030,0,'2019-05-14',18029,18000,17665,201905,20192,2019),(18031,0,'2019-05-15',18030,18001,17666,201905,20192,2019),(18032,0,'2019-05-16',18031,18002,17667,201905,20192,2019),(18033,0,'2019-05-17',18032,18003,17668,201905,20192,2019),(18034,0,'2019-05-18',18033,18004,17669,201905,20192,2019),(18035,0,'2019-05-19',18034,18005,17670,201905,20192,2019),(18036,0,'2019-05-20',18035,18006,17671,201905,20192,2019),(18037,0,'2019-05-21',18036,18007,17672,201905,20192,2019),(18038,0,'2019-05-22',18037,18008,17673,201905,20192,2019),(18039,0,'2019-05-23',18038,18009,17674,201905,20192,2019),(18040,0,'2019-05-24',18039,18010,17675,201905,20192,2019),(18041,0,'2019-05-25',18040,18011,17676,201905,20192,2019),(18042,0,'2019-05-26',18041,18012,17677,201905,20192,2019),(18043,0,'2019-05-27',18042,18013,17678,201905,20192,2019),(18044,0,'2019-05-28',18043,18014,17679,201905,20192,2019),(18045,0,'2019-05-29',18044,18015,17680,201905,20192,2019),(18046,0,'2019-05-30',18045,18016,17681,201905,20192,2019),(18047,0,'2019-05-31',18046,18016,17682,201905,20192,2019),(18048,0,'2019-06-01',18047,18017,17683,201906,20192,2019),(18049,0,'2019-06-02',18048,18018,17684,201906,20192,2019),(18050,0,'2019-06-03',18049,18019,17685,201906,20192,2019),(18051,0,'2019-06-04',18050,18020,17686,201906,20192,2019),(18052,0,'2019-06-05',18051,18021,17687,201906,20192,2019),(18053,0,'2019-06-06',18052,18022,17688,201906,20192,2019),(18054,0,'2019-06-07',18053,18023,17689,201906,20192,2019),(18055,0,'2019-06-08',18054,18024,17690,201906,20192,2019),(18056,0,'2019-06-09',18055,18025,17691,201906,20192,2019),(18057,0,'2019-06-10',18056,18026,17692,201906,20192,2019),(18058,0,'2019-06-11',18057,18027,17693,201906,20192,2019),(18059,0,'2019-06-12',18058,18028,17694,201906,20192,2019),(18060,0,'2019-06-13',18059,18029,17695,201906,20192,2019),(18061,0,'2019-06-14',18060,18030,17696,201906,20192,2019),(18062,0,'2019-06-15',18061,18031,17697,201906,20192,2019),(18063,0,'2019-06-16',18062,18032,17698,201906,20192,2019),(18064,0,'2019-06-17',18063,18033,17699,201906,20192,2019),(18065,0,'2019-06-18',18064,18034,17700,201906,20192,2019),(18066,0,'2019-06-19',18065,18035,17701,201906,20192,2019),(18067,0,'2019-06-20',18066,18036,17702,201906,20192,2019),(18068,0,'2019-06-21',18067,18037,17703,201906,20192,2019),(18069,0,'2019-06-22',18068,18038,17704,201906,20192,2019),(18070,0,'2019-06-23',18069,18039,17705,201906,20192,2019),(18071,0,'2019-06-24',18070,18040,17706,201906,20192,2019),(18072,0,'2019-06-25',18071,18041,17707,201906,20192,2019),(18073,0,'2019-06-26',18072,18042,17708,201906,20192,2019),(18074,0,'2019-06-27',18073,18043,17709,201906,20192,2019),(18075,0,'2019-06-28',18074,18044,17710,201906,20192,2019),(18076,0,'2019-06-29',18075,18045,17711,201906,20192,2019),(18077,0,'2019-06-30',18076,18046,17712,201906,20192,2019),(18078,0,'2019-07-01',18077,18048,17713,201907,20193,2019),(18079,0,'2019-07-02',18078,18049,17714,201907,20193,2019),(18080,0,'2019-07-03',18079,18050,17715,201907,20193,2019),(18081,0,'2019-07-04',18080,18051,17716,201907,20193,2019),(18082,0,'2019-07-05',18081,18052,17717,201907,20193,2019),(18083,0,'2019-07-06',18082,18053,17718,201907,20193,2019),(18084,0,'2019-07-07',18083,18054,17719,201907,20193,2019),(18085,0,'2019-07-08',18084,18055,17720,201907,20193,2019),(18086,0,'2019-07-09',18085,18056,17721,201907,20193,2019),(18087,0,'2019-07-10',18086,18057,17722,201907,20193,2019),(18088,0,'2019-07-11',18087,18058,17723,201907,20193,2019),(18089,0,'2019-07-12',18088,18059,17724,201907,20193,2019),(18090,0,'2019-07-13',18089,18060,17725,201907,20193,2019),(18091,0,'2019-07-14',18090,18061,17726,201907,20193,2019),(18092,0,'2019-07-15',18091,18062,17727,201907,20193,2019),(18093,0,'2019-07-16',18092,18063,17728,201907,20193,2019),(18094,0,'2019-07-17',18093,18064,17729,201907,20193,2019),(18095,0,'2019-07-18',18094,18065,17730,201907,20193,2019),(18096,0,'2019-07-19',18095,18066,17731,201907,20193,2019),(18097,0,'2019-07-20',18096,18067,17732,201907,20193,2019),(18098,0,'2019-07-21',18097,18068,17733,201907,20193,2019),(18099,0,'2019-07-22',18098,18069,17734,201907,20193,2019),(18100,0,'2019-07-23',18099,18070,17735,201907,20193,2019),(18101,0,'2019-07-24',18100,18071,17736,201907,20193,2019),(18102,0,'2019-07-25',18101,18072,17737,201907,20193,2019),(18103,0,'2019-07-26',18102,18073,17738,201907,20193,2019),(18104,0,'2019-07-27',18103,18074,17739,201907,20193,2019),(18105,0,'2019-07-28',18104,18075,17740,201907,20193,2019),(18106,0,'2019-07-29',18105,18076,17741,201907,20193,2019),(18107,0,'2019-07-30',18106,18077,17742,201907,20193,2019),(18108,0,'2019-07-31',18107,18077,17743,201907,20193,2019),(18109,0,'2019-08-01',18108,18078,17744,201908,20193,2019),(18110,0,'2019-08-02',18109,18079,17745,201908,20193,2019),(18111,0,'2019-08-03',18110,18080,17746,201908,20193,2019),(18112,0,'2019-08-04',18111,18081,17747,201908,20193,2019),(18113,0,'2019-08-05',18112,18082,17748,201908,20193,2019),(18114,0,'2019-08-06',18113,18083,17749,201908,20193,2019),(18115,0,'2019-08-07',18114,18084,17750,201908,20193,2019),(18116,0,'2019-08-08',18115,18085,17751,201908,20193,2019),(18117,0,'2019-08-09',18116,18086,17752,201908,20193,2019),(18118,0,'2019-08-10',18117,18087,17753,201908,20193,2019),(18119,0,'2019-08-11',18118,18088,17754,201908,20193,2019),(18120,0,'2019-08-12',18119,18089,17755,201908,20193,2019),(18121,0,'2019-08-13',18120,18090,17756,201908,20193,2019),(18122,0,'2019-08-14',18121,18091,17757,201908,20193,2019),(18123,0,'2019-08-15',18122,18092,17758,201908,20193,2019),(18124,0,'2019-08-16',18123,18093,17759,201908,20193,2019),(18125,0,'2019-08-17',18124,18094,17760,201908,20193,2019),(18126,0,'2019-08-18',18125,18095,17761,201908,20193,2019),(18127,0,'2019-08-19',18126,18096,17762,201908,20193,2019),(18128,0,'2019-08-20',18127,18097,17763,201908,20193,2019),(18129,0,'2019-08-21',18128,18098,17764,201908,20193,2019),(18130,0,'2019-08-22',18129,18099,17765,201908,20193,2019),(18131,0,'2019-08-23',18130,18100,17766,201908,20193,2019),(18132,0,'2019-08-24',18131,18101,17767,201908,20193,2019),(18133,0,'2019-08-25',18132,18102,17768,201908,20193,2019),(18134,0,'2019-08-26',18133,18103,17769,201908,20193,2019),(18135,0,'2019-08-27',18134,18104,17770,201908,20193,2019),(18136,0,'2019-08-28',18135,18105,17771,201908,20193,2019),(18137,0,'2019-08-29',18136,18106,17772,201908,20193,2019),(18138,0,'2019-08-30',18137,18107,17773,201908,20193,2019),(18139,0,'2019-08-31',18138,18108,17774,201908,20193,2019),(18140,0,'2019-09-01',18139,18109,17775,201909,20193,2019),(18141,0,'2019-09-02',18140,18110,17776,201909,20193,2019),(18142,0,'2019-09-03',18141,18111,17777,201909,20193,2019),(18143,0,'2019-09-04',18142,18112,17778,201909,20193,2019),(18144,0,'2019-09-05',18143,18113,17779,201909,20193,2019),(18145,0,'2019-09-06',18144,18114,17780,201909,20193,2019),(18146,0,'2019-09-07',18145,18115,17781,201909,20193,2019),(18147,0,'2019-09-08',18146,18116,17782,201909,20193,2019),(18148,0,'2019-09-09',18147,18117,17783,201909,20193,2019),(18149,0,'2019-09-10',18148,18118,17784,201909,20193,2019),(18150,0,'2019-09-11',18149,18119,17785,201909,20193,2019),(18151,0,'2019-09-12',18150,18120,17786,201909,20193,2019),(18152,0,'2019-09-13',18151,18121,17787,201909,20193,2019),(18153,0,'2019-09-14',18152,18122,17788,201909,20193,2019),(18154,0,'2019-09-15',18153,18123,17789,201909,20193,2019),(18155,0,'2019-09-16',18154,18124,17790,201909,20193,2019),(18156,0,'2019-09-17',18155,18125,17791,201909,20193,2019),(18157,0,'2019-09-18',18156,18126,17792,201909,20193,2019),(18158,0,'2019-09-19',18157,18127,17793,201909,20193,2019),(18159,0,'2019-09-20',18158,18128,17794,201909,20193,2019),(18160,0,'2019-09-21',18159,18129,17795,201909,20193,2019),(18161,0,'2019-09-22',18160,18130,17796,201909,20193,2019),(18162,0,'2019-09-23',18161,18131,17797,201909,20193,2019),(18163,0,'2019-09-24',18162,18132,17798,201909,20193,2019),(18164,0,'2019-09-25',18163,18133,17799,201909,20193,2019),(18165,0,'2019-09-26',18164,18134,17800,201909,20193,2019),(18166,0,'2019-09-27',18165,18135,17801,201909,20193,2019),(18167,0,'2019-09-28',18166,18136,17802,201909,20193,2019),(18168,0,'2019-09-29',18167,18137,17803,201909,20193,2019),(18169,0,'2019-09-30',18168,18138,17804,201909,20193,2019),(18170,0,'2019-10-01',18169,18140,17805,201910,20194,2019),(18171,0,'2019-10-02',18170,18141,17806,201910,20194,2019),(18172,0,'2019-10-03',18171,18142,17807,201910,20194,2019),(18173,0,'2019-10-04',18172,18143,17808,201910,20194,2019),(18174,0,'2019-10-05',18173,18144,17809,201910,20194,2019),(18175,0,'2019-10-06',18174,18145,17810,201910,20194,2019),(18176,0,'2019-10-07',18175,18146,17811,201910,20194,2019),(18177,0,'2019-10-08',18176,18147,17812,201910,20194,2019),(18178,0,'2019-10-09',18177,18148,17813,201910,20194,2019),(18179,0,'2019-10-10',18178,18149,17814,201910,20194,2019),(18180,0,'2019-10-11',18179,18150,17815,201910,20194,2019),(18181,0,'2019-10-12',18180,18151,17816,201910,20194,2019),(18182,0,'2019-10-13',18181,18152,17817,201910,20194,2019),(18183,0,'2019-10-14',18182,18153,17818,201910,20194,2019),(18184,0,'2019-10-15',18183,18154,17819,201910,20194,2019),(18185,0,'2019-10-16',18184,18155,17820,201910,20194,2019),(18186,0,'2019-10-17',18185,18156,17821,201910,20194,2019),(18187,0,'2019-10-18',18186,18157,17822,201910,20194,2019),(18188,0,'2019-10-19',18187,18158,17823,201910,20194,2019),(18189,0,'2019-10-20',18188,18159,17824,201910,20194,2019),(18190,0,'2019-10-21',18189,18160,17825,201910,20194,2019),(18191,0,'2019-10-22',18190,18161,17826,201910,20194,2019),(18192,0,'2019-10-23',18191,18162,17827,201910,20194,2019),(18193,0,'2019-10-24',18192,18163,17828,201910,20194,2019),(18194,0,'2019-10-25',18193,18164,17829,201910,20194,2019),(18195,0,'2019-10-26',18194,18165,17830,201910,20194,2019),(18196,0,'2019-10-27',18195,18166,17831,201910,20194,2019),(18197,0,'2019-10-28',18196,18167,17832,201910,20194,2019),(18198,0,'2019-10-29',18197,18168,17833,201910,20194,2019),(18199,0,'2019-10-30',18198,18169,17834,201910,20194,2019),(18200,0,'2019-10-31',18199,18169,17835,201910,20194,2019),(18201,0,'2019-11-01',18200,18170,17836,201911,20194,2019),(18202,0,'2019-11-02',18201,18171,17837,201911,20194,2019),(18203,0,'2019-11-03',18202,18172,17838,201911,20194,2019),(18204,0,'2019-11-04',18203,18173,17839,201911,20194,2019),(18205,0,'2019-11-05',18204,18174,17840,201911,20194,2019),(18206,0,'2019-11-06',18205,18175,17841,201911,20194,2019),(18207,0,'2019-11-07',18206,18176,17842,201911,20194,2019),(18208,0,'2019-11-08',18207,18177,17843,201911,20194,2019),(18209,0,'2019-11-09',18208,18178,17844,201911,20194,2019),(18210,0,'2019-11-10',18209,18179,17845,201911,20194,2019),(18211,0,'2019-11-11',18210,18180,17846,201911,20194,2019),(18212,0,'2019-11-12',18211,18181,17847,201911,20194,2019),(18213,0,'2019-11-13',18212,18182,17848,201911,20194,2019),(18214,0,'2019-11-14',18213,18183,17849,201911,20194,2019),(18215,0,'2019-11-15',18214,18184,17850,201911,20194,2019),(18216,0,'2019-11-16',18215,18185,17851,201911,20194,2019),(18217,0,'2019-11-17',18216,18186,17852,201911,20194,2019),(18218,0,'2019-11-18',18217,18187,17853,201911,20194,2019),(18219,0,'2019-11-19',18218,18188,17854,201911,20194,2019),(18220,0,'2019-11-20',18219,18189,17855,201911,20194,2019),(18221,0,'2019-11-21',18220,18190,17856,201911,20194,2019),(18222,0,'2019-11-22',18221,18191,17857,201911,20194,2019),(18223,0,'2019-11-23',18222,18192,17858,201911,20194,2019),(18224,0,'2019-11-24',18223,18193,17859,201911,20194,2019),(18225,0,'2019-11-25',18224,18194,17860,201911,20194,2019),(18226,0,'2019-11-26',18225,18195,17861,201911,20194,2019),(18227,0,'2019-11-27',18226,18196,17862,201911,20194,2019),(18228,0,'2019-11-28',18227,18197,17863,201911,20194,2019),(18229,0,'2019-11-29',18228,18198,17864,201911,20194,2019),(18230,0,'2019-11-30',18229,18199,17865,201911,20194,2019),(18231,0,'2019-12-01',18230,18201,17866,201912,20194,2019),(18232,0,'2019-12-02',18231,18202,17867,201912,20194,2019),(18233,0,'2019-12-03',18232,18203,17868,201912,20194,2019),(18234,0,'2019-12-04',18233,18204,17869,201912,20194,2019),(18235,0,'2019-12-05',18234,18205,17870,201912,20194,2019),(18236,0,'2019-12-06',18235,18206,17871,201912,20194,2019),(18237,0,'2019-12-07',18236,18207,17872,201912,20194,2019),(18238,0,'2019-12-08',18237,18208,17873,201912,20194,2019),(18239,0,'2019-12-09',18238,18209,17874,201912,20194,2019),(18240,0,'2019-12-10',18239,18210,17875,201912,20194,2019),(18241,0,'2019-12-11',18240,18211,17876,201912,20194,2019),(18242,0,'2019-12-12',18241,18212,17877,201912,20194,2019),(18243,0,'2019-12-13',18242,18213,17878,201912,20194,2019),(18244,0,'2019-12-14',18243,18214,17879,201912,20194,2019),(18245,0,'2019-12-15',18244,18215,17880,201912,20194,2019),(18246,0,'2019-12-16',18245,18216,17881,201912,20194,2019),(18247,0,'2019-12-17',18246,18217,17882,201912,20194,2019),(18248,0,'2019-12-18',18247,18218,17883,201912,20194,2019),(18249,0,'2019-12-19',18248,18219,17884,201912,20194,2019),(18250,0,'2019-12-20',18249,18220,17885,201912,20194,2019),(18251,0,'2019-12-21',18250,18221,17886,201912,20194,2019),(18252,0,'2019-12-22',18251,18222,17887,201912,20194,2019),(18253,0,'2019-12-23',18252,18223,17888,201912,20194,2019),(18254,0,'2019-12-24',18253,18224,17889,201912,20194,2019),(18255,0,'2019-12-25',18254,18225,17890,201912,20194,2019),(18256,0,'2019-12-26',18255,18226,17891,201912,20194,2019),(18257,0,'2019-12-27',18256,18227,17892,201912,20194,2019),(18258,0,'2019-12-28',18257,18228,17893,201912,20194,2019),(18259,0,'2019-12-29',18258,18229,17894,201912,20194,2019),(18260,0,'2019-12-30',18259,18230,17895,201912,20194,2019),(18261,0,'2019-12-31',18260,18230,17896,201912,20194,2019),(18262,0,'2020-01-01',18261,18231,17897,202001,20201,2020),(18263,0,'2020-01-02',18262,18232,17898,202001,20201,2020),(18264,0,'2020-01-03',18263,18233,17899,202001,20201,2020),(18265,0,'2020-01-04',18264,18234,17900,202001,20201,2020),(18266,0,'2020-01-05',18265,18235,17901,202001,20201,2020),(18267,0,'2020-01-06',18266,18236,17902,202001,20201,2020),(18268,0,'2020-01-07',18267,18237,17903,202001,20201,2020),(18269,0,'2020-01-08',18268,18238,17904,202001,20201,2020),(18270,0,'2020-01-09',18269,18239,17905,202001,20201,2020),(18271,0,'2020-01-10',18270,18240,17906,202001,20201,2020),(18272,0,'2020-01-11',18271,18241,17907,202001,20201,2020),(18273,0,'2020-01-12',18272,18242,17908,202001,20201,2020),(18274,0,'2020-01-13',18273,18243,17909,202001,20201,2020),(18275,0,'2020-01-14',18274,18244,17910,202001,20201,2020),(18276,0,'2020-01-15',18275,18245,17911,202001,20201,2020),(18277,0,'2020-01-16',18276,18246,17912,202001,20201,2020),(18278,0,'2020-01-17',18277,18247,17913,202001,20201,2020),(18279,0,'2020-01-18',18278,18248,17914,202001,20201,2020),(18280,0,'2020-01-19',18279,18249,17915,202001,20201,2020),(18281,0,'2020-01-20',18280,18250,17916,202001,20201,2020),(18282,0,'2020-01-21',18281,18251,17917,202001,20201,2020),(18283,0,'2020-01-22',18282,18252,17918,202001,20201,2020),(18284,0,'2020-01-23',18283,18253,17919,202001,20201,2020),(18285,0,'2020-01-24',18284,18254,17920,202001,20201,2020),(18286,0,'2020-01-25',18285,18255,17921,202001,20201,2020),(18287,0,'2020-01-26',18286,18256,17922,202001,20201,2020),(18288,0,'2020-01-27',18287,18257,17923,202001,20201,2020),(18289,0,'2020-01-28',18288,18258,17924,202001,20201,2020),(18290,0,'2020-01-29',18289,18259,17925,202001,20201,2020),(18291,0,'2020-01-30',18290,18260,17926,202001,20201,2020),(18292,0,'2020-01-31',18291,18261,17927,202001,20201,2020),(18293,0,'2020-02-01',18292,18262,17928,202002,20201,2020),(18294,0,'2020-02-02',18293,18263,17929,202002,20201,2020),(18295,0,'2020-02-03',18294,18264,17930,202002,20201,2020),(18296,0,'2020-02-04',18295,18265,17931,202002,20201,2020),(18297,0,'2020-02-05',18296,18266,17932,202002,20201,2020),(18298,0,'2020-02-06',18297,18267,17933,202002,20201,2020),(18299,0,'2020-02-07',18298,18268,17934,202002,20201,2020),(18300,0,'2020-02-08',18299,18269,17935,202002,20201,2020),(18301,0,'2020-02-09',18300,18270,17936,202002,20201,2020),(18302,0,'2020-02-10',18301,18271,17937,202002,20201,2020),(18303,0,'2020-02-11',18302,18272,17938,202002,20201,2020),(18304,0,'2020-02-12',18303,18273,17939,202002,20201,2020),(18305,0,'2020-02-13',18304,18274,17940,202002,20201,2020),(18306,0,'2020-02-14',18305,18275,17941,202002,20201,2020),(18307,0,'2020-02-15',18306,18276,17942,202002,20201,2020),(18308,0,'2020-02-16',18307,18277,17943,202002,20201,2020),(18309,0,'2020-02-17',18308,18278,17944,202002,20201,2020),(18310,0,'2020-02-18',18309,18279,17945,202002,20201,2020),(18311,0,'2020-02-19',18310,18280,17946,202002,20201,2020),(18312,0,'2020-02-20',18311,18281,17947,202002,20201,2020),(18313,0,'2020-02-21',18312,18282,17948,202002,20201,2020),(18314,0,'2020-02-22',18313,18283,17949,202002,20201,2020),(18315,0,'2020-02-23',18314,18284,17950,202002,20201,2020),(18316,0,'2020-02-24',18315,18285,17951,202002,20201,2020),(18317,0,'2020-02-25',18316,18286,17952,202002,20201,2020),(18318,0,'2020-02-26',18317,18287,17953,202002,20201,2020),(18319,0,'2020-02-27',18318,18288,17954,202002,20201,2020),(18320,0,'2020-02-28',18319,18289,17955,202002,20201,2020),(18321,0,'2020-02-29',18320,18290,17955,202002,20201,2020),(18322,0,'2020-03-01',18321,18293,17956,202003,20201,2020),(18323,0,'2020-03-02',18322,18294,17957,202003,20201,2020),(18324,0,'2020-03-03',18323,18295,17958,202003,20201,2020),(18325,0,'2020-03-04',18324,18296,17959,202003,20201,2020),(18326,0,'2020-03-05',18325,18297,17960,202003,20201,2020),(18327,0,'2020-03-06',18326,18298,17961,202003,20201,2020),(18328,0,'2020-03-07',18327,18299,17962,202003,20201,2020),(18329,0,'2020-03-08',18328,18300,17963,202003,20201,2020),(18330,0,'2020-03-09',18329,18301,17964,202003,20201,2020),(18331,0,'2020-03-10',18330,18302,17965,202003,20201,2020),(18332,0,'2020-03-11',18331,18303,17966,202003,20201,2020),(18333,0,'2020-03-12',18332,18304,17967,202003,20201,2020),(18334,0,'2020-03-13',18333,18305,17968,202003,20201,2020),(18335,0,'2020-03-14',18334,18306,17969,202003,20201,2020),(18336,0,'2020-03-15',18335,18307,17970,202003,20201,2020),(18337,0,'2020-03-16',18336,18308,17971,202003,20201,2020),(18338,0,'2020-03-17',18337,18309,17972,202003,20201,2020),(18339,0,'2020-03-18',18338,18310,17973,202003,20201,2020),(18340,0,'2020-03-19',18339,18311,17974,202003,20201,2020),(18341,0,'2020-03-20',18340,18312,17975,202003,20201,2020),(18342,0,'2020-03-21',18341,18313,17976,202003,20201,2020),(18343,0,'2020-03-22',18342,18314,17977,202003,20201,2020),(18344,0,'2020-03-23',18343,18315,17978,202003,20201,2020),(18345,0,'2020-03-24',18344,18316,17979,202003,20201,2020),(18346,0,'2020-03-25',18345,18317,17980,202003,20201,2020),(18347,0,'2020-03-26',18346,18318,17981,202003,20201,2020),(18348,0,'2020-03-27',18347,18319,17982,202003,20201,2020),(18349,0,'2020-03-28',18348,18320,17983,202003,20201,2020),(18350,0,'2020-03-29',18349,18321,17984,202003,20201,2020),(18351,0,'2020-03-30',18350,18321,17985,202003,20201,2020),(18352,0,'2020-03-31',18351,18321,17986,202003,20201,2020),(18353,0,'2020-04-01',18352,18322,17987,202004,20202,2020),(18354,0,'2020-04-02',18353,18323,17988,202004,20202,2020),(18355,0,'2020-04-03',18354,18324,17989,202004,20202,2020),(18356,0,'2020-04-04',18355,18325,17990,202004,20202,2020),(18357,0,'2020-04-05',18356,18326,17991,202004,20202,2020),(18358,0,'2020-04-06',18357,18327,17992,202004,20202,2020),(18359,0,'2020-04-07',18358,18328,17993,202004,20202,2020),(18360,0,'2020-04-08',18359,18329,17994,202004,20202,2020),(18361,0,'2020-04-09',18360,18330,17995,202004,20202,2020),(18362,0,'2020-04-10',18361,18331,17996,202004,20202,2020),(18363,0,'2020-04-11',18362,18332,17997,202004,20202,2020),(18364,0,'2020-04-12',18363,18333,17998,202004,20202,2020),(18365,0,'2020-04-13',18364,18334,17999,202004,20202,2020),(18366,0,'2020-04-14',18365,18335,18000,202004,20202,2020),(18367,0,'2020-04-15',18366,18336,18001,202004,20202,2020),(18368,0,'2020-04-16',18367,18337,18002,202004,20202,2020),(18369,0,'2020-04-17',18368,18338,18003,202004,20202,2020),(18370,0,'2020-04-18',18369,18339,18004,202004,20202,2020),(18371,0,'2020-04-19',18370,18340,18005,202004,20202,2020),(18372,0,'2020-04-20',18371,18341,18006,202004,20202,2020),(18373,0,'2020-04-21',18372,18342,18007,202004,20202,2020),(18374,0,'2020-04-22',18373,18343,18008,202004,20202,2020),(18375,0,'2020-04-23',18374,18344,18009,202004,20202,2020),(18376,0,'2020-04-24',18375,18345,18010,202004,20202,2020),(18377,0,'2020-04-25',18376,18346,18011,202004,20202,2020),(18378,0,'2020-04-26',18377,18347,18012,202004,20202,2020),(18379,0,'2020-04-27',18378,18348,18013,202004,20202,2020),(18380,0,'2020-04-28',18379,18349,18014,202004,20202,2020),(18381,0,'2020-04-29',18380,18350,18015,202004,20202,2020),(18382,0,'2020-04-30',18381,18351,18016,202004,20202,2020),(18383,0,'2020-05-01',18382,18353,18017,202005,20202,2020),(18384,0,'2020-05-02',18383,18354,18018,202005,20202,2020),(18385,0,'2020-05-03',18384,18355,18019,202005,20202,2020),(18386,0,'2020-05-04',18385,18356,18020,202005,20202,2020),(18387,0,'2020-05-05',18386,18357,18021,202005,20202,2020),(18388,0,'2020-05-06',18387,18358,18022,202005,20202,2020),(18389,0,'2020-05-07',18388,18359,18023,202005,20202,2020),(18390,0,'2020-05-08',18389,18360,18024,202005,20202,2020),(18391,0,'2020-05-09',18390,18361,18025,202005,20202,2020),(18392,0,'2020-05-10',18391,18362,18026,202005,20202,2020),(18393,0,'2020-05-11',18392,18363,18027,202005,20202,2020),(18394,0,'2020-05-12',18393,18364,18028,202005,20202,2020),(18395,0,'2020-05-13',18394,18365,18029,202005,20202,2020),(18396,0,'2020-05-14',18395,18366,18030,202005,20202,2020),(18397,0,'2020-05-15',18396,18367,18031,202005,20202,2020),(18398,0,'2020-05-16',18397,18368,18032,202005,20202,2020),(18399,0,'2020-05-17',18398,18369,18033,202005,20202,2020),(18400,0,'2020-05-18',18399,18370,18034,202005,20202,2020),(18401,0,'2020-05-19',18400,18371,18035,202005,20202,2020),(18402,0,'2020-05-20',18401,18372,18036,202005,20202,2020),(18403,0,'2020-05-21',18402,18373,18037,202005,20202,2020),(18404,0,'2020-05-22',18403,18374,18038,202005,20202,2020),(18405,0,'2020-05-23',18404,18375,18039,202005,20202,2020),(18406,0,'2020-05-24',18405,18376,18040,202005,20202,2020),(18407,0,'2020-05-25',18406,18377,18041,202005,20202,2020),(18408,0,'2020-05-26',18407,18378,18042,202005,20202,2020),(18409,0,'2020-05-27',18408,18379,18043,202005,20202,2020),(18410,0,'2020-05-28',18409,18380,18044,202005,20202,2020),(18411,0,'2020-05-29',18410,18381,18045,202005,20202,2020),(18412,0,'2020-05-30',18411,18382,18046,202005,20202,2020),(18413,0,'2020-05-31',18412,18382,18047,202005,20202,2020),(18414,0,'2020-06-01',18413,18383,18048,202006,20202,2020),(18415,0,'2020-06-02',18414,18384,18049,202006,20202,2020),(18416,0,'2020-06-03',18415,18385,18050,202006,20202,2020),(18417,0,'2020-06-04',18416,18386,18051,202006,20202,2020),(18418,0,'2020-06-05',18417,18387,18052,202006,20202,2020),(18419,0,'2020-06-06',18418,18388,18053,202006,20202,2020),(18420,0,'2020-06-07',18419,18389,18054,202006,20202,2020),(18421,0,'2020-06-08',18420,18390,18055,202006,20202,2020),(18422,0,'2020-06-09',18421,18391,18056,202006,20202,2020),(18423,0,'2020-06-10',18422,18392,18057,202006,20202,2020),(18424,0,'2020-06-11',18423,18393,18058,202006,20202,2020),(18425,0,'2020-06-12',18424,18394,18059,202006,20202,2020),(18426,0,'2020-06-13',18425,18395,18060,202006,20202,2020),(18427,0,'2020-06-14',18426,18396,18061,202006,20202,2020),(18428,0,'2020-06-15',18427,18397,18062,202006,20202,2020),(18429,0,'2020-06-16',18428,18398,18063,202006,20202,2020),(18430,0,'2020-06-17',18429,18399,18064,202006,20202,2020),(18431,0,'2020-06-18',18430,18400,18065,202006,20202,2020),(18432,0,'2020-06-19',18431,18401,18066,202006,20202,2020),(18433,0,'2020-06-20',18432,18402,18067,202006,20202,2020),(18434,0,'2020-06-21',18433,18403,18068,202006,20202,2020),(18435,0,'2020-06-22',18434,18404,18069,202006,20202,2020),(18436,0,'2020-06-23',18435,18405,18070,202006,20202,2020),(18437,0,'2020-06-24',18436,18406,18071,202006,20202,2020),(18438,0,'2020-06-25',18437,18407,18072,202006,20202,2020),(18439,0,'2020-06-26',18438,18408,18073,202006,20202,2020),(18440,0,'2020-06-27',18439,18409,18074,202006,20202,2020),(18441,0,'2020-06-28',18440,18410,18075,202006,20202,2020),(18442,0,'2020-06-29',18441,18411,18076,202006,20202,2020),(18443,0,'2020-06-30',18442,18412,18077,202006,20202,2020),(18444,0,'2020-07-01',18443,18414,18078,202007,20203,2020),(18445,0,'2020-07-02',18444,18415,18079,202007,20203,2020),(18446,0,'2020-07-03',18445,18416,18080,202007,20203,2020),(18447,0,'2020-07-04',18446,18417,18081,202007,20203,2020),(18448,0,'2020-07-05',18447,18418,18082,202007,20203,2020),(18449,0,'2020-07-06',18448,18419,18083,202007,20203,2020),(18450,0,'2020-07-07',18449,18420,18084,202007,20203,2020),(18451,0,'2020-07-08',18450,18421,18085,202007,20203,2020),(18452,0,'2020-07-09',18451,18422,18086,202007,20203,2020),(18453,0,'2020-07-10',18452,18423,18087,202007,20203,2020),(18454,0,'2020-07-11',18453,18424,18088,202007,20203,2020),(18455,0,'2020-07-12',18454,18425,18089,202007,20203,2020),(18456,0,'2020-07-13',18455,18426,18090,202007,20203,2020),(18457,0,'2020-07-14',18456,18427,18091,202007,20203,2020),(18458,0,'2020-07-15',18457,18428,18092,202007,20203,2020),(18459,0,'2020-07-16',18458,18429,18093,202007,20203,2020),(18460,0,'2020-07-17',18459,18430,18094,202007,20203,2020),(18461,0,'2020-07-18',18460,18431,18095,202007,20203,2020),(18462,0,'2020-07-19',18461,18432,18096,202007,20203,2020),(18463,0,'2020-07-20',18462,18433,18097,202007,20203,2020),(18464,0,'2020-07-21',18463,18434,18098,202007,20203,2020),(18465,0,'2020-07-22',18464,18435,18099,202007,20203,2020),(18466,0,'2020-07-23',18465,18436,18100,202007,20203,2020),(18467,0,'2020-07-24',18466,18437,18101,202007,20203,2020),(18468,0,'2020-07-25',18467,18438,18102,202007,20203,2020),(18469,0,'2020-07-26',18468,18439,18103,202007,20203,2020),(18470,0,'2020-07-27',18469,18440,18104,202007,20203,2020),(18471,0,'2020-07-28',18470,18441,18105,202007,20203,2020),(18472,0,'2020-07-29',18471,18442,18106,202007,20203,2020),(18473,0,'2020-07-30',18472,18443,18107,202007,20203,2020),(18474,0,'2020-07-31',18473,18443,18108,202007,20203,2020),(18475,0,'2020-08-01',18474,18444,18109,202008,20203,2020),(18476,0,'2020-08-02',18475,18445,18110,202008,20203,2020),(18477,0,'2020-08-03',18476,18446,18111,202008,20203,2020),(18478,0,'2020-08-04',18477,18447,18112,202008,20203,2020),(18479,0,'2020-08-05',18478,18448,18113,202008,20203,2020),(18480,0,'2020-08-06',18479,18449,18114,202008,20203,2020),(18481,0,'2020-08-07',18480,18450,18115,202008,20203,2020),(18482,0,'2020-08-08',18481,18451,18116,202008,20203,2020),(18483,0,'2020-08-09',18482,18452,18117,202008,20203,2020),(18484,0,'2020-08-10',18483,18453,18118,202008,20203,2020),(18485,0,'2020-08-11',18484,18454,18119,202008,20203,2020),(18486,0,'2020-08-12',18485,18455,18120,202008,20203,2020),(18487,0,'2020-08-13',18486,18456,18121,202008,20203,2020),(18488,0,'2020-08-14',18487,18457,18122,202008,20203,2020),(18489,0,'2020-08-15',18488,18458,18123,202008,20203,2020),(18490,0,'2020-08-16',18489,18459,18124,202008,20203,2020),(18491,0,'2020-08-17',18490,18460,18125,202008,20203,2020),(18492,0,'2020-08-18',18491,18461,18126,202008,20203,2020),(18493,0,'2020-08-19',18492,18462,18127,202008,20203,2020),(18494,0,'2020-08-20',18493,18463,18128,202008,20203,2020),(18495,0,'2020-08-21',18494,18464,18129,202008,20203,2020),(18496,0,'2020-08-22',18495,18465,18130,202008,20203,2020),(18497,0,'2020-08-23',18496,18466,18131,202008,20203,2020),(18498,0,'2020-08-24',18497,18467,18132,202008,20203,2020),(18499,0,'2020-08-25',18498,18468,18133,202008,20203,2020),(18500,0,'2020-08-26',18499,18469,18134,202008,20203,2020),(18501,0,'2020-08-27',18500,18470,18135,202008,20203,2020),(18502,0,'2020-08-28',18501,18471,18136,202008,20203,2020),(18503,0,'2020-08-29',18502,18472,18137,202008,20203,2020),(18504,0,'2020-08-30',18503,18473,18138,202008,20203,2020),(18505,0,'2020-08-31',18504,18474,18139,202008,20203,2020),(18506,0,'2020-09-01',18505,18475,18140,202009,20203,2020),(18507,0,'2020-09-02',18506,18476,18141,202009,20203,2020),(18508,0,'2020-09-03',18507,18477,18142,202009,20203,2020),(18509,0,'2020-09-04',18508,18478,18143,202009,20203,2020),(18510,0,'2020-09-05',18509,18479,18144,202009,20203,2020),(18511,0,'2020-09-06',18510,18480,18145,202009,20203,2020),(18512,0,'2020-09-07',18511,18481,18146,202009,20203,2020),(18513,0,'2020-09-08',18512,18482,18147,202009,20203,2020),(18514,0,'2020-09-09',18513,18483,18148,202009,20203,2020),(18515,0,'2020-09-10',18514,18484,18149,202009,20203,2020),(18516,0,'2020-09-11',18515,18485,18150,202009,20203,2020),(18517,0,'2020-09-12',18516,18486,18151,202009,20203,2020),(18518,0,'2020-09-13',18517,18487,18152,202009,20203,2020),(18519,0,'2020-09-14',18518,18488,18153,202009,20203,2020),(18520,0,'2020-09-15',18519,18489,18154,202009,20203,2020),(18521,0,'2020-09-16',18520,18490,18155,202009,20203,2020),(18522,0,'2020-09-17',18521,18491,18156,202009,20203,2020),(18523,0,'2020-09-18',18522,18492,18157,202009,20203,2020),(18524,0,'2020-09-19',18523,18493,18158,202009,20203,2020),(18525,0,'2020-09-20',18524,18494,18159,202009,20203,2020),(18526,0,'2020-09-21',18525,18495,18160,202009,20203,2020),(18527,0,'2020-09-22',18526,18496,18161,202009,20203,2020),(18528,0,'2020-09-23',18527,18497,18162,202009,20203,2020),(18529,0,'2020-09-24',18528,18498,18163,202009,20203,2020),(18530,0,'2020-09-25',18529,18499,18164,202009,20203,2020),(18531,0,'2020-09-26',18530,18500,18165,202009,20203,2020),(18532,0,'2020-09-27',18531,18501,18166,202009,20203,2020),(18533,0,'2020-09-28',18532,18502,18167,202009,20203,2020),(18534,0,'2020-09-29',18533,18503,18168,202009,20203,2020),(18535,0,'2020-09-30',18534,18504,18169,202009,20203,2020),(18536,0,'2020-10-01',18535,18506,18170,202010,20204,2020),(18537,0,'2020-10-02',18536,18507,18171,202010,20204,2020),(18538,0,'2020-10-03',18537,18508,18172,202010,20204,2020),(18539,0,'2020-10-04',18538,18509,18173,202010,20204,2020),(18540,0,'2020-10-05',18539,18510,18174,202010,20204,2020),(18541,0,'2020-10-06',18540,18511,18175,202010,20204,2020),(18542,0,'2020-10-07',18541,18512,18176,202010,20204,2020),(18543,0,'2020-10-08',18542,18513,18177,202010,20204,2020),(18544,0,'2020-10-09',18543,18514,18178,202010,20204,2020),(18545,0,'2020-10-10',18544,18515,18179,202010,20204,2020),(18546,0,'2020-10-11',18545,18516,18180,202010,20204,2020),(18547,0,'2020-10-12',18546,18517,18181,202010,20204,2020),(18548,0,'2020-10-13',18547,18518,18182,202010,20204,2020),(18549,0,'2020-10-14',18548,18519,18183,202010,20204,2020),(18550,0,'2020-10-15',18549,18520,18184,202010,20204,2020),(18551,0,'2020-10-16',18550,18521,18185,202010,20204,2020),(18552,0,'2020-10-17',18551,18522,18186,202010,20204,2020),(18553,0,'2020-10-18',18552,18523,18187,202010,20204,2020),(18554,0,'2020-10-19',18553,18524,18188,202010,20204,2020),(18555,0,'2020-10-20',18554,18525,18189,202010,20204,2020),(18556,0,'2020-10-21',18555,18526,18190,202010,20204,2020),(18557,0,'2020-10-22',18556,18527,18191,202010,20204,2020),(18558,0,'2020-10-23',18557,18528,18192,202010,20204,2020),(18559,0,'2020-10-24',18558,18529,18193,202010,20204,2020),(18560,0,'2020-10-25',18559,18530,18194,202010,20204,2020),(18561,0,'2020-10-26',18560,18531,18195,202010,20204,2020),(18562,0,'2020-10-27',18561,18532,18196,202010,20204,2020),(18563,0,'2020-10-28',18562,18533,18197,202010,20204,2020),(18564,0,'2020-10-29',18563,18534,18198,202010,20204,2020),(18565,0,'2020-10-30',18564,18535,18199,202010,20204,2020),(18566,0,'2020-10-31',18565,18535,18200,202010,20204,2020),(18567,0,'2020-11-01',18566,18536,18201,202011,20204,2020),(18568,0,'2020-11-02',18567,18537,18202,202011,20204,2020),(18569,0,'2020-11-03',18568,18538,18203,202011,20204,2020),(18570,0,'2020-11-04',18569,18539,18204,202011,20204,2020),(18571,0,'2020-11-05',18570,18540,18205,202011,20204,2020),(18572,0,'2020-11-06',18571,18541,18206,202011,20204,2020),(18573,0,'2020-11-07',18572,18542,18207,202011,20204,2020),(18574,0,'2020-11-08',18573,18543,18208,202011,20204,2020),(18575,0,'2020-11-09',18574,18544,18209,202011,20204,2020),(18576,0,'2020-11-10',18575,18545,18210,202011,20204,2020),(18577,0,'2020-11-11',18576,18546,18211,202011,20204,2020),(18578,0,'2020-11-12',18577,18547,18212,202011,20204,2020),(18579,0,'2020-11-13',18578,18548,18213,202011,20204,2020),(18580,0,'2020-11-14',18579,18549,18214,202011,20204,2020),(18581,0,'2020-11-15',18580,18550,18215,202011,20204,2020),(18582,0,'2020-11-16',18581,18551,18216,202011,20204,2020),(18583,0,'2020-11-17',18582,18552,18217,202011,20204,2020),(18584,0,'2020-11-18',18583,18553,18218,202011,20204,2020),(18585,0,'2020-11-19',18584,18554,18219,202011,20204,2020),(18586,0,'2020-11-20',18585,18555,18220,202011,20204,2020),(18587,0,'2020-11-21',18586,18556,18221,202011,20204,2020),(18588,0,'2020-11-22',18587,18557,18222,202011,20204,2020),(18589,0,'2020-11-23',18588,18558,18223,202011,20204,2020),(18590,0,'2020-11-24',18589,18559,18224,202011,20204,2020),(18591,0,'2020-11-25',18590,18560,18225,202011,20204,2020),(18592,0,'2020-11-26',18591,18561,18226,202011,20204,2020),(18593,0,'2020-11-27',18592,18562,18227,202011,20204,2020),(18594,0,'2020-11-28',18593,18563,18228,202011,20204,2020),(18595,0,'2020-11-29',18594,18564,18229,202011,20204,2020),(18596,0,'2020-11-30',18595,18565,18230,202011,20204,2020),(18597,0,'2020-12-01',18596,18567,18231,202012,20204,2020),(18598,0,'2020-12-02',18597,18568,18232,202012,20204,2020),(18599,0,'2020-12-03',18598,18569,18233,202012,20204,2020),(18600,0,'2020-12-04',18599,18570,18234,202012,20204,2020),(18601,0,'2020-12-05',18600,18571,18235,202012,20204,2020),(18602,0,'2020-12-06',18601,18572,18236,202012,20204,2020),(18603,0,'2020-12-07',18602,18573,18237,202012,20204,2020),(18604,0,'2020-12-08',18603,18574,18238,202012,20204,2020),(18605,0,'2020-12-09',18604,18575,18239,202012,20204,2020),(18606,0,'2020-12-10',18605,18576,18240,202012,20204,2020),(18607,0,'2020-12-11',18606,18577,18241,202012,20204,2020),(18608,0,'2020-12-12',18607,18578,18242,202012,20204,2020),(18609,0,'2020-12-13',18608,18579,18243,202012,20204,2020),(18610,0,'2020-12-14',18609,18580,18244,202012,20204,2020),(18611,0,'2020-12-15',18610,18581,18245,202012,20204,2020),(18612,0,'2020-12-16',18611,18582,18246,202012,20204,2020),(18613,0,'2020-12-17',18612,18583,18247,202012,20204,2020),(18614,0,'2020-12-18',18613,18584,18248,202012,20204,2020),(18615,0,'2020-12-19',18614,18585,18249,202012,20204,2020),(18616,0,'2020-12-20',18615,18586,18250,202012,20204,2020),(18617,0,'2020-12-21',18616,18587,18251,202012,20204,2020),(18618,0,'2020-12-22',18617,18588,18252,202012,20204,2020),(18619,0,'2020-12-23',18618,18589,18253,202012,20204,2020),(18620,0,'2020-12-24',18619,18590,18254,202012,20204,2020),(18621,0,'2020-12-25',18620,18591,18255,202012,20204,2020),(18622,0,'2020-12-26',18621,18592,18256,202012,20204,2020),(18623,0,'2020-12-27',18622,18593,18257,202012,20204,2020),(18624,0,'2020-12-28',18623,18594,18258,202012,20204,2020),(18625,0,'2020-12-29',18624,18595,18259,202012,20204,2020),(18626,0,'2020-12-30',18625,18596,18260,202012,20204,2020),(18627,0,'2020-12-31',18626,18596,18261,202012,20204,2020),(18628,0,'2021-01-01',18627,18597,18262,202101,20211,2021),(18629,0,'2021-01-02',18628,18598,18263,202101,20211,2021),(18630,0,'2021-01-03',18629,18599,18264,202101,20211,2021),(18631,0,'2021-01-04',18630,18600,18265,202101,20211,2021),(18632,0,'2021-01-05',18631,18601,18266,202101,20211,2021),(18633,0,'2021-01-06',18632,18602,18267,202101,20211,2021),(18634,0,'2021-01-07',18633,18603,18268,202101,20211,2021),(18635,0,'2021-01-08',18634,18604,18269,202101,20211,2021),(18636,0,'2021-01-09',18635,18605,18270,202101,20211,2021),(18637,0,'2021-01-10',18636,18606,18271,202101,20211,2021),(18638,0,'2021-01-11',18637,18607,18272,202101,20211,2021),(18639,0,'2021-01-12',18638,18608,18273,202101,20211,2021),(18640,0,'2021-01-13',18639,18609,18274,202101,20211,2021),(18641,0,'2021-01-14',18640,18610,18275,202101,20211,2021),(18642,0,'2021-01-15',18641,18611,18276,202101,20211,2021),(18643,0,'2021-01-16',18642,18612,18277,202101,20211,2021),(18644,0,'2021-01-17',18643,18613,18278,202101,20211,2021),(18645,0,'2021-01-18',18644,18614,18279,202101,20211,2021),(18646,0,'2021-01-19',18645,18615,18280,202101,20211,2021),(18647,0,'2021-01-20',18646,18616,18281,202101,20211,2021),(18648,0,'2021-01-21',18647,18617,18282,202101,20211,2021),(18649,0,'2021-01-22',18648,18618,18283,202101,20211,2021),(18650,0,'2021-01-23',18649,18619,18284,202101,20211,2021),(18651,0,'2021-01-24',18650,18620,18285,202101,20211,2021),(18652,0,'2021-01-25',18651,18621,18286,202101,20211,2021),(18653,0,'2021-01-26',18652,18622,18287,202101,20211,2021),(18654,0,'2021-01-27',18653,18623,18288,202101,20211,2021),(18655,0,'2021-01-28',18654,18624,18289,202101,20211,2021),(18656,0,'2021-01-29',18655,18625,18290,202101,20211,2021),(18657,0,'2021-01-30',18656,18626,18291,202101,20211,2021),(18658,0,'2021-01-31',18657,18627,18292,202101,20211,2021),(18659,0,'2021-02-01',18658,18628,18293,202102,20211,2021),(18660,0,'2021-02-02',18659,18629,18294,202102,20211,2021),(18661,0,'2021-02-03',18660,18630,18295,202102,20211,2021),(18662,0,'2021-02-04',18661,18631,18296,202102,20211,2021),(18663,0,'2021-02-05',18662,18632,18297,202102,20211,2021),(18664,0,'2021-02-06',18663,18633,18298,202102,20211,2021),(18665,0,'2021-02-07',18664,18634,18299,202102,20211,2021),(18666,0,'2021-02-08',18665,18635,18300,202102,20211,2021),(18667,0,'2021-02-09',18666,18636,18301,202102,20211,2021),(18668,0,'2021-02-10',18667,18637,18302,202102,20211,2021),(18669,0,'2021-02-11',18668,18638,18303,202102,20211,2021),(18670,0,'2021-02-12',18669,18639,18304,202102,20211,2021),(18671,0,'2021-02-13',18670,18640,18305,202102,20211,2021),(18672,0,'2021-02-14',18671,18641,18306,202102,20211,2021),(18673,0,'2021-02-15',18672,18642,18307,202102,20211,2021),(18674,0,'2021-02-16',18673,18643,18308,202102,20211,2021),(18675,0,'2021-02-17',18674,18644,18309,202102,20211,2021),(18676,0,'2021-02-18',18675,18645,18310,202102,20211,2021),(18677,0,'2021-02-19',18676,18646,18311,202102,20211,2021),(18678,0,'2021-02-20',18677,18647,18312,202102,20211,2021),(18679,0,'2021-02-21',18678,18648,18313,202102,20211,2021),(18680,0,'2021-02-22',18679,18649,18314,202102,20211,2021),(18681,0,'2021-02-23',18680,18650,18315,202102,20211,2021),(18682,0,'2021-02-24',18681,18651,18316,202102,20211,2021),(18683,0,'2021-02-25',18682,18652,18317,202102,20211,2021),(18684,0,'2021-02-26',18683,18653,18318,202102,20211,2021),(18685,0,'2021-02-27',18684,18654,18319,202102,20211,2021),(18686,0,'2021-02-28',18685,18655,18320,202102,20211,2021),(18687,0,'2021-03-01',18686,18659,18322,202103,20211,2021),(18688,0,'2021-03-02',18687,18660,18323,202103,20211,2021),(18689,0,'2021-03-03',18688,18661,18324,202103,20211,2021),(18690,0,'2021-03-04',18689,18662,18325,202103,20211,2021),(18691,0,'2021-03-05',18690,18663,18326,202103,20211,2021),(18692,0,'2021-03-06',18691,18664,18327,202103,20211,2021),(18693,0,'2021-03-07',18692,18665,18328,202103,20211,2021),(18694,0,'2021-03-08',18693,18666,18329,202103,20211,2021),(18695,0,'2021-03-09',18694,18667,18330,202103,20211,2021),(18696,0,'2021-03-10',18695,18668,18331,202103,20211,2021),(18697,0,'2021-03-11',18696,18669,18332,202103,20211,2021),(18698,0,'2021-03-12',18697,18670,18333,202103,20211,2021),(18699,0,'2021-03-13',18698,18671,18334,202103,20211,2021),(18700,0,'2021-03-14',18699,18672,18335,202103,20211,2021),(18701,0,'2021-03-15',18700,18673,18336,202103,20211,2021),(18702,0,'2021-03-16',18701,18674,18337,202103,20211,2021),(18703,0,'2021-03-17',18702,18675,18338,202103,20211,2021),(18704,0,'2021-03-18',18703,18676,18339,202103,20211,2021),(18705,0,'2021-03-19',18704,18677,18340,202103,20211,2021),(18706,0,'2021-03-20',18705,18678,18341,202103,20211,2021),(18707,0,'2021-03-21',18706,18679,18342,202103,20211,2021),(18708,0,'2021-03-22',18707,18680,18343,202103,20211,2021),(18709,0,'2021-03-23',18708,18681,18344,202103,20211,2021),(18710,0,'2021-03-24',18709,18682,18345,202103,20211,2021),(18711,0,'2021-03-25',18710,18683,18346,202103,20211,2021),(18712,0,'2021-03-26',18711,18684,18347,202103,20211,2021),(18713,0,'2021-03-27',18712,18685,18348,202103,20211,2021),(18714,0,'2021-03-28',18713,18686,18349,202103,20211,2021),(18715,0,'2021-03-29',18714,18686,18350,202103,20211,2021),(18716,0,'2021-03-30',18715,18686,18351,202103,20211,2021),(18717,0,'2021-03-31',18716,18686,18352,202103,20211,2021),(18718,0,'2021-04-01',18717,18687,18353,202104,20212,2021),(18719,0,'2021-04-02',18718,18688,18354,202104,20212,2021),(18720,0,'2021-04-03',18719,18689,18355,202104,20212,2021),(18721,0,'2021-04-04',18720,18690,18356,202104,20212,2021),(18722,0,'2021-04-05',18721,18691,18357,202104,20212,2021),(18723,0,'2021-04-06',18722,18692,18358,202104,20212,2021),(18724,0,'2021-04-07',18723,18693,18359,202104,20212,2021),(18725,0,'2021-04-08',18724,18694,18360,202104,20212,2021),(18726,0,'2021-04-09',18725,18695,18361,202104,20212,2021),(18727,0,'2021-04-10',18726,18696,18362,202104,20212,2021),(18728,0,'2021-04-11',18727,18697,18363,202104,20212,2021),(18729,0,'2021-04-12',18728,18698,18364,202104,20212,2021),(18730,0,'2021-04-13',18729,18699,18365,202104,20212,2021),(18731,0,'2021-04-14',18730,18700,18366,202104,20212,2021),(18732,0,'2021-04-15',18731,18701,18367,202104,20212,2021),(18733,0,'2021-04-16',18732,18702,18368,202104,20212,2021),(18734,0,'2021-04-17',18733,18703,18369,202104,20212,2021),(18735,0,'2021-04-18',18734,18704,18370,202104,20212,2021),(18736,0,'2021-04-19',18735,18705,18371,202104,20212,2021),(18737,0,'2021-04-20',18736,18706,18372,202104,20212,2021),(18738,0,'2021-04-21',18737,18707,18373,202104,20212,2021),(18739,0,'2021-04-22',18738,18708,18374,202104,20212,2021),(18740,0,'2021-04-23',18739,18709,18375,202104,20212,2021),(18741,0,'2021-04-24',18740,18710,18376,202104,20212,2021),(18742,0,'2021-04-25',18741,18711,18377,202104,20212,2021),(18743,0,'2021-04-26',18742,18712,18378,202104,20212,2021),(18744,0,'2021-04-27',18743,18713,18379,202104,20212,2021),(18745,0,'2021-04-28',18744,18714,18380,202104,20212,2021),(18746,0,'2021-04-29',18745,18715,18381,202104,20212,2021),(18747,0,'2021-04-30',18746,18716,18382,202104,20212,2021),(18748,0,'2021-05-01',18747,18718,18383,202105,20212,2021),(18749,0,'2021-05-02',18748,18719,18384,202105,20212,2021),(18750,0,'2021-05-03',18749,18720,18385,202105,20212,2021),(18751,0,'2021-05-04',18750,18721,18386,202105,20212,2021),(18752,0,'2021-05-05',18751,18722,18387,202105,20212,2021),(18753,0,'2021-05-06',18752,18723,18388,202105,20212,2021),(18754,0,'2021-05-07',18753,18724,18389,202105,20212,2021),(18755,0,'2021-05-08',18754,18725,18390,202105,20212,2021),(18756,0,'2021-05-09',18755,18726,18391,202105,20212,2021),(18757,0,'2021-05-10',18756,18727,18392,202105,20212,2021),(18758,0,'2021-05-11',18757,18728,18393,202105,20212,2021),(18759,0,'2021-05-12',18758,18729,18394,202105,20212,2021),(18760,0,'2021-05-13',18759,18730,18395,202105,20212,2021),(18761,0,'2021-05-14',18760,18731,18396,202105,20212,2021),(18762,0,'2021-05-15',18761,18732,18397,202105,20212,2021),(18763,0,'2021-05-16',18762,18733,18398,202105,20212,2021),(18764,0,'2021-05-17',18763,18734,18399,202105,20212,2021),(18765,0,'2021-05-18',18764,18735,18400,202105,20212,2021),(18766,0,'2021-05-19',18765,18736,18401,202105,20212,2021),(18767,0,'2021-05-20',18766,18737,18402,202105,20212,2021),(18768,0,'2021-05-21',18767,18738,18403,202105,20212,2021),(18769,0,'2021-05-22',18768,18739,18404,202105,20212,2021),(18770,0,'2021-05-23',18769,18740,18405,202105,20212,2021),(18771,0,'2021-05-24',18770,18741,18406,202105,20212,2021),(18772,0,'2021-05-25',18771,18742,18407,202105,20212,2021),(18773,0,'2021-05-26',18772,18743,18408,202105,20212,2021),(18774,0,'2021-05-27',18773,18744,18409,202105,20212,2021),(18775,0,'2021-05-28',18774,18745,18410,202105,20212,2021),(18776,0,'2021-05-29',18775,18746,18411,202105,20212,2021),(18777,0,'2021-05-30',18776,18747,18412,202105,20212,2021),(18778,0,'2021-05-31',18777,18747,18413,202105,20212,2021),(18779,0,'2021-06-01',18778,18748,18414,202106,20212,2021),(18780,0,'2021-06-02',18779,18749,18415,202106,20212,2021),(18781,0,'2021-06-03',18780,18750,18416,202106,20212,2021),(18782,0,'2021-06-04',18781,18751,18417,202106,20212,2021),(18783,0,'2021-06-05',18782,18752,18418,202106,20212,2021),(18784,0,'2021-06-06',18783,18753,18419,202106,20212,2021),(18785,0,'2021-06-07',18784,18754,18420,202106,20212,2021),(18786,0,'2021-06-08',18785,18755,18421,202106,20212,2021),(18787,0,'2021-06-09',18786,18756,18422,202106,20212,2021),(18788,0,'2021-06-10',18787,18757,18423,202106,20212,2021),(18789,0,'2021-06-11',18788,18758,18424,202106,20212,2021),(18790,0,'2021-06-12',18789,18759,18425,202106,20212,2021),(18791,0,'2021-06-13',18790,18760,18426,202106,20212,2021),(18792,0,'2021-06-14',18791,18761,18427,202106,20212,2021),(18793,0,'2021-06-15',18792,18762,18428,202106,20212,2021),(18794,0,'2021-06-16',18793,18763,18429,202106,20212,2021),(18795,0,'2021-06-17',18794,18764,18430,202106,20212,2021),(18796,0,'2021-06-18',18795,18765,18431,202106,20212,2021),(18797,0,'2021-06-19',18796,18766,18432,202106,20212,2021),(18798,0,'2021-06-20',18797,18767,18433,202106,20212,2021),(18799,0,'2021-06-21',18798,18768,18434,202106,20212,2021),(18800,0,'2021-06-22',18799,18769,18435,202106,20212,2021),(18801,0,'2021-06-23',18800,18770,18436,202106,20212,2021),(18802,0,'2021-06-24',18801,18771,18437,202106,20212,2021),(18803,0,'2021-06-25',18802,18772,18438,202106,20212,2021),(18804,0,'2021-06-26',18803,18773,18439,202106,20212,2021),(18805,0,'2021-06-27',18804,18774,18440,202106,20212,2021),(18806,0,'2021-06-28',18805,18775,18441,202106,20212,2021),(18807,0,'2021-06-29',18806,18776,18442,202106,20212,2021),(18808,0,'2021-06-30',18807,18777,18443,202106,20212,2021),(18809,0,'2021-07-01',18808,18779,18444,202107,20213,2021),(18810,0,'2021-07-02',18809,18780,18445,202107,20213,2021),(18811,0,'2021-07-03',18810,18781,18446,202107,20213,2021),(18812,0,'2021-07-04',18811,18782,18447,202107,20213,2021),(18813,0,'2021-07-05',18812,18783,18448,202107,20213,2021),(18814,0,'2021-07-06',18813,18784,18449,202107,20213,2021),(18815,0,'2021-07-07',18814,18785,18450,202107,20213,2021),(18816,0,'2021-07-08',18815,18786,18451,202107,20213,2021),(18817,0,'2021-07-09',18816,18787,18452,202107,20213,2021),(18818,0,'2021-07-10',18817,18788,18453,202107,20213,2021),(18819,0,'2021-07-11',18818,18789,18454,202107,20213,2021),(18820,0,'2021-07-12',18819,18790,18455,202107,20213,2021),(18821,0,'2021-07-13',18820,18791,18456,202107,20213,2021),(18822,0,'2021-07-14',18821,18792,18457,202107,20213,2021),(18823,0,'2021-07-15',18822,18793,18458,202107,20213,2021),(18824,0,'2021-07-16',18823,18794,18459,202107,20213,2021),(18825,0,'2021-07-17',18824,18795,18460,202107,20213,2021),(18826,0,'2021-07-18',18825,18796,18461,202107,20213,2021),(18827,0,'2021-07-19',18826,18797,18462,202107,20213,2021),(18828,0,'2021-07-20',18827,18798,18463,202107,20213,2021),(18829,0,'2021-07-21',18828,18799,18464,202107,20213,2021),(18830,0,'2021-07-22',18829,18800,18465,202107,20213,2021),(18831,0,'2021-07-23',18830,18801,18466,202107,20213,2021),(18832,0,'2021-07-24',18831,18802,18467,202107,20213,2021),(18833,0,'2021-07-25',18832,18803,18468,202107,20213,2021),(18834,0,'2021-07-26',18833,18804,18469,202107,20213,2021),(18835,0,'2021-07-27',18834,18805,18470,202107,20213,2021),(18836,0,'2021-07-28',18835,18806,18471,202107,20213,2021),(18837,0,'2021-07-29',18836,18807,18472,202107,20213,2021),(18838,0,'2021-07-30',18837,18808,18473,202107,20213,2021),(18839,0,'2021-07-31',18838,18808,18474,202107,20213,2021),(18840,0,'2021-08-01',18839,18809,18475,202108,20213,2021),(18841,0,'2021-08-02',18840,18810,18476,202108,20213,2021),(18842,0,'2021-08-03',18841,18811,18477,202108,20213,2021),(18843,0,'2021-08-04',18842,18812,18478,202108,20213,2021),(18844,0,'2021-08-05',18843,18813,18479,202108,20213,2021),(18845,0,'2021-08-06',18844,18814,18480,202108,20213,2021),(18846,0,'2021-08-07',18845,18815,18481,202108,20213,2021),(18847,0,'2021-08-08',18846,18816,18482,202108,20213,2021),(18848,0,'2021-08-09',18847,18817,18483,202108,20213,2021),(18849,0,'2021-08-10',18848,18818,18484,202108,20213,2021),(18850,0,'2021-08-11',18849,18819,18485,202108,20213,2021),(18851,0,'2021-08-12',18850,18820,18486,202108,20213,2021),(18852,0,'2021-08-13',18851,18821,18487,202108,20213,2021),(18853,0,'2021-08-14',18852,18822,18488,202108,20213,2021),(18854,0,'2021-08-15',18853,18823,18489,202108,20213,2021),(18855,0,'2021-08-16',18854,18824,18490,202108,20213,2021),(18856,0,'2021-08-17',18855,18825,18491,202108,20213,2021),(18857,0,'2021-08-18',18856,18826,18492,202108,20213,2021),(18858,0,'2021-08-19',18857,18827,18493,202108,20213,2021),(18859,0,'2021-08-20',18858,18828,18494,202108,20213,2021),(18860,0,'2021-08-21',18859,18829,18495,202108,20213,2021),(18861,0,'2021-08-22',18860,18830,18496,202108,20213,2021),(18862,0,'2021-08-23',18861,18831,18497,202108,20213,2021),(18863,0,'2021-08-24',18862,18832,18498,202108,20213,2021),(18864,0,'2021-08-25',18863,18833,18499,202108,20213,2021),(18865,0,'2021-08-26',18864,18834,18500,202108,20213,2021),(18866,0,'2021-08-27',18865,18835,18501,202108,20213,2021),(18867,0,'2021-08-28',18866,18836,18502,202108,20213,2021),(18868,0,'2021-08-29',18867,18837,18503,202108,20213,2021),(18869,0,'2021-08-30',18868,18838,18504,202108,20213,2021),(18870,0,'2021-08-31',18869,18839,18505,202108,20213,2021),(18871,0,'2021-09-01',18870,18840,18506,202109,20213,2021),(18872,0,'2021-09-02',18871,18841,18507,202109,20213,2021),(18873,0,'2021-09-03',18872,18842,18508,202109,20213,2021),(18874,0,'2021-09-04',18873,18843,18509,202109,20213,2021),(18875,0,'2021-09-05',18874,18844,18510,202109,20213,2021),(18876,0,'2021-09-06',18875,18845,18511,202109,20213,2021),(18877,0,'2021-09-07',18876,18846,18512,202109,20213,2021),(18878,0,'2021-09-08',18877,18847,18513,202109,20213,2021),(18879,0,'2021-09-09',18878,18848,18514,202109,20213,2021),(18880,0,'2021-09-10',18879,18849,18515,202109,20213,2021),(18881,0,'2021-09-11',18880,18850,18516,202109,20213,2021),(18882,0,'2021-09-12',18881,18851,18517,202109,20213,2021),(18883,0,'2021-09-13',18882,18852,18518,202109,20213,2021),(18884,0,'2021-09-14',18883,18853,18519,202109,20213,2021),(18885,0,'2021-09-15',18884,18854,18520,202109,20213,2021),(18886,0,'2021-09-16',18885,18855,18521,202109,20213,2021),(18887,0,'2021-09-17',18886,18856,18522,202109,20213,2021),(18888,0,'2021-09-18',18887,18857,18523,202109,20213,2021),(18889,0,'2021-09-19',18888,18858,18524,202109,20213,2021),(18890,0,'2021-09-20',18889,18859,18525,202109,20213,2021),(18891,0,'2021-09-21',18890,18860,18526,202109,20213,2021),(18892,0,'2021-09-22',18891,18861,18527,202109,20213,2021),(18893,0,'2021-09-23',18892,18862,18528,202109,20213,2021),(18894,0,'2021-09-24',18893,18863,18529,202109,20213,2021),(18895,0,'2021-09-25',18894,18864,18530,202109,20213,2021),(18896,0,'2021-09-26',18895,18865,18531,202109,20213,2021),(18897,0,'2021-09-27',18896,18866,18532,202109,20213,2021),(18898,0,'2021-09-28',18897,18867,18533,202109,20213,2021),(18899,0,'2021-09-29',18898,18868,18534,202109,20213,2021),(18900,0,'2021-09-30',18899,18869,18535,202109,20213,2021),(18901,0,'2021-10-01',18900,18871,18536,202110,20214,2021),(18902,0,'2021-10-02',18901,18872,18537,202110,20214,2021),(18903,0,'2021-10-03',18902,18873,18538,202110,20214,2021),(18904,0,'2021-10-04',18903,18874,18539,202110,20214,2021),(18905,0,'2021-10-05',18904,18875,18540,202110,20214,2021),(18906,0,'2021-10-06',18905,18876,18541,202110,20214,2021),(18907,0,'2021-10-07',18906,18877,18542,202110,20214,2021),(18908,0,'2021-10-08',18907,18878,18543,202110,20214,2021),(18909,0,'2021-10-09',18908,18879,18544,202110,20214,2021),(18910,0,'2021-10-10',18909,18880,18545,202110,20214,2021),(18911,0,'2021-10-11',18910,18881,18546,202110,20214,2021),(18912,0,'2021-10-12',18911,18882,18547,202110,20214,2021),(18913,0,'2021-10-13',18912,18883,18548,202110,20214,2021),(18914,0,'2021-10-14',18913,18884,18549,202110,20214,2021),(18915,0,'2021-10-15',18914,18885,18550,202110,20214,2021),(18916,0,'2021-10-16',18915,18886,18551,202110,20214,2021),(18917,0,'2021-10-17',18916,18887,18552,202110,20214,2021),(18918,0,'2021-10-18',18917,18888,18553,202110,20214,2021),(18919,0,'2021-10-19',18918,18889,18554,202110,20214,2021),(18920,0,'2021-10-20',18919,18890,18555,202110,20214,2021),(18921,0,'2021-10-21',18920,18891,18556,202110,20214,2021),(18922,0,'2021-10-22',18921,18892,18557,202110,20214,2021),(18923,0,'2021-10-23',18922,18893,18558,202110,20214,2021),(18924,0,'2021-10-24',18923,18894,18559,202110,20214,2021),(18925,0,'2021-10-25',18924,18895,18560,202110,20214,2021),(18926,0,'2021-10-26',18925,18896,18561,202110,20214,2021),(18927,0,'2021-10-27',18926,18897,18562,202110,20214,2021),(18928,0,'2021-10-28',18927,18898,18563,202110,20214,2021),(18929,0,'2021-10-29',18928,18899,18564,202110,20214,2021),(18930,0,'2021-10-30',18929,18900,18565,202110,20214,2021),(18931,0,'2021-10-31',18930,18900,18566,202110,20214,2021),(18932,0,'2021-11-01',18931,18901,18567,202111,20214,2021),(18933,0,'2021-11-02',18932,18902,18568,202111,20214,2021),(18934,0,'2021-11-03',18933,18903,18569,202111,20214,2021),(18935,0,'2021-11-04',18934,18904,18570,202111,20214,2021),(18936,0,'2021-11-05',18935,18905,18571,202111,20214,2021),(18937,0,'2021-11-06',18936,18906,18572,202111,20214,2021),(18938,0,'2021-11-07',18937,18907,18573,202111,20214,2021),(18939,0,'2021-11-08',18938,18908,18574,202111,20214,2021),(18940,0,'2021-11-09',18939,18909,18575,202111,20214,2021),(18941,0,'2021-11-10',18940,18910,18576,202111,20214,2021),(18942,0,'2021-11-11',18941,18911,18577,202111,20214,2021),(18943,0,'2021-11-12',18942,18912,18578,202111,20214,2021),(18944,0,'2021-11-13',18943,18913,18579,202111,20214,2021),(18945,0,'2021-11-14',18944,18914,18580,202111,20214,2021),(18946,0,'2021-11-15',18945,18915,18581,202111,20214,2021),(18947,0,'2021-11-16',18946,18916,18582,202111,20214,2021),(18948,0,'2021-11-17',18947,18917,18583,202111,20214,2021),(18949,0,'2021-11-18',18948,18918,18584,202111,20214,2021),(18950,0,'2021-11-19',18949,18919,18585,202111,20214,2021),(18951,0,'2021-11-20',18950,18920,18586,202111,20214,2021),(18952,0,'2021-11-21',18951,18921,18587,202111,20214,2021),(18953,0,'2021-11-22',18952,18922,18588,202111,20214,2021),(18954,0,'2021-11-23',18953,18923,18589,202111,20214,2021),(18955,0,'2021-11-24',18954,18924,18590,202111,20214,2021),(18956,0,'2021-11-25',18955,18925,18591,202111,20214,2021),(18957,0,'2021-11-26',18956,18926,18592,202111,20214,2021),(18958,0,'2021-11-27',18957,18927,18593,202111,20214,2021),(18959,0,'2021-11-28',18958,18928,18594,202111,20214,2021),(18960,0,'2021-11-29',18959,18929,18595,202111,20214,2021),(18961,0,'2021-11-30',18960,18930,18596,202111,20214,2021),(18962,0,'2021-12-01',18961,18932,18597,202112,20214,2021),(18963,0,'2021-12-02',18962,18933,18598,202112,20214,2021),(18964,0,'2021-12-03',18963,18934,18599,202112,20214,2021),(18965,0,'2021-12-04',18964,18935,18600,202112,20214,2021),(18966,0,'2021-12-05',18965,18936,18601,202112,20214,2021),(18967,0,'2021-12-06',18966,18937,18602,202112,20214,2021),(18968,0,'2021-12-07',18967,18938,18603,202112,20214,2021),(18969,0,'2021-12-08',18968,18939,18604,202112,20214,2021),(18970,0,'2021-12-09',18969,18940,18605,202112,20214,2021),(18971,0,'2021-12-10',18970,18941,18606,202112,20214,2021),(18972,0,'2021-12-11',18971,18942,18607,202112,20214,2021),(18973,0,'2021-12-12',18972,18943,18608,202112,20214,2021),(18974,0,'2021-12-13',18973,18944,18609,202112,20214,2021),(18975,0,'2021-12-14',18974,18945,18610,202112,20214,2021),(18976,0,'2021-12-15',18975,18946,18611,202112,20214,2021),(18977,0,'2021-12-16',18976,18947,18612,202112,20214,2021),(18978,0,'2021-12-17',18977,18948,18613,202112,20214,2021),(18979,0,'2021-12-18',18978,18949,18614,202112,20214,2021),(18980,0,'2021-12-19',18979,18950,18615,202112,20214,2021),(18981,0,'2021-12-20',18980,18951,18616,202112,20214,2021),(18982,0,'2021-12-21',18981,18952,18617,202112,20214,2021),(18983,0,'2021-12-22',18982,18953,18618,202112,20214,2021),(18984,0,'2021-12-23',18983,18954,18619,202112,20214,2021),(18985,0,'2021-12-24',18984,18955,18620,202112,20214,2021),(18986,0,'2021-12-25',18985,18956,18621,202112,20214,2021),(18987,0,'2021-12-26',18986,18957,18622,202112,20214,2021),(18988,0,'2021-12-27',18987,18958,18623,202112,20214,2021),(18989,0,'2021-12-28',18988,18959,18624,202112,20214,2021),(18990,0,'2021-12-29',18989,18960,18625,202112,20214,2021),(18991,0,'2021-12-30',18990,18961,18626,202112,20214,2021),(18992,0,'2021-12-31',18991,18961,18627,202112,20214,2021);
+/*!40000 ALTER TABLE `day` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `exchange_trade`
+--
+
+DROP TABLE IF EXISTS `exchange_trade`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `exchange_trade` (
+  `exchange_trade_id` int(11) NOT NULL AUTO_INCREMENT,
+  `token_account_id` int(11) NOT NULL,
+  `action_id` int(11) NOT NULL,
+  `from_account_id` int(11) NOT NULL,
+  `to_account_id` int(11) NOT NULL,
+  `quantity` decimal(24,9) NOT NULL,
+  `quantity_token_id` int(11) NOT NULL,
+  `order_type_id` tinyint(4) NOT NULL,
+  `quote_token_id` int(11) NOT NULL,
+  `base_token_id` int(11) NOT NULL,
+  `trade_quantity` decimal(24,9) DEFAULT NULL,
+  `trade_price` decimal(24,9) DEFAULT NULL,
+  `channel_id` tinyint(4) NOT NULL,
+  `day_id` mediumint(9) NOT NULL,
+  `hour_of_day` tinyint(4) NOT NULL,
+  `block_time` datetime NOT NULL,
+  PRIMARY KEY (`exchange_trade_id`),
+  KEY `fk_exchange_trade_account_1_idx` (`token_account_id`),
+  KEY `fk_exchange_trade_action_idx` (`action_id`),
+  KEY `fk_exchange_trade_account_2_idx` (`from_account_id`),
+  KEY `fk_exchange_trade_account_3_idx` (`to_account_id`),
+  KEY `fk_exchange_trade_token_1_idx` (`quantity_token_id`),
+  KEY `fk_exchange_trade_order_type_1_idx` (`order_type_id`),
+  KEY `fk_exchange_trade_token_2_idx` (`quote_token_id`),
+  KEY `fk_exchange_trade_token_3_idx` (`base_token_id`),
+  KEY `fk_exchange_trade_channel_idx` (`channel_id`),
+  KEY `fk_exchange_trade_day_1_idx` (`day_id`),
+  CONSTRAINT `fk_exchange_trade_account_1` FOREIGN KEY (`token_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_account_2` FOREIGN KEY (`from_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_account_3` FOREIGN KEY (`to_account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_action_1` FOREIGN KEY (`action_id`) REFERENCES `action` (`action_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_channel_1` FOREIGN KEY (`channel_id`) REFERENCES `channel` (`channel_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_day_1` FOREIGN KEY (`day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_order_type_1` FOREIGN KEY (`order_type_id`) REFERENCES `order_type` (`order_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_token_1` FOREIGN KEY (`quantity_token_id`) REFERENCES `token` (`token_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_token_2` FOREIGN KEY (`quote_token_id`) REFERENCES `token` (`token_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_exchange_trade_token_3` FOREIGN KEY (`base_token_id`) REFERENCES `token` (`token_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `exchange_trade`
+--
+
+LOCK TABLES `exchange_trade` WRITE;
+/*!40000 ALTER TABLE `exchange_trade` DISABLE KEYS */;
+/*!40000 ALTER TABLE `exchange_trade` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `exchange_trades`
+--
+
+DROP TABLE IF EXISTS `exchange_trades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `exchange_trades` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `account` varchar(50) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `from` varchar(50) NOT NULL,
+  `to` varchar(50) NOT NULL,
+  `quantity` varchar(50) NOT NULL,
+  `ordertype` varchar(50) DEFAULT NULL,
+  `pair` varchar(50) DEFAULT NULL,
+  `trade_quantity` varchar(50) DEFAULT NULL,
+  `trade_price` varchar(50) DEFAULT NULL,
+  `channel` varchar(50) DEFAULT NULL,
+  `day_id` mediumint(9) NOT NULL,
+  `hour_of_day` tinyint(4) NOT NULL,
+  `block_time` datetime NOT NULL DEFAULT '2000-01-01 00:00:00',
+  PRIMARY KEY (`id`),
+  KEY `fk_exchange_trades_day_idx` (`day_id`),
+  CONSTRAINT `fk_exchange_trades_day` FOREIGN KEY (`day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `exchange_trades`
+--
+
+LOCK TABLES `exchange_trades` WRITE;
+/*!40000 ALTER TABLE `exchange_trades` DISABLE KEYS */;
+/*!40000 ALTER TABLE `exchange_trades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `memo_keys`
+--
+
+DROP TABLE IF EXISTS `memo_keys`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `memo_keys` (
+  `exchange` varchar(50) NOT NULL,
+  `memo_key` varchar(50) NOT NULL,
+  `raw_json` varchar(2000) NOT NULL,
+  `example_values` varchar(2000) NOT NULL,
+  PRIMARY KEY (`exchange`,`memo_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `memo_keys`
+--
+
+LOCK TABLES `memo_keys` WRITE;
+/*!40000 ALTER TABLE `memo_keys` DISABLE KEYS */;
+/*!40000 ALTER TABLE `memo_keys` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `month`
+--
+
+DROP TABLE IF EXISTS `month`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `month` (
+  `month_id` mediumint(9) NOT NULL,
+  `time_type_id` tinyint(4) NOT NULL,
+  `month_desc` varchar(50) DEFAULT NULL,
+  `month_date` date DEFAULT NULL,
+  `month_duration` tinyint(3) unsigned DEFAULT NULL,
+  `prev_month_id` mediumint(9) DEFAULT NULL,
+  `ly_month_id` mediumint(9) DEFAULT NULL,
+  `month_of_year` tinyint(4) NOT NULL,
+  `quarter_id` smallint(6) NOT NULL,
+  `year_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`month_id`),
+  KEY `fk_month_month_of_year1` (`month_of_year`),
+  KEY `fk_month_quarter1` (`quarter_id`),
+  KEY `fk_month_year1` (`year_id`),
+  KEY `fk_month_time_type1` (`time_type_id`),
+  CONSTRAINT `fk_month_month_of_year1` FOREIGN KEY (`month_of_year`) REFERENCES `month_of_year` (`month_of_year`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_month_quarter1` FOREIGN KEY (`quarter_id`) REFERENCES `quarter` (`quarter_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_month_time_type1` FOREIGN KEY (`time_type_id`) REFERENCES `time_type` (`time_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_month_year1` FOREIGN KEY (`year_id`) REFERENCES `year` (`year_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `month`
+--
+
+LOCK TABLES `month` WRITE;
+/*!40000 ALTER TABLE `month` DISABLE KEYS */;
+INSERT INTO `month` VALUES (-4,-4,'Hasn\'t Happened',NULL,NULL,NULL,NULL,-4,-4,-4),(-3,-3,'Corrupted',NULL,NULL,NULL,NULL,-3,-3,-3),(-2,-2,'Not Applicable',NULL,NULL,NULL,NULL,-2,-2,-2),(-1,-1,'Unknown',NULL,NULL,NULL,NULL,-1,-1,-1),(201701,0,'Jan 2017','2017-01-01',31,201612,201601,1,20171,2017),(201702,0,'Feb 2017','2017-02-01',28,201701,201602,2,20171,2017),(201703,0,'Mar 2017','2017-03-01',31,201702,201603,3,20171,2017),(201704,0,'Apr 2017','2017-04-01',30,201703,201604,4,20172,2017),(201705,0,'May 2017','2017-05-01',31,201704,201605,5,20172,2017),(201706,0,'Jun 2017','2017-06-01',30,201705,201606,6,20172,2017),(201707,0,'Jul 2017','2017-07-01',31,201706,201607,7,20173,2017),(201708,0,'Aug 2017','2017-08-01',31,201707,201608,8,20173,2017),(201709,0,'Sep 2017','2017-09-01',30,201708,201609,9,20173,2017),(201710,0,'Oct 2017','2017-10-01',31,201709,201610,10,20174,2017),(201711,0,'Nov 2017','2017-11-01',30,201710,201611,11,20174,2017),(201712,0,'Dec 2017','2017-12-01',31,201711,201612,12,20174,2017),(201801,0,'Jan 2018','2018-01-01',31,201712,201701,1,20181,2018),(201802,0,'Feb 2018','2018-02-01',28,201801,201702,2,20181,2018),(201803,0,'Mar 2018','2018-03-01',31,201802,201703,3,20181,2018),(201804,0,'Apr 2018','2018-04-01',30,201803,201704,4,20182,2018),(201805,0,'May 2018','2018-05-01',31,201804,201705,5,20182,2018),(201806,0,'Jun 2018','2018-06-01',30,201805,201706,6,20182,2018),(201807,0,'Jul 2018','2018-07-01',31,201806,201707,7,20183,2018),(201808,0,'Aug 2018','2018-08-01',31,201807,201708,8,20183,2018),(201809,0,'Sep 2018','2018-09-01',30,201808,201709,9,20183,2018),(201810,0,'Oct 2018','2018-10-01',31,201809,201710,10,20184,2018),(201811,0,'Nov 2018','2018-11-01',30,201810,201711,11,20184,2018),(201812,0,'Dec 2018','2018-12-01',31,201811,201712,12,20184,2018),(201901,0,'Jan 2019','2019-01-01',31,201812,201801,1,20191,2019),(201902,0,'Feb 2019','2019-02-01',28,201901,201802,2,20191,2019),(201903,0,'Mar 2019','2019-03-01',31,201902,201803,3,20191,2019),(201904,0,'Apr 2019','2019-04-01',30,201903,201804,4,20192,2019),(201905,0,'May 2019','2019-05-01',31,201904,201805,5,20192,2019),(201906,0,'Jun 2019','2019-06-01',30,201905,201806,6,20192,2019),(201907,0,'Jul 2019','2019-07-01',31,201906,201807,7,20193,2019),(201908,0,'Aug 2019','2019-08-01',31,201907,201808,8,20193,2019),(201909,0,'Sep 2019','2019-09-01',30,201908,201809,9,20193,2019),(201910,0,'Oct 2019','2019-10-01',31,201909,201810,10,20194,2019),(201911,0,'Nov 2019','2019-11-01',30,201910,201811,11,20194,2019),(201912,0,'Dec 2019','2019-12-01',31,201911,201812,12,20194,2019),(202001,0,'Jan 2020','2020-01-01',31,201912,201901,1,20201,2020),(202002,0,'Feb 2020','2020-02-01',29,202001,201902,2,20201,2020),(202003,0,'Mar 2020','2020-03-01',31,202002,201903,3,20201,2020),(202004,0,'Apr 2020','2020-04-01',30,202003,201904,4,20202,2020),(202005,0,'May 2020','2020-05-01',31,202004,201905,5,20202,2020),(202006,0,'Jun 2020','2020-06-01',30,202005,201906,6,20202,2020),(202007,0,'Jul 2020','2020-07-01',31,202006,201907,7,20203,2020),(202008,0,'Aug 2020','2020-08-01',31,202007,201908,8,20203,2020),(202009,0,'Sep 2020','2020-09-01',30,202008,201909,9,20203,2020),(202010,0,'Oct 2020','2020-10-01',31,202009,201910,10,20204,2020),(202011,0,'Nov 2020','2020-11-01',30,202010,201911,11,20204,2020),(202012,0,'Dec 2020','2020-12-01',31,202011,201912,12,20204,2020),(202101,0,'Jan 2021','2021-01-01',31,202012,202001,1,20211,2021),(202102,0,'Feb 2021','2021-02-01',28,202101,202002,2,20211,2021),(202103,0,'Mar 2021','2021-03-01',31,202102,202003,3,20211,2021),(202104,0,'Apr 2021','2021-04-01',30,202103,202004,4,20212,2021),(202105,0,'May 2021','2021-05-01',31,202104,202005,5,20212,2021),(202106,0,'Jun 2021','2021-06-01',30,202105,202006,6,20212,2021),(202107,0,'Jul 2021','2021-07-01',31,202106,202007,7,20213,2021),(202108,0,'Aug 2021','2021-08-01',31,202107,202008,8,20213,2021),(202109,0,'Sep 2021','2021-09-01',30,202108,202009,9,20213,2021),(202110,0,'Oct 2021','2021-10-01',31,202109,202010,10,20214,2021),(202111,0,'Nov 2021','2021-11-01',30,202110,202011,11,20214,2021),(202112,0,'Dec 2021','2021-12-01',31,202111,202012,12,20214,2021);
+/*!40000 ALTER TABLE `month` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `month_of_year`
+--
+
+DROP TABLE IF EXISTS `month_of_year`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `month_of_year` (
+  `month_of_year` tinyint(4) NOT NULL,
+  `month_of_year_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`month_of_year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `month_of_year`
+--
+
+LOCK TABLES `month_of_year` WRITE;
+/*!40000 ALTER TABLE `month_of_year` DISABLE KEYS */;
+INSERT INTO `month_of_year` VALUES (-4,'Hasn\'t Happened'),(-3,'Corrupted'),(-2,'Not Applicable'),(-1,'Unknown'),(0,'Normal'),(1,'Jan'),(2,'Feb'),(3,'Mar'),(4,'Apr'),(5,'May'),(6,'Jun'),(7,'Jul'),(8,'Aug'),(9,'Sep'),(10,'Oct'),(11,'Nov'),(12,'Dec');
+/*!40000 ALTER TABLE `month_of_year` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `order_type`
+--
+
+DROP TABLE IF EXISTS `order_type`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `order_type` (
+  `order_type_id` tinyint(4) NOT NULL,
+  `order_type_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`order_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_type`
+--
+
+LOCK TABLES `order_type` WRITE;
+/*!40000 ALTER TABLE `order_type` DISABLE KEYS */;
+INSERT INTO `order_type` VALUES (-1,'Unknown'),(1,'BUY'),(2,'BUY-LIMIT'),(3,'SELL'),(4,'SELL-LIMIT'),(5,'CANCEL');
+/*!40000 ALTER TABLE `order_type` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `quarter`
+--
+
+DROP TABLE IF EXISTS `quarter`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `quarter` (
+  `quarter_id` smallint(6) NOT NULL,
+  `time_type_id` tinyint(4) NOT NULL,
+  `quarter_desc` varchar(50) DEFAULT NULL,
+  `quarter_date` date DEFAULT NULL,
+  `quarter_duration` tinyint(3) unsigned DEFAULT NULL,
+  `prev_quarter_id` smallint(6) DEFAULT NULL,
+  `ly_quarter_id` smallint(6) DEFAULT NULL,
+  `year_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`quarter_id`),
+  KEY `fk_quarter_year1` (`year_id`),
+  KEY `fk_quarter_time_type1` (`time_type_id`),
+  CONSTRAINT `fk_quarter_time_type1` FOREIGN KEY (`time_type_id`) REFERENCES `time_type` (`time_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_quarter_year1` FOREIGN KEY (`year_id`) REFERENCES `year` (`year_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `quarter`
+--
+
+LOCK TABLES `quarter` WRITE;
+/*!40000 ALTER TABLE `quarter` DISABLE KEYS */;
+INSERT INTO `quarter` VALUES (-4,-4,'Hasn\'t Happened',NULL,NULL,NULL,NULL,-4),(-3,-3,'Corrupted',NULL,NULL,NULL,NULL,-3),(-2,-2,'Not Applicable',NULL,NULL,NULL,NULL,-2),(-1,-1,'Unknown',NULL,NULL,NULL,NULL,-1),(20171,0,'2017 Q1','2017-01-01',90,20164,20161,2017),(20172,0,'2017 Q1','2017-04-01',91,20171,20162,2017),(20173,0,'2017 Q1','2017-07-01',92,20172,20163,2017),(20174,0,'2017 Q1','2017-10-01',92,20173,20164,2017),(20181,0,'2018 Q1','2018-01-01',90,20174,20171,2018),(20182,0,'2018 Q1','2018-04-01',91,20181,20172,2018),(20183,0,'2018 Q1','2018-07-01',92,20182,20173,2018),(20184,0,'2018 Q1','2018-10-01',92,20183,20174,2018),(20191,0,'2019 Q1','2019-01-01',90,20184,20181,2019),(20192,0,'2019 Q1','2019-04-01',91,20191,20182,2019),(20193,0,'2019 Q1','2019-07-01',92,20192,20183,2019),(20194,0,'2019 Q1','2019-10-01',92,20193,20184,2019),(20201,0,'2020 Q1','2020-01-01',91,20194,20191,2020),(20202,0,'2020 Q1','2020-04-01',91,20201,20192,2020),(20203,0,'2020 Q1','2020-07-01',92,20202,20193,2020),(20204,0,'2020 Q1','2020-10-01',92,20203,20194,2020),(20211,0,'2021 Q1','2021-01-01',90,20204,20201,2021),(20212,0,'2021 Q1','2021-04-01',91,20211,20202,2021),(20213,0,'2021 Q1','2021-07-01',92,20212,20203,2021),(20214,0,'2021 Q1','2021-10-01',92,20213,20204,2021);
+/*!40000 ALTER TABLE `quarter` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `time_type`
+--
+
+DROP TABLE IF EXISTS `time_type`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `time_type` (
+  `time_type_id` tinyint(4) NOT NULL,
+  `time_type_desc` varchar(50) NOT NULL,
+  PRIMARY KEY (`time_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Time types(Normal, Not Applicable, Corrupt)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `time_type`
+--
+
+LOCK TABLES `time_type` WRITE;
+/*!40000 ALTER TABLE `time_type` DISABLE KEYS */;
+INSERT INTO `time_type` VALUES (-4,'Hasn\'t Happened'),(-3,'Corrupted'),(-2,'Not Applicable'),(-1,'Unknown'),(0,'Normal');
+/*!40000 ALTER TABLE `time_type` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `token`
+--
+
+DROP TABLE IF EXISTS `token`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `token` (
+  `token_id` int(11) NOT NULL AUTO_INCREMENT,
+  `token_name` varchar(50) NOT NULL,
+  `account_id` int(11) NOT NULL,
+  PRIMARY KEY (`token_id`),
+  KEY `fk_token_account_idx` (`account_id`),
+  CONSTRAINT `fk_token_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `token`
+--
+
+LOCK TABLES `token` WRITE;
+/*!40000 ALTER TABLE `token` DISABLE KEYS */;
+INSERT INTO `token` VALUES (-1,'Unknown',-1),(1,'EOS',1);
+/*!40000 ALTER TABLE `token` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `year`
+--
+
+DROP TABLE IF EXISTS `year`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `year` (
+  `year_id` smallint(6) NOT NULL,
+  `time_type_id` tinyint(4) NOT NULL,
+  `year_date` date DEFAULT NULL,
+  `year_duration` smallint(5) unsigned DEFAULT NULL,
+  `prev_year_id` smallint(6) DEFAULT NULL,
+  PRIMARY KEY (`year_id`),
+  KEY `fk_year_time_type1` (`time_type_id`),
+  CONSTRAINT `fk_year_time_type1` FOREIGN KEY (`time_type_id`) REFERENCES `time_type` (`time_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `year`
+--
+
+LOCK TABLES `year` WRITE;
+/*!40000 ALTER TABLE `year` DISABLE KEYS */;
+INSERT INTO `year` VALUES (-4,-4,NULL,NULL,NULL),(-3,-3,NULL,NULL,NULL),(-2,-2,NULL,NULL,NULL),(-1,-1,NULL,NULL,NULL),(2017,0,'2017-01-01',365,2016),(2018,0,'2018-01-01',365,2017),(2019,0,'2019-01-01',365,2018),(2020,0,'2020-01-01',366,2019),(2021,0,'2021-01-01',365,2020);
+/*!40000 ALTER TABLE `year` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ytm_month`
+--
+
+DROP TABLE IF EXISTS `ytm_month`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ytm_month` (
+  `month_id` mediumint(9) NOT NULL,
+  `ytm_month_id` mediumint(9) NOT NULL,
+  PRIMARY KEY (`month_id`,`ytm_month_id`),
+  KEY `fk_ytm_month_month2` (`ytm_month_id`),
+  CONSTRAINT `fk_ytm_month_month1` FOREIGN KEY (`month_id`) REFERENCES `month` (`month_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_ytm_month_month2` FOREIGN KEY (`ytm_month_id`) REFERENCES `month` (`month_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Year To Month';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ytm_month`
+--
+
+LOCK TABLES `ytm_month` WRITE;
+/*!40000 ALTER TABLE `ytm_month` DISABLE KEYS */;
+INSERT INTO `ytm_month` VALUES (201701,201701),(201702,201701),(201703,201701),(201704,201701),(201705,201701),(201706,201701),(201707,201701),(201708,201701),(201709,201701),(201710,201701),(201711,201701),(201712,201701),(201702,201702),(201703,201702),(201704,201702),(201705,201702),(201706,201702),(201707,201702),(201708,201702),(201709,201702),(201710,201702),(201711,201702),(201712,201702),(201703,201703),(201704,201703),(201705,201703),(201706,201703),(201707,201703),(201708,201703),(201709,201703),(201710,201703),(201711,201703),(201712,201703),(201704,201704),(201705,201704),(201706,201704),(201707,201704),(201708,201704),(201709,201704),(201710,201704),(201711,201704),(201712,201704),(201705,201705),(201706,201705),(201707,201705),(201708,201705),(201709,201705),(201710,201705),(201711,201705),(201712,201705),(201706,201706),(201707,201706),(201708,201706),(201709,201706),(201710,201706),(201711,201706),(201712,201706),(201707,201707),(201708,201707),(201709,201707),(201710,201707),(201711,201707),(201712,201707),(201708,201708),(201709,201708),(201710,201708),(201711,201708),(201712,201708),(201709,201709),(201710,201709),(201711,201709),(201712,201709),(201710,201710),(201711,201710),(201712,201710),(201711,201711),(201712,201711),(201712,201712),(201801,201801),(201802,201801),(201803,201801),(201804,201801),(201805,201801),(201806,201801),(201807,201801),(201808,201801),(201809,201801),(201810,201801),(201811,201801),(201812,201801),(201802,201802),(201803,201802),(201804,201802),(201805,201802),(201806,201802),(201807,201802),(201808,201802),(201809,201802),(201810,201802),(201811,201802),(201812,201802),(201803,201803),(201804,201803),(201805,201803),(201806,201803),(201807,201803),(201808,201803),(201809,201803),(201810,201803),(201811,201803),(201812,201803),(201804,201804),(201805,201804),(201806,201804),(201807,201804),(201808,201804),(201809,201804),(201810,201804),(201811,201804),(201812,201804),(201805,201805),(201806,201805),(201807,201805),(201808,201805),(201809,201805),(201810,201805),(201811,201805),(201812,201805),(201806,201806),(201807,201806),(201808,201806),(201809,201806),(201810,201806),(201811,201806),(201812,201806),(201807,201807),(201808,201807),(201809,201807),(201810,201807),(201811,201807),(201812,201807),(201808,201808),(201809,201808),(201810,201808),(201811,201808),(201812,201808),(201809,201809),(201810,201809),(201811,201809),(201812,201809),(201810,201810),(201811,201810),(201812,201810),(201811,201811),(201812,201811),(201812,201812),(201901,201901),(201902,201901),(201903,201901),(201904,201901),(201905,201901),(201906,201901),(201907,201901),(201908,201901),(201909,201901),(201910,201901),(201911,201901),(201912,201901),(201902,201902),(201903,201902),(201904,201902),(201905,201902),(201906,201902),(201907,201902),(201908,201902),(201909,201902),(201910,201902),(201911,201902),(201912,201902),(201903,201903),(201904,201903),(201905,201903),(201906,201903),(201907,201903),(201908,201903),(201909,201903),(201910,201903),(201911,201903),(201912,201903),(201904,201904),(201905,201904),(201906,201904),(201907,201904),(201908,201904),(201909,201904),(201910,201904),(201911,201904),(201912,201904),(201905,201905),(201906,201905),(201907,201905),(201908,201905),(201909,201905),(201910,201905),(201911,201905),(201912,201905),(201906,201906),(201907,201906),(201908,201906),(201909,201906),(201910,201906),(201911,201906),(201912,201906),(201907,201907),(201908,201907),(201909,201907),(201910,201907),(201911,201907),(201912,201907),(201908,201908),(201909,201908),(201910,201908),(201911,201908),(201912,201908),(201909,201909),(201910,201909),(201911,201909),(201912,201909),(201910,201910),(201911,201910),(201912,201910),(201911,201911),(201912,201911),(201912,201912),(202001,202001),(202002,202001),(202003,202001),(202004,202001),(202005,202001),(202006,202001),(202007,202001),(202008,202001),(202009,202001),(202010,202001),(202011,202001),(202012,202001),(202002,202002),(202003,202002),(202004,202002),(202005,202002),(202006,202002),(202007,202002),(202008,202002),(202009,202002),(202010,202002),(202011,202002),(202012,202002),(202003,202003),(202004,202003),(202005,202003),(202006,202003),(202007,202003),(202008,202003),(202009,202003),(202010,202003),(202011,202003),(202012,202003),(202004,202004),(202005,202004),(202006,202004),(202007,202004),(202008,202004),(202009,202004),(202010,202004),(202011,202004),(202012,202004),(202005,202005),(202006,202005),(202007,202005),(202008,202005),(202009,202005),(202010,202005),(202011,202005),(202012,202005),(202006,202006),(202007,202006),(202008,202006),(202009,202006),(202010,202006),(202011,202006),(202012,202006),(202007,202007),(202008,202007),(202009,202007),(202010,202007),(202011,202007),(202012,202007),(202008,202008),(202009,202008),(202010,202008),(202011,202008),(202012,202008),(202009,202009),(202010,202009),(202011,202009),(202012,202009),(202010,202010),(202011,202010),(202012,202010),(202011,202011),(202012,202011),(202012,202012),(202101,202101),(202102,202101),(202103,202101),(202104,202101),(202105,202101),(202106,202101),(202107,202101),(202108,202101),(202109,202101),(202110,202101),(202111,202101),(202112,202101),(202102,202102),(202103,202102),(202104,202102),(202105,202102),(202106,202102),(202107,202102),(202108,202102),(202109,202102),(202110,202102),(202111,202102),(202112,202102),(202103,202103),(202104,202103),(202105,202103),(202106,202103),(202107,202103),(202108,202103),(202109,202103),(202110,202103),(202111,202103),(202112,202103),(202104,202104),(202105,202104),(202106,202104),(202107,202104),(202108,202104),(202109,202104),(202110,202104),(202111,202104),(202112,202104),(202105,202105),(202106,202105),(202107,202105),(202108,202105),(202109,202105),(202110,202105),(202111,202105),(202112,202105),(202106,202106),(202107,202106),(202108,202106),(202109,202106),(202110,202106),(202111,202106),(202112,202106),(202107,202107),(202108,202107),(202109,202107),(202110,202107),(202111,202107),(202112,202107),(202108,202108),(202109,202108),(202110,202108),(202111,202108),(202112,202108),(202109,202109),(202110,202109),(202111,202109),(202112,202109),(202110,202110),(202111,202110),(202112,202110),(202111,202111),(202112,202111),(202112,202112);
+/*!40000 ALTER TABLE `ytm_month` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-12-31 16:26:14
