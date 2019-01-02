@@ -3,8 +3,8 @@ const BaseDao = require('./BaseDao');
 
 
 class DappTableDAO extends BaseDao {
-    constructor(snowflake) {
-        super(snowflake);
+    constructor(dbCon) {
+        super(dbCon);
     }
 
     async selectDappTableId(dappTableName, codeAccountId, scopeAccountId) {
@@ -12,27 +12,28 @@ class DappTableDAO extends BaseDao {
     }
 
     async _selectId({ dappTableName, codeAccountId, scopeAccountId }) {
-        const rows = await this.snowflake.execute(
+        const [rows] = await this.dbCon.execute(
             `SELECT dapp_table_id 
             FROM dapp_table
-            WHERE dapp_table_name = :1 AND
-                  code_account_id = :2 AND
-                  scope_account_id = :3`,
+            WHERE dapp_table_name = ? AND
+                  code_account_id = ? AND
+                  scope_account_id = ?`,
             [dappTableName, codeAccountId, scopeAccountId]
         );
         return rows.length ? rows[0].DAPP_TABLE_ID : null;
     }
 
     async _insert({ dappTableName, codeAccountId, scopeAccountId }) {
-        await this.snowflake.execute(
+        const [result] = await this.dbCon.execute(
             `INSERT INTO dapp_table (dapp_table_name, code_account_id, scope_account_id)
              VALUES (?, ?, ?)`,
             [dappTableName, codeAccountId, scopeAccountId]
         );
+        return result;
     }
 
     async insert(dappTableName, codeAccountId, scopeAccountId) {
-        await this._insert({ dappTableName, codeAccountId, scopeAccountId });
+        return await this._insert({ dappTableName, codeAccountId, scopeAccountId });
     }
 
     async getDappTableId(dappTableName, codeAccountId, scopeAccountId) {
@@ -40,7 +41,7 @@ class DappTableDAO extends BaseDao {
     }
 
     async select(dappTableId) {
-        return await this.snowflake.execute(
+        const [rows] = await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -50,13 +51,14 @@ class DappTableDAO extends BaseDao {
             FROM dapp_table dt INNER JOIN
                 account ca ON dt.code_account_id = ca.account_id INNER JOIN
                 account sa ON dt.scope_account_id = sa.account_id
-            WHERE dt.dapp_table_id = :1`,
+            WHERE dt.dapp_table_id = ?`,
             [dappTableId]
         );
+        return rows;
     }
 
     async selectByDappId(dappId) {
-        return await this.snowflake.execute(
+        const [rows] = await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -66,13 +68,14 @@ class DappTableDAO extends BaseDao {
             FROM dapp_table dt INNER JOIN
                 account ca ON dt.code_account_id = ca.account_id INNER JOIN
                 account sa ON dt.scope_account_id = sa.account_id
-            WHERE ca.dapp_id = :1`,
+            WHERE ca.dapp_id = ?`,
             [dappId]
         );
+        return rows;
     }
 
     async selectByDappTypeId(dappTypeId) {
-        return await this.snowflake.execute(
+        const [rows] = await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -83,9 +86,10 @@ class DappTableDAO extends BaseDao {
                  account ca ON dt.code_account_id = ca.account_id INNER JOIN
                  account sa ON dt.scope_account_id = sa.account_id INNER JOIN
                  dapp d ON ca.dapp_id = d.dapp_id
-            WHERE d.dapp_type_id = :1`,
+            WHERE d.dapp_type_id = ?`,
             [dappTypeId]
         );
+        return rows;
     }
 
 }

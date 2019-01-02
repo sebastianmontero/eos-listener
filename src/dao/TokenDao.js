@@ -2,8 +2,8 @@ const BaseDao = require('./BaseDao');
 
 
 class TokenDAO extends BaseDao {
-    constructor(snowflake) {
-        super(snowflake);
+    constructor(dbCon) {
+        super(dbCon);
     }
 
     async selectTokenId(tokenName) {
@@ -11,26 +11,37 @@ class TokenDAO extends BaseDao {
     }
 
     async _selectId({ tokenName }) {
-        const rows = await this.snowflake.execute('SELECT token_id FROM token WHERE token_name = :1', [tokenName.toUpperCase()]);
+        const [rows] = await this.dbCon.execute('SELECT token_id FROM token WHERE token_name = ?', [tokenName.toUpperCase()]);
         return rows.length ? rows[0].TOKEN_ID : null;
     }
 
     async _insert({ tokenName, accountId }) {
-        await this.snowflake.execute(
+        const [result] = await this.dbCon.execute(
             `INSERT INTO token (token_name, account_id)
              VALUES (?, ?)`,
             [tokenName.toUpperCase(), accountId]);
+        return result;
     }
 
 
     async selectById(tokenId) {
-        const rows = await this.snowflake.execute('SELECT token_id, token_name, account_id FROM token WHERE token_id = :1', [tokenId]);
+        const [rows] = await this.dbCon.execute(
+            `SELECT token_id, 
+                    token_name, 
+                    account_id 
+            FROM token 
+            WHERE token_id = ?`,
+            [tokenId]);
         return rows.length ? rows[0] : null;
     }
 
 
     async update(tokenId, accountId) {
-        await this.snowflake.execute('UPDATE token SET account_id = :1 WHERE token_id = :2', [accountId, tokenId]);
+        await this.dbCon.execute(
+            `UPDATE token 
+             SET account_id = ? 
+             WHERE token_id = ?`,
+            [accountId, tokenId]);
     }
 
     async _update({ id, accountId }) {
@@ -43,7 +54,7 @@ class TokenDAO extends BaseDao {
     }
 
     async insert(tokenName, accountId) {
-        await this._insert({ tokenName, accountId });
+        return await this._insert({ tokenName, accountId });
     }
 
     async getTokenId(tokenName, accountId) {
