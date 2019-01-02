@@ -44,11 +44,12 @@ class TokenDAO extends BaseDao {
             [accountId, tokenId]);
     }
 
-    async _update({ id, accountId }) {
+    async _update(oldValues, newValues) {
+        const { accountId } = newValues;
         if (accountId >= 0) {
-            const token = await this.selectById(id);
-            if (token.ACCOUNT_ID < 0) {
-                await this.update(id, accountId);
+            const { token_id, account_id } = oldValues;
+            if (account_id < 0) {
+                await this.update(token_id, accountId);
             }
         }
     }

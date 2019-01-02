@@ -1,3 +1,4 @@
+const { logger } = require('../Logger');
 
 class BaseDAO {
     constructor(dbCon, idColumn) {
@@ -18,16 +19,14 @@ class BaseDAO {
     async _getId(objValues) {
         try {
             let result = await this._insert(objValues);
-            console.log(result);
             return result.insertId;
         } catch (error) {
             if (error.code === 'ER_DUP_ENTRY') {
-                console.log('duplicate entry');
                 let obj = await this._selectByNaturalPK(objValues);
                 await this._update(obj, objValues);
                 return obj[this.idColumn];
             } else {
-                console.log(error);
+                logger.error('Error inserting row: ', error);
                 throw error;
             }
         }

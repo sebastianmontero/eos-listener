@@ -64,16 +64,16 @@ class AccountDAO extends BaseDao {
         return rows;
     }
 
-    async _insert({ accountName, accountTypeId, dapp_id }) {
+    async _insert({ accountName, accountTypeId, dappId }) {
         const [result] = await this.dbCon.execute(
             `INSERT INTO account (account_name, account_type_id, dapp_id)
              VALUES (?, ?, ?)`,
-            [accountName.toLowerCase(), accountTypeId, dapp_id]);
+            [accountName.toLowerCase(), accountTypeId, dappId]);
         return result;
     }
 
-    async insert(accountName, accountTypeId, dapp_id) {
-        return await this._insert({ accountName, accountTypeId, dapp_id });
+    async insert(accountName, accountTypeId, dappId) {
+        return await this._insert({ accountName, accountTypeId, dappId });
     }
 
     async update(accountId, accountTypeId, dappId) {
@@ -94,17 +94,18 @@ class AccountDAO extends BaseDao {
         );
     }
 
-    async _update({ id, accountTypeId, dappId }) {
+    async _update(oldValues, newValues) {
+        const { accountTypeId, dappId } = newValues;
         if (dappId >= 0) {
-            const account = await this.selectById(id);
-            if (account.DAPP_ID < 0) {
-                await this.update(id, accountTypeId, dappId);
+            const { account_id, dapp_id } = oldValues;
+            if (dapp_id < 0) {
+                await this.update(account_id, accountTypeId, dappId);
             }
         }
     }
 
-    async getAccountId(accountName, accountTypeId, dapp_id) {
-        return await this._getId({ accountName, accountTypeId, dapp_id });
+    async getAccountId(accountName, accountTypeId, dappId) {
+        return await this._getId({ accountName, accountTypeId, dappId });
     }
 
 }
