@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const Snowflake = require('snowflake-promise').Snowflake;
+const mysql = require('mysql2/promise');
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
 const { Util, TimeUtil } = require('./util');
@@ -17,7 +17,6 @@ class ExchangeDataLoader {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            db,
             keyDictionary
         } = config;
 
@@ -27,13 +26,6 @@ class ExchangeDataLoader {
             eoswsEndpoint,
         });
 
-        this.snowflake = new Snowflake(db);
-        this.accountDao = new AccountDao(this.snowflake);
-        this.actionDao = new ActionDao(this.snowflake);
-        this.tokenDao = new TokenDao(this.snowflake);
-        this.channelDao = new ChannelDao(this.snowflake);
-        this.dappDao = new DappDao(this.snowflake);
-        this.exchangeTradeDao = new ExchangeTradeDao(this.snowflake);
         this.interpreter = new Interpreter(keyDictionary);
 
     }
@@ -161,7 +153,7 @@ class ExchangeDataLoader {
         let actionTraces = [];
         for (let tokenAccount of tokenAccounts) {
             actionTraces.push({
-                account: tokenAccount.ACCOUNT_NAME,
+                account: tokenAccount.account_name,
                 action_name: 'transfer',
             });
         }
@@ -172,7 +164,7 @@ class ExchangeDataLoader {
         const exchangeAccounts = await this.accountDao.selectByDappType(DappTypeIds.EXCHANGE);
         let to = [];
         for (let exchangeAccount of exchangeAccounts) {
-            to.push(exchangeAccount.ACCOUNT_NAME);
+            to.push(exchangeAccount.account_name);
         }
         return {
             transfer: {
@@ -186,7 +178,13 @@ class ExchangeDataLoader {
         this.printFiglet();
 
         try {
-            await this.snowflake.connect();
+            const dbCon = await mysql.createConnection(this.config.db);
+            this.accountDao = new AccountDao(dbCon);
+            this.actionDao = new ActionDao(dbCon);
+            this.tokenDao = new TokenDao(dbCon);
+            this.channelDao = new ChannelDao(dbCon);
+            this.dappDao = new DappDao(dbCon);
+            this.exchangeTradeDao = new ExchangeTradeDao(dbCon);
             const actionTraces = await this._getActionTraces();
             logger.debug("Action Traces:", actionTraces);
             const actionFilters = await this._getActionFilters();

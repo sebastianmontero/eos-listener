@@ -1,8 +1,8 @@
 
 
 class ExchangeTradeDAO {
-    constructor(snowflake) {
-        this.snowflake = snowflake;
+    constructor(dbCon) {
+        this.dbCon = dbCon;
     }
 
     async insert({
@@ -23,7 +23,7 @@ class ExchangeTradeDAO {
         blockTime
     }) {
 
-        await this.snowflake.execute(`INSERT INTO exchange_trade(
+        const [result] = await this.dbCon.execute(`INSERT INTO exchange_trade(
             token_account_id,
             action_id,
             from_account_id,
@@ -58,6 +58,7 @@ class ExchangeTradeDAO {
                 blockTime
 
             ]);
+        return result;
     }
 
 }
