@@ -2,8 +2,8 @@ const BaseDao = require('./BaseDao');
 
 
 class AccountDAO extends BaseDao {
-    constructor(snowflake) {
-        super(snowflake);
+    constructor(dbCon) {
+        super(dbCon, 'account_id');
     }
 
     async selectAccountId(accountName) {
@@ -11,39 +11,40 @@ class AccountDAO extends BaseDao {
     }
 
     async _selectId({ accountName }) {
-        const rows = await this.snowflake.execute('SELECT account_id FROM account WHERE account_name = :1', [accountName.toLowerCase()]);
-        return rows.length ? rows[0].ACCOUNT_ID : null;
+        const [rows] = await this.dbCon.execute(
+            'SELECT account_id FROM account WHERE account_name = ?',
+            [accountName.toLowerCase()]);
+        return rows.length ? rows[0].account_id : null;
+    }
+
+    async _selectByNaturalPK({ accountName }) {
+        const [rows] = await this.dbCon.execute(
+            'SELECT * FROM account WHERE account_name = ?',
+            [accountName.toLowerCase()]);
+        return rows.length ? rows[0] : null;
     }
 
     async selectById(accountId) {
-        const rows = await this.snowflake.execute(
-            `SELECT account_id, 
-                    account_name, 
-                    account_type_id, 
-                    dapp_id 
+        const [rows] = await this.dbCon.execute(
+            `SELECT * 
             FROM account 
-            WHERE account_id = :1`,
+            WHERE account_id = ?`,
             [accountId]);
         return rows.length ? rows[0] : null;
     }
 
     async select() {
-        return await this.snowflake.execute(
-            `SELECT account_id, 
-                    account_name, 
-                    account_type_id, 
-                    dapp_id 
+        const [rows] = await this.dbCon.execute(
+            `SELECT * 
             FROM account
             WHERE account_id > 0`);
+        return rows;
     }
 
     selectStream() {
-        return this.snowflake.createStatement({
+        return this.dbCon.createStatement({
             sqlText:
-                `SELECT account_id, 
-                    account_name, 
-                    account_type_id, 
-                    dapp_id 
+                `SELECT * 
                 FROM account
                 WHERE account_id > 0`,
             streamResult: true
@@ -51,36 +52,45 @@ class AccountDAO extends BaseDao {
     }
 
     async selectByDappType(dappTypeId) {
-        const rows = await this.snowflake.execute(
+        const [rows] = await this.dbCon.execute(
             `SELECT a.account_id, 
                     a.account_name, 
                     a.account_type_id, 
                     a.dapp_id 
             FROM account a INNER JOIN
                  dapp d ON a.dapp_id = d.dapp_id
-            WHERE d.dapp_type_id = :1`,
+            WHERE d.dapp_type_id = ?`,
             [dappTypeId]);
         return rows;
     }
 
     async _insert({ accountName, accountTypeId, dapp_id }) {
-        await this.snowflake.execute(
+        const [result] = await this.dbCon.execute(
             `INSERT INTO account (account_name, account_type_id, dapp_id)
              VALUES (?, ?, ?)`,
             [accountName.toLowerCase(), accountTypeId, dapp_id]);
+        return result;
     }
 
     async insert(accountName, accountTypeId, dapp_id) {
-        await this._insert({ accountName, accountTypeId, dapp_id });
+        return await this._insert({ accountName, accountTypeId, dapp_id });
     }
 
     async update(accountId, accountTypeId, dappId) {
-        await this.snowflake.execute(
+        await this.dbCon.execute(
             `UPDATE account 
-             SET account_type_id = :1,
-                 dapp_id = :2 
-             WHERE account_id = :3`,
+             SET account_type_id = ?,
+                 dapp_id = ?
+             WHERE account_id = ?`,
             [accountTypeId, dappId, accountId]
+        );
+    }
+
+    async deleteByNaturalPK(accountName) {
+        await this.dbCon.execute(
+            `DELETE FROM account 
+             WHERE account_name = ?`,
+            [accountName.toLowerCase()]
         );
     }
 

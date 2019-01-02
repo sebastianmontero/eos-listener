@@ -2,8 +2,8 @@ const BaseDao = require('./BaseDao');
 
 
 class ActionDAO extends BaseDao {
-    constructor(snowflake) {
-        super(snowflake);
+    constructor(dbCon) {
+        super(dbCon);
     }
 
     async selectActionId(actionName, accountId) {
@@ -11,19 +11,20 @@ class ActionDAO extends BaseDao {
     }
 
     async _selectId({ actionName, accountId }) {
-        const rows = await this.snowflake.execute('SELECT action_id FROM action WHERE action_name = :1 and account_id = :2', [actionName, accountId]);
+        const [rows] = await this.dbCon.execute('SELECT action_id FROM action WHERE action_name = ? and account_id = ?', [actionName, accountId]);
         return rows.length ? rows[0].ACTION_ID : null;
     }
 
     async _insert({ actionName, accountId }) {
-        await this.snowflake.execute(
+        const [result] = await this.dbCon.execute(
             `INSERT INTO action (action_name, account_id)
              VALUES (?, ?)`,
             [actionName, accountId]);
+        return result;
     }
 
     async insert(actionName, accountId) {
-        await this._insert({ actionName, accountId });
+        return await this._insert({ actionName, accountId });
     }
 
     async getActionId(actionName, accountId) {

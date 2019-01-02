@@ -1,42 +1,36 @@
-const Lock = require('../lock/Lock');
-
 
 class BaseDAO {
-    constructor(snowflake) {
-        this.lock = new Lock();
-        this.snowflake = snowflake;
+    constructor(dbCon, idColumn) {
+        this.dbCon = dbCon;
+        this.idColumn = idColumn;
     }
 
-    async _selectId(objValues) {
+    async _selectByNaturalPK(objValues) {
         throw new Error('Method must be overriden by subclass');
     }
 
     async _insert(objValues) {
-        throw new Error('Method must be overriden by subclass');
+        throw new Error('Method must id be overriden by subclass');
     }
 
-    async _update(objValues) { }
+    async _update(oldValues, newValues) { }
 
     async _getId(objValues) {
-        let id = await this._selectId(objValues);
-        if (id === null) {
-            await this.lock.acquire();
-            try {
-                id = await this._selectId(objValues);
-                if (id === null) {
-                    await this._insert(objValues);
-                    id = await this._selectId(objValues);
-                }
-
-            } finally {
-                this.lock.release();
+        try {
+            let result = await this._insert(objValues);
+            console.log(result);
+            return result.insertId;
+        } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY') {
+                console.log('duplicate entry');
+                let obj = await this._selectByNaturalPK(objValues);
+                await this._update(obj, objValues);
+                return obj[this.idColumn];
+            } else {
+                console.log(error);
+                throw error;
             }
         }
-        await this._update({
-            id,
-            ...objValues
-        });
-        return id;
     }
 
 }

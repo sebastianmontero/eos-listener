@@ -28,6 +28,7 @@ CREATE TABLE `account` (
   `account_type_id` tinyint(4) NOT NULL,
   `dapp_id` int(11) NOT NULL,
   PRIMARY KEY (`account_id`),
+  UNIQUE KEY `unq_account_name` (`account_name`),
   KEY `fk_account_account_type_idx` (`account_type_id`),
   KEY `fk_account_dapp_idx` (`dapp_id`),
   CONSTRAINT `fk_account_account_type` FOREIGN KEY (`account_type_id`) REFERENCES `account_type` (`account_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
@@ -236,7 +237,8 @@ DROP TABLE IF EXISTS `channel`;
 CREATE TABLE `channel` (
   `channel_id` tinyint(4) NOT NULL,
   `channel_name` varchar(50) NOT NULL,
-  PRIMARY KEY (`channel_id`)
+  PRIMARY KEY (`channel_id`),
+  UNIQUE KEY `unq_channel_name` (`channel_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -262,6 +264,7 @@ CREATE TABLE `dapp` (
   `dapp_name` varchar(50) NOT NULL,
   `dapp_type_id` tinyint(4) NOT NULL,
   PRIMARY KEY (`dapp_id`),
+  UNIQUE KEY `unq_dapp_name` (`dapp_name`),
   KEY `fk_dapp_dapp_type_idx` (`dapp_type_id`),
   CONSTRAINT `fk_dapp_dapp_type` FOREIGN KEY (`dapp_type_id`) REFERENCES `dapp_type` (`dapp_type_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
@@ -648,6 +651,7 @@ CREATE TABLE `token` (
   `token_name` varchar(50) NOT NULL,
   `account_id` int(11) NOT NULL,
   PRIMARY KEY (`token_id`),
+  UNIQUE KEY `unq_token_name` (`token_name`),
   KEY `fk_token_account_idx` (`account_id`),
   CONSTRAINT `fk_token_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
@@ -728,4 +732,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-12-31 16:26:14
+-- Dump completed on 2019-01-01 17:34:08
