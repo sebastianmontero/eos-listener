@@ -1,5 +1,5 @@
 const BaseTableListener = require('./BaseTableListener');
-const { TimeUtil } = require('../util');
+const { TimeUtil, Util } = require('../util');
 const { AccountTypeIds, SpecialValues, DappIds, TokenIds } = require('../const');
 const { logger } = require('../Logger');
 
@@ -35,15 +35,17 @@ class EOSBetTableListener extends BaseTableListener {
 
         const placedDate = new Date(bet_time + 'Z');
         const placedDayId = TimeUtil.dayId(placedDate);
+        const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(bet_amt);
+        const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
         const toInsert = {
             dappTableId,
             gameBetId: id,
             userAccountId: await this.accountDao.getAccountId(bettor, AccountTypeIds.USER, NOT_APPLICABLE),
-            betAmount: bet_amt,
-            betTokenId: TokenIds.EOS,
+            betAmount: betAmount,
+            betTokenId: betTokenId,
             winAmount: null,
-            winTokenId: TokenIds.EOS,
+            winTokenId: betTokenId,
             betStatusId: UNKNOWN,
             placedDayId,
             placedHourOfDay: placedDate.getUTCHours(),

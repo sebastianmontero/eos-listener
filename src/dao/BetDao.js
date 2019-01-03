@@ -1,9 +1,9 @@
 const BaseBatchDao = require('./BaseBatchDao');
 
 class BetDAO extends BaseBatchDao {
-    constructor(snowflake) {
+    constructor(dbCon) {
         super('gameBetId', 20);
-        this.snowflake = snowflake;
+        this.dbCon = dbCon;
     }
 
     _toInsertArray({
@@ -43,7 +43,7 @@ class BetDAO extends BaseBatchDao {
 
     async _insert(values) {
 
-        await this.snowflake.execute(
+        await this.dbCon.query(
             `INSERT INTO bet (
                 dapp_table_id,
                 game_bet_id,
@@ -59,8 +59,8 @@ class BetDAO extends BaseBatchDao {
                 completed_day_id,
                 completed_hour_of_day,
                 completed_time
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            values
+            ) VALUES ?`,
+            [values]
         );
     }
 
@@ -87,19 +87,19 @@ class BetDAO extends BaseBatchDao {
         ];
 
         if (winTokenId !== undefined) {
-            winTokenIdStr = 'win_token_id = :8,';
-            params.push(winTokenId);
+            winTokenIdStr = 'win_token_id = ?,';
+            params.unshift(winTokenId);
         }
-        await this.snowflake.execute(
+        await this.dbCon.execute(
             `UPDATE bet 
-             SET win_amount = :1,
-                 ${winTokenIdStr}
-                 bet_status_id = :2,
-                 completed_day_id = :3,
-                 completed_hour_of_day = :4,
-                 completed_time = :5
-             WHERE dapp_table_id = :6 AND
-                   game_bet_id = :7`,
+             SET ${winTokenIdStr}
+                 win_amount = ?,
+                 bet_status_id = ?,
+                 completed_day_id = ?,
+                 completed_hour_of_day = ?,
+                 completed_time = ?
+             WHERE dapp_table_id = ? AND
+                   game_bet_id = ?`,
             params
         );
     }
@@ -108,11 +108,11 @@ class BetDAO extends BaseBatchDao {
         dappTableId,
         gameBetId,
     }) {
-        await this.snowflake.execute(
+        await this.dbCon.execute(
             `DELETE 
             FROM bet
-            WHERE dapp_table_id = :1 AND
-                  game_bet_id = :2`,
+            WHERE dapp_table_id = ? AND
+                  game_bet_id = ?`,
             [dappTableId, gameBetId]
         );
     }
@@ -122,14 +122,14 @@ class BetDAO extends BaseBatchDao {
         dappTableId,
         gameBetId,
     }) {
-        const row = await this.snowflake.execute(
+        const [row] = await this.dbCon.execute(
             `SELECT bet_id
             FROM bet
-            WHERE dapp_table_id = :1 AND
-                  game_bet_id = :2`,
+            WHERE dapp_table_id = ? AND
+                  game_bet_id = ?`,
             [dappTableId, gameBetId]
         );
-        return row.length ? row.BET_ID : null;
+        return row.length ? row[0].bet_id : null;
     }
 
     async exists({

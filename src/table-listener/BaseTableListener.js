@@ -27,10 +27,10 @@ class BaseTableListener {
         let listeners = [];
         for (let dappTable of dappTables) {
             listeners.push({
-                dappTableId: dappTable.DAPP_TABLE_ID,
-                code: dappTable.CODE_ACCOUNT_NAME,
-                scope: dappTable.SCOPE_ACCOUNT_NAME,
-                table: dappTable.DAPP_TABLE_NAME,
+                dappTableId: dappTable.dapp_table_id,
+                code: dappTable.code_account_name,
+                scope: dappTable.scope_account_name,
+                table: dappTable.dapp_table_name,
             });
         }
         return listeners;

@@ -1,7 +1,7 @@
 const figlet = require('figlet');
-const Snowflake = require('snowflake-promise').Snowflake;
+const mysql = require('mysql2/promise');
 const EOSListener = require('./EOSListener');
-const { AccountDao, ActionDao, TokenDao, DappTableDao, BetDao } = require('./dao');
+const { AccountDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
 const {
     FishjoyTableListener,
@@ -18,7 +18,6 @@ class BetDataLoader {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            db,
         } = config;
 
         this.listener = new EOSListener({
@@ -26,13 +25,6 @@ class BetDataLoader {
             origin,
             eoswsEndpoint,
         });
-
-        this.snowflake = new Snowflake(db);
-        this.accountDao = new AccountDao(this.snowflake);
-        this.actionDao = new ActionDao(this.snowflake);
-        this.tokenDao = new TokenDao(this.snowflake);
-        this.dappTableDao = new DappTableDao(this.snowflake);
-        this.betDao = new BetDao(this.snowflake);
 
     }
 
@@ -64,12 +56,12 @@ class BetDataLoader {
         this.printFiglet();
 
         try {
-            await this.snowflake.connect();
+            const dbCon = await mysql.createConnection(this.config.db);
             let config = {
-                accountDao: this.accountDao,
-                tokenDao: this.tokenDao,
-                dappTableDao: this.dappTableDao,
-                betDao: this.betDao
+                accountDao: new AccountDao(dbCon),
+                tokenDao: new TokenDao(dbCon),
+                dappTableDao: new DappTableDao(dbCon),
+                betDao: new BetDao(dbCon)
             };
             let fishJoyTableListener = new FishjoyTableListener(config);
             logger.debug('Adding Fishjoy Table Listener');

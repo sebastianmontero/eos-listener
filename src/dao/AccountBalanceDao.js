@@ -1,9 +1,9 @@
 const BaseBatchDao = require('./BaseBatchDao');
 
 class AccountBalanceDAO extends BaseBatchDao {
-    constructor(snowflake) {
+    constructor(dbCon) {
         super('accountId', 50);
-        this.snowflake = snowflake;
+        this.dbCon = dbCon;
     }
 
     async insert(obj) {
@@ -12,15 +12,15 @@ class AccountBalanceDAO extends BaseBatchDao {
 
     async _insert(values) {
 
-        await this.snowflake.execute(
+        await this.dbCon.execute(
             `INSERT INTO account_balance(
                 account_id,
                 day_id,
                 liquid,
                 staked,
                 refund
-            ) VALUES(?, ?, ?, ?, ?)`,
-            values);
+            ) VALUES ?`,
+            [values]);
     }
 
     _toInsertArray({
@@ -42,7 +42,7 @@ class AccountBalanceDAO extends BaseBatchDao {
 
 
     async deleteByDayId(dayId) {
-        await this.snowflake.execute(
+        await this.dbCon.execute(
             `DELETE FROM account_balance
              WHERE day_id = ?`,
             [dayId]);
