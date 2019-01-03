@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const HttpStatus = require('http-status-codes');
-const Snowflake = require('snowflake-promise').Snowflake;
+const mysql = require('mysql2/promise');
 const { AccountDao } = require('./dao');
 const { AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
@@ -11,7 +11,7 @@ class AccountBalanceLoader {
 
     constructor(config) {
         this.config = config;
-        const { httpEndpoints, db } = config;
+        const { httpEndpoints } = config;
         this.endpoints = {
             available: httpEndpoints.map(endpoint => endpoint + '/v1/chain/get_account'),
             inuse: []
@@ -20,16 +20,15 @@ class AccountBalanceLoader {
         this.accountsFetched = 0;
         this.accountsStreamed = 0;
         this.lock = new Lock(httpEndpoints.length);
-        this.snowflake = new Snowflake(db);
-        this.accountDao = new AccountDao(this.snowflake);
-        this.accountBalanceDao = new AccountBalanceDao(this.snowflake);
     }
 
     async start() {
         const date = new Date();
         this.dayId = TimeUtil.dayId(date);
         logger.debug('Loading account balances.... For date: ', date);
-        await this.snowflake.connect();
+        const dbCon = await mysql.createConnection(this.config.db);
+        this.accountDao = new AccountDao(dbCon);
+        this.accountBalanceDao = new AccountBalanceDao(dbCon);
         logger.debug('Deleting existing account balances for date: ', date);
         this.accountBalanceDao.deleteByDayId(this.dayId);
         this.statement = this.accountDao.selectStream();

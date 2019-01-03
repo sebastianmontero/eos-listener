@@ -1,7 +1,7 @@
 const figlet = require('figlet');
-const Snowflake = require('snowflake-promise').Snowflake;
+const mysql = require('mysql2/promise');
 const EOSListener = require('./EOSListener');
-const { AccountDao, ActionDao, TokenDao, DappTableDao, BlockProducerDao } = require('./dao');
+const { AccountDao, TokenDao, DappTableDao, BlockProducerDao } = require('./dao');
 const { logger } = require('./Logger');
 const { BlockProducerTableListener } = require('./table-listener');
 
@@ -12,7 +12,6 @@ class BlockProducerLoader {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            db,
         } = config;
 
         this.listener = new EOSListener({
@@ -20,13 +19,6 @@ class BlockProducerLoader {
             origin,
             eoswsEndpoint,
         });
-
-        this.snowflake = new Snowflake(db);
-        this.accountDao = new AccountDao(this.snowflake);
-        this.actionDao = new ActionDao(this.snowflake);
-        this.tokenDao = new TokenDao(this.snowflake);
-        this.dappTableDao = new DappTableDao(this.snowflake);
-        this.blockProducerDao = new BlockProducerDao(this.snowflake);
 
     }
 
@@ -58,19 +50,20 @@ class BlockProducerLoader {
         this.printFiglet();
 
         try {
-            await this.snowflake.connect();
+            const dbCon = await mysql.createConnection(this.config.db);
+            const blockProducerDao = new BlockProducerDao(dbCon);
             let config = {
-                accountDao: this.accountDao,
-                tokenDao: this.tokenDao,
-                dappTableDao: this.dappTableDao,
-                blockProducerDao: this.blockProducerDao,
+                accountDao: new AccountDao(dbCon),
+                tokenDao: new TokenDao(dbCon),
+                dappTableDao: new DappTableDao(dbCon),
+                blockProducerDao,
             };
             /* const parameters = await this.blockProducerDao.showParameters();
             for (let parameter of parameters) {
                 const { key, value } = parameter;
                 console.log(`${key}:${value}`);
             } */
-            await this.blockProducerDao.truncate();
+            await blockProducerDao.truncate();
             let blockProducerTableListener = new BlockProducerTableListener(config);
             logger.debug('Adding Block Producer Table Listener');
             this.listener.addTableListeners(blockProducerTableListener);

@@ -28,7 +28,7 @@ class BlockProducerDAO extends BaseBatchDao {
 
     async _insert(values) {
 
-        await this.dbCon.execute(
+        await this.dbCon.query(
             `INSERT INTO block_producer(
                 account_id,
                 is_active,

@@ -24,6 +24,25 @@ class AccountDAO extends BaseDao {
         return rows.length ? rows[0] : null;
     }
 
+    async _selectByNaturalPKs(accountNames) {
+        const [rows] = await this.dbCon.execute(
+            `SELECT account_id, 
+                    account_name
+             FROM account 
+             WHERE account_name in ?`,
+            [accountNames]);
+        return rows;
+    }
+
+    async _mapAccountNamesToIds(accountNames) {
+        let nameToIds = {};
+        const accounts = await this._selectByNaturalPKs(accountNames);
+        for (let account of accounts) {
+            nameToIds[account.account_name] = account.account_id;
+        }
+        return nameToIds;
+    }
+
     async selectById(accountId) {
         const [rows] = await this.dbCon.execute(
             `SELECT * 
@@ -72,6 +91,13 @@ class AccountDAO extends BaseDao {
         return result;
     }
 
+    async _insertBatch(accounts) {
+        await this.dbCon.query(
+            `INSERT IGNORE INTO account (account_name, account_type_id, dapp_id)
+             VALUES ?`,
+            [accounts]);
+    }
+
     async insert(accountName, accountTypeId, dappId) {
         return await this._insert({ accountName, accountTypeId, dappId });
     }
@@ -106,6 +132,18 @@ class AccountDAO extends BaseDao {
 
     async getAccountId(accountName, accountTypeId, dappId) {
         return await this._getId({ accountName, accountTypeId, dappId });
+    }
+
+    async getAccountIds(accountNames, accountTypeId, dappId) {
+        const nameToIds = await this._mapAccountNamesToIds(accountNames);
+        let toInsert = [];
+        for (let accountName of accountNames) {
+            toInsert.push([accountName, accountTypeId, dappId]);
+        }
+        await this._insertBatch(toInsert);
+        const missingNames = toInsert.map(account => account[0]);
+        const missingNameToIds = await this._mapAccountNamesToIds(missingNames);
+        return { ...nameToIds, ...missingNameToIds };
     }
 
 }

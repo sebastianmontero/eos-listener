@@ -76,6 +76,7 @@ class BlockProducerTableListener extends BaseTableListener {
     }
 
     async update(payload) {
+        console.log('Update');
         await this._update(payload.newRow);
     }
 
