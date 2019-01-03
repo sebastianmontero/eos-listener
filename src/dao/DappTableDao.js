@@ -4,7 +4,7 @@ const BaseDao = require('./BaseDao');
 
 class DappTableDAO extends BaseDao {
     constructor(dbCon) {
-        super(dbCon);
+        super(dbCon, 'dapp_table_id');
     }
 
     async selectDappTableId(dappTableName, codeAccountId, scopeAccountId) {
@@ -20,7 +20,19 @@ class DappTableDAO extends BaseDao {
                   scope_account_id = ?`,
             [dappTableName, codeAccountId, scopeAccountId]
         );
-        return rows.length ? rows[0].DAPP_TABLE_ID : null;
+        return rows.length ? rows[0].dapp_table_id : null;
+    }
+
+    async _selectByNaturalPK({ dappTableName, codeAccountId, scopeAccountId }) {
+        const [rows] = await this.dbCon.execute(
+            `SELECT * 
+            FROM dapp_table
+            WHERE dapp_table_name = ? AND
+                  code_account_id = ? AND
+                  scope_account_id = ?`,
+            [dappTableName, codeAccountId, scopeAccountId]
+        );
+        return rows.length ? rows[0] : null;
     }
 
     async _insert({ dappTableName, codeAccountId, scopeAccountId }) {

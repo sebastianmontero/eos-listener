@@ -3,7 +3,7 @@ const BaseDao = require('./BaseDao');
 
 class ActionDAO extends BaseDao {
     constructor(dbCon) {
-        super(dbCon);
+        super(dbCon, 'action_id');
     }
 
     async selectActionId(actionName, accountId) {
@@ -11,8 +11,17 @@ class ActionDAO extends BaseDao {
     }
 
     async _selectId({ actionName, accountId }) {
-        const [rows] = await this.dbCon.execute('SELECT action_id FROM action WHERE action_name = ? and account_id = ?', [actionName, accountId]);
-        return rows.length ? rows[0].ACTION_ID : null;
+        const [rows] = await this.dbCon.execute(
+            'SELECT action_id FROM action WHERE action_name = ? and account_id = ?',
+            [actionName, accountId]);
+        return rows.length ? rows[0].action_id : null;
+    }
+
+    async _selectByNaturalPK({ actionName, accountId }) {
+        const [rows] = await this.dbCon.execute(
+            'SELECT * FROM action WHERE action_name = ? and account_id = ?',
+            [actionName, accountId]);
+        return rows.length ? rows[0] : null;
     }
 
     async _insert({ actionName, accountId }) {

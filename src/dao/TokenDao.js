@@ -3,7 +3,7 @@ const BaseDao = require('./BaseDao');
 
 class TokenDAO extends BaseDao {
     constructor(dbCon) {
-        super(dbCon);
+        super(dbCon, 'token_id');
     }
 
     async selectTokenId(tokenName) {
@@ -11,8 +11,19 @@ class TokenDAO extends BaseDao {
     }
 
     async _selectId({ tokenName }) {
-        const [rows] = await this.dbCon.execute('SELECT token_id FROM token WHERE token_name = ?', [tokenName.toUpperCase()]);
-        return rows.length ? rows[0].TOKEN_ID : null;
+        const [rows] = await this.dbCon.execute(
+            'SELECT token_id FROM token WHERE token_name = ?',
+            [tokenName.toUpperCase()]);
+        return rows.length ? rows[0].token_id : null;
+    }
+
+    async _selectByNaturalPK({ tokenName }) {
+        const [rows] = await this.dbCon.execute(
+            `SELECT *
+            FROM token 
+            WHERE token_name = ?`,
+            [tokenName.toUpperCase()]);
+        return rows.length ? rows[0] : null;
     }
 
     async _insert({ tokenName, accountId }) {

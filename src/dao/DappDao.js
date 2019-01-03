@@ -4,7 +4,7 @@ const BaseDao = require('./BaseDao');
 
 class DappDAO extends BaseDao {
     constructor(dbCon) {
-        super(dbCon);
+        super(dbCon, 'dapp_id');
     }
 
     async selectDappId(dappName) {
@@ -16,7 +16,15 @@ class DappDAO extends BaseDao {
             'SELECT dapp_id FROM dapp WHERE dapp_name = ?',
             [dappName]
         );
-        return rows.length ? rows[0].DAPP_ID : null;
+        return rows.length ? rows[0].dapp_id : null;
+    }
+
+    async _selectByNaturalPK({ dappName }) {
+        const [rows] = await this.dbCon.execute(
+            'SELECT * FROM dapp WHERE dapp_name = ?',
+            [dappName]
+        );
+        return rows.length ? rows[0] : null;
     }
 
     async _insert({ dappName, dappTypeId }) {

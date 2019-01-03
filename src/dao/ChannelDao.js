@@ -3,7 +3,7 @@ const BaseDao = require('./BaseDao');
 
 class ChannelDAO extends BaseDao {
     constructor(dbCon) {
-        super(dbCon);
+        super(dbCon, 'channel_id');
     }
 
     async selectChannelId(channelName) {
@@ -11,9 +11,19 @@ class ChannelDAO extends BaseDao {
     }
 
     async _selectId({ channelName }) {
-        const [rows] = await this.dbCon.execute('SELECT channel_id FROM channel WHERE channel_name = ?', [channelName.toUpperCase()]);
-        return rows.length ? rows[0].CHANNEL_ID : null;
+        const [rows] = await this.dbCon.execute(
+            'SELECT channel_id FROM channel WHERE channel_name = ?',
+            [channelName.toUpperCase()]);
+        return rows.length ? rows[0].channel_id : null;
     }
+
+    async _selectByNaturalPK({ channelName }) {
+        const [rows] = await this.dbCon.execute(
+            'SELECT * FROM channel WHERE channel_name = ?',
+            [channelName.toUpperCase()]);
+        return rows.length ? rows[0] : null;
+    }
+
 
     async _insert({ channelName }) {
         const [result] = await this.dbCon.execute(
