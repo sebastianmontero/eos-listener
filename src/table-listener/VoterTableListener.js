@@ -27,6 +27,7 @@ class VoterTableListener extends BaseTableListener {
             'producers',
             'staked',
         ];
+        this.batchSize = 50000;
     }
 
     _extractFields(row) {
@@ -54,42 +55,45 @@ class VoterTableListener extends BaseTableListener {
     async snapshot(payload) {
         const { rows } = payload;
         console.log('Started processing snapshot', new Date());
-        let inserted = [];
-        let accountNames = [];
-        for (let row of rows) {
-            const toInsert = this._extractFields(row);
-            inserted.push(toInsert);
-            accountNames.push(toInsert.accountName);
-        }
-        console.log('Extract fields finished', new Date());
-        const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
         const bpToIds = await this.blockProducerDao.mapAccountIdToName();
-        console.log('Obtained Id maps', new Date());
-        let voters = [];
-        let votersProducers = [];
-        for (let voter of inserted) {
-            const voterId = usersToIds[voter.accountName];
-            voters.push([
-                voterId,
-                voter.isProxy
-            ]);
-            for (let bp of voter.producers) {
-                const bpId = bpToIds[bp];
-                if (!bpId) {
-                    //console.log("Not found: ", bp);
-                }
-                votersProducers.push([
-                    voterId,
-                    bpId,
-                    voter.votes,
-                ]);
+        console.log('Obtained Block Producer Id Map', new Date());
+        let numBatches = Math.ceil(rows.length / this.batchSize);
+        for (let i = 0; i < numBatches; i++) {
+            let start = i * this.batchSize;
+            let end = Math.min(rows.length, start + this.batchSize);
+            let inserted = [];
+            let accountNames = [];
+            for (let j = start; j < end; j++) {
+                const toInsert = this._extractFields(rows[j]);
+                inserted.push(toInsert);
+                accountNames.push(toInsert.accountName);
             }
+            const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
+            console.log('Obtained Id maps', new Date());
+            let voters = [];
+            let votersProducers = [];
+            for (let voter of inserted) {
+                const voterId = usersToIds[voter.accountName];
+                voters.push([
+                    voterId,
+                    voter.isProxy
+                ]);
+                for (let bp of voter.producers) {
+                    const bpId = bpToIds[bp];
+                    votersProducers.push([
+                        voterId,
+                        bpId,
+                        voter.votes,
+                    ]);
+                }
+            }
+            await this.voterDao.insert(voters);
+            console.log(`Loaded Voters from: ${start} to ${end}`, new Date());
+            await this.voterBlockProducerDao.insert(votersProducers);
+            console.log('Loaded VoterBlockProducer Table', new Date());
         }
-        await this.voterDao.insert(voters);
-        console.log('Loaded Voter Table', new Date());
-        await this.voterBlockProducerDao.insert(votersProducers);
-        console.log('Loaded VoterBlockProducer Table', new Date());
         console.log('Finished processing snapshot', new Date());
+
     }
 
     async insert(payload) {
