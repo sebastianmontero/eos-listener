@@ -212,6 +212,7 @@ CREATE TABLE `block_producer` (
   `account_id` int(11) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   `url` varchar(1000) DEFAULT NULL,
+  `total_votes` decimal(38,17) NOT NULL,
   `location` smallint(6) NOT NULL,
   PRIMARY KEY (`account_id`),
   CONSTRAINT `fk_block_producer_account_1` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -235,7 +236,7 @@ DROP TABLE IF EXISTS `channel`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `channel` (
-  `channel_id` tinyint(4) NOT NULL,
+  `channel_id` tinyint(4) NOT NULL AUTO_INCREMENT,
   `channel_name` varchar(50) NOT NULL,
   PRIMARY KEY (`channel_id`),
   UNIQUE KEY `unq_channel_name` (`channel_name`)
@@ -276,7 +277,7 @@ CREATE TABLE `dapp` (
 
 LOCK TABLES `dapp` WRITE;
 /*!40000 ALTER TABLE `dapp` DISABLE KEYS */;
-INSERT INTO `dapp` VALUES (-1,'Unknown',-1),(1,'EOS Token',1),(2,'EOS Black Token',1),(3,'Parsl SEED Token',1),(4,'MEETONE Token',1),(5,'Everopedia IQ Token',1),(6,'OCT Token',1),(7,'EOSDAC Token',1),(8,'TRYBE Token',1),(9,'KARMA Token',1),(10,'BNT Token',1),(11,'ADD Token',1),(12,'EDNA Token',1),(13,'Newdex',2),(14,'DEXEOS',2),(15,'WhaleEX',2),(16,'Findex',2),(17,'BTEX',2),(18,'Namedex',2),(19,'OneDex',2),(20,'dex.io',2),(21,'DeltaDex',2),(22,'EOSDAQ',2),(23,'FarmEOS',3),(24,'Fishjoy',3),(25,'EOSBet',3),(26,'Fastwin',3),(27,'Endless Dice',3),(28,'EOSIO',6);
+INSERT INTO `dapp` VALUES (-2,'Not Applicable',-2),(-1,'Unknown',-1),(1,'EOS Token',1),(2,'EOS Black Token',1),(3,'Parsl SEED Token',1),(4,'MEETONE Token',1),(5,'Everopedia IQ Token',1),(6,'OCT Token',1),(7,'EOSDAC Token',1),(8,'TRYBE Token',1),(9,'KARMA Token',1),(10,'BNT Token',1),(11,'ADD Token',1),(12,'EDNA Token',1),(13,'Newdex',2),(14,'DEXEOS',2),(15,'WhaleEX',2),(16,'Findex',2),(17,'BTEX',2),(18,'Namedex',2),(19,'OneDex',2),(20,'dex.io',2),(21,'DeltaDex',2),(22,'EOSDAQ',2),(23,'FarmEOS',3),(24,'Fishjoy',3),(25,'EOSBet',3),(26,'Fastwin',3),(27,'Endless Dice',3),(28,'EOSIO',6);
 /*!40000 ALTER TABLE `dapp` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -429,43 +430,6 @@ CREATE TABLE `exchange_trade` (
 LOCK TABLES `exchange_trade` WRITE;
 /*!40000 ALTER TABLE `exchange_trade` DISABLE KEYS */;
 /*!40000 ALTER TABLE `exchange_trade` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `exchange_trades`
---
-
-DROP TABLE IF EXISTS `exchange_trades`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `exchange_trades` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `account` varchar(50) NOT NULL,
-  `action` varchar(50) NOT NULL,
-  `from` varchar(50) NOT NULL,
-  `to` varchar(50) NOT NULL,
-  `quantity` varchar(50) NOT NULL,
-  `ordertype` varchar(50) DEFAULT NULL,
-  `pair` varchar(50) DEFAULT NULL,
-  `trade_quantity` varchar(50) DEFAULT NULL,
-  `trade_price` varchar(50) DEFAULT NULL,
-  `channel` varchar(50) DEFAULT NULL,
-  `day_id` mediumint(9) NOT NULL,
-  `hour_of_day` tinyint(4) NOT NULL,
-  `block_time` datetime NOT NULL DEFAULT '2000-01-01 00:00:00',
-  PRIMARY KEY (`id`),
-  KEY `fk_exchange_trades_day_idx` (`day_id`),
-  CONSTRAINT `fk_exchange_trades_day` FOREIGN KEY (`day_id`) REFERENCES `day` (`day_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `exchange_trades`
---
-
-LOCK TABLES `exchange_trades` WRITE;
-/*!40000 ALTER TABLE `exchange_trades` DISABLE KEYS */;
-/*!40000 ALTER TABLE `exchange_trades` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -668,6 +632,57 @@ INSERT INTO `token` VALUES (-1,'Unknown',-1),(1,'EOS',1);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `voter`
+--
+
+DROP TABLE IF EXISTS `voter`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `voter` (
+  `account_id` int(11) NOT NULL,
+  `is_proxy` tinyint(1) NOT NULL,
+  PRIMARY KEY (`account_id`),
+  CONSTRAINT `fk_voter_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `voter`
+--
+
+LOCK TABLES `voter` WRITE;
+/*!40000 ALTER TABLE `voter` DISABLE KEYS */;
+/*!40000 ALTER TABLE `voter` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `voter_block_producer`
+--
+
+DROP TABLE IF EXISTS `voter_block_producer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `voter_block_producer` (
+  `voter_id` int(11) NOT NULL,
+  `block_producer_id` int(11) NOT NULL,
+  `votes` decimal(19,0) NOT NULL,
+  PRIMARY KEY (`voter_id`,`block_producer_id`),
+  KEY `fk_voter_block_producer_block_producer_idx` (`block_producer_id`),
+  CONSTRAINT `fk_voter_block_producer_block_producer` FOREIGN KEY (`block_producer_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_voter_block_producer_voter` FOREIGN KEY (`voter_id`) REFERENCES `account` (`account_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `voter_block_producer`
+--
+
+LOCK TABLES `voter_block_producer` WRITE;
+/*!40000 ALTER TABLE `voter_block_producer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `voter_block_producer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `year`
 --
 
@@ -732,4 +747,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-01-01 17:34:08
+-- Dump completed on 2019-01-03 22:15:00
