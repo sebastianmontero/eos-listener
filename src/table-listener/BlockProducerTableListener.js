@@ -54,16 +54,20 @@ class BlockProducerTableListener extends BaseTableListener {
     async snapshot(payload) {
         const { rows } = payload;
         console.log('Started processing snapshot', new Date());
+        let inserted = [];
+        let accountNames = [];
         for (let row of rows) {
             const toInsert = this._extractFields(row);
+            inserted.push(toInsert);
+            accountNames.push(toInsert.accountName);
             this.blockProducerDao.batchInsert(toInsert);
         }
         console.log('batch inserts finished', new Date());
-        let promises = [];
-        for (let row of rows) {
-            promises.push(this._update(row));
+        const accountNamesToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.BLOCK_PRODUCER, NOT_APPLICABLE);
+        for (let bp of inserted) {
+            bp.accountId = accountNamesToIds[bp.accountName];
+            this.blockProducerDao.batchUpdate(bp);
         }
-        await Promise.all(promises);
         console.log('Resolved accounts', new Date());
         await this.blockProducerDao.flush();
         this.blockProducerDao.batchSize = 1;

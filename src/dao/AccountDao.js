@@ -25,11 +25,11 @@ class AccountDAO extends BaseDao {
     }
 
     async _selectByNaturalPKs(accountNames) {
-        const [rows] = await this.dbCon.execute(
+        const [rows] = await this.dbCon.query(
             `SELECT account_id, 
                     account_name
              FROM account 
-             WHERE account_name in ?`,
+             WHERE account_name in (?)`,
             [accountNames]);
         return rows;
     }
@@ -135,15 +135,20 @@ class AccountDAO extends BaseDao {
     }
 
     async getAccountIds(accountNames, accountTypeId, dappId) {
-        const nameToIds = await this._mapAccountNamesToIds(accountNames);
+        console.log('accountNames:', accountNames);
+        const namesToIds = await this._mapAccountNamesToIds(accountNames);
+        console.log('namesToIds:', namesToIds);
         let toInsert = [];
         for (let accountName of accountNames) {
             toInsert.push([accountName, accountTypeId, dappId]);
         }
+        console.log('toInsert:', toInsert);
         await this._insertBatch(toInsert);
         const missingNames = toInsert.map(account => account[0]);
-        const missingNameToIds = await this._mapAccountNamesToIds(missingNames);
-        return { ...nameToIds, ...missingNameToIds };
+        console.log('missingNames:', missingNames);
+        const missingNamesToIds = await this._mapAccountNamesToIds(missingNames);
+        console.log('missingNamesToIds:', missingNamesToIds);
+        return { ...namesToIds, ...missingNamesToIds };
     }
 
 }
