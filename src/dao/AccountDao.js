@@ -77,13 +77,11 @@ class AccountDAO extends BaseDao {
     }
 
     selectStream() {
-        return this.dbCon.createStatement({
-            sqlText:
-                `SELECT * 
+        return this.dbCon.query(
+            `SELECT * 
                 FROM account
-                WHERE account_id > 0`,
-            streamResult: true
-        });
+                WHERE account_id > 0`
+        );
     }
 
     async selectByDappType(dappTypeId) {
