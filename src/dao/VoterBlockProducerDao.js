@@ -5,8 +5,7 @@ class VoterBlockProducerDAO {
     }
 
     async insert(values) {
-
-        await this.dbCon.execute(
+        await this.dbCon.query(
             `INSERT INTO voter_block_producer(
                 voter_id,
                 block_producer_id,
@@ -38,6 +37,11 @@ class VoterBlockProducerDAO {
     async updateVotes(voterId, votes, blockProducerIds) {
         await this.deleteByVoterId(voterId);
         await this.insertVoterVotes(voterId, votes, blockProducerIds);
+    }
+
+    async truncate() {
+        await this.dbCon.execute(
+            `truncate voter_block_producer`);
     }
 
 }

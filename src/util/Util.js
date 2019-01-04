@@ -52,6 +52,14 @@ class Util {
         }
         return false;
     }
+
+    static toKeyValue(objs, key, value) {
+        let keyValue = {};
+        for (let obj of objs) {
+            keyValue[obj[key]] = obj[value];
+        }
+        return keyValue;
+    }
 }
 
 module.exports = Util;

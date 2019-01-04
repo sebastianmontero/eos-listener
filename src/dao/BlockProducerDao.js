@@ -1,4 +1,5 @@
 const BaseBatchDao = require('./BaseBatchDao');
+const { Util } = require('../util');
 
 class BlockProducerDAO extends BaseBatchDao {
     constructor(dbCon) {
@@ -62,6 +63,20 @@ class BlockProducerDAO extends BaseBatchDao {
                 accountId,
             ]
         );
+    }
+
+    async _selectAccountIdAndName() {
+        const [rows] = await this.dbCon.execute(
+            `SELECT a.account_id, 
+                    a.account_name
+             FROM block_producer bp inner join 
+                  account a on bp.account_id = a.account_id`);
+        return rows;
+    }
+
+    async mapAccountIdToName() {
+        const accounts = await this._selectAccountIdAndName();
+        return Util.toKeyValue(accounts, 'account_name', 'account_id');
     }
 
     async _remove({

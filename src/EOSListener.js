@@ -141,7 +141,7 @@ class EOSListener {
                 try {
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
-                        console.log("Number of block producers: ", rows.length);
+                        console.log("Number of rows in table snapshot: ", rows.length);
                         listenerObj.snapshot({
                             data,
                             dappTableId,

@@ -8,6 +8,8 @@ const ExchangeTradeDao = require('./ExchangeTradeDao')
 const DappTableDao = require('./DappTableDao');
 const AccountBalanceDao = require('./AccountBalanceDao');
 const BlockProducerDao = require('./BlockProducerDao');
+const VoterDao = require('./VoterDao');
+const VoterBlockProducerDao = require('./VoterBlockProducerDao');
 
 module.exports = {
     AccountDao,
@@ -19,5 +21,7 @@ module.exports = {
     ExchangeTradeDao,
     DappTableDao,
     AccountBalanceDao,
-    BlockProducerDao
+    BlockProducerDao,
+    VoterDao,
+    VoterBlockProducerDao,
 };

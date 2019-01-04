@@ -1,4 +1,5 @@
 const BaseDao = require('./BaseDao');
+const { Util } = require('../util');
 
 
 class AccountDAO extends BaseDao {
@@ -34,13 +35,28 @@ class AccountDAO extends BaseDao {
         return rows;
     }
 
-    async _mapAccountNamesToIds(accountNames) {
-        let nameToIds = {};
+    async _selectByAccountType(accountTypeId) {
+        const [rows] = await this.dbCon.execute(
+            `SELECT account_id, 
+                    account_name
+             FROM account 
+             WHERE account_type_id = ?`,
+            [accountTypeId]);
+        return rows;
+    }
+
+    async mapByNaturalPKs(accountNames) {
         const accounts = await this._selectByNaturalPKs(accountNames);
-        for (let account of accounts) {
-            nameToIds[account.account_name] = account.account_id;
-        }
-        return nameToIds;
+        return this._mapAccountNamesToIds(accounts);
+    }
+
+    async mapByAccountType(accountTypeId) {
+        const accounts = await this._selectByAccountType(accountTypeId);
+        return this._mapAccountNamesToIds(accounts);
+    }
+
+    async _mapAccountNamesToIds(accounts) {
+        return Util.toKeyValue(accounts, 'account_name', 'account_id');
     }
 
     async selectById(accountId) {
@@ -135,19 +151,14 @@ class AccountDAO extends BaseDao {
     }
 
     async getAccountIds(accountNames, accountTypeId, dappId) {
-        console.log('accountNames:', accountNames);
-        const namesToIds = await this._mapAccountNamesToIds(accountNames);
-        console.log('namesToIds:', namesToIds);
+        const namesToIds = await this.mapByNaturalPKs(accountNames);
         let toInsert = [];
         for (let accountName of accountNames) {
             toInsert.push([accountName, accountTypeId, dappId]);
         }
-        console.log('toInsert:', toInsert);
         await this._insertBatch(toInsert);
         const missingNames = toInsert.map(account => account[0]);
-        console.log('missingNames:', missingNames);
-        const missingNamesToIds = await this._mapAccountNamesToIds(missingNames);
-        console.log('missingNamesToIds:', missingNamesToIds);
+        const missingNamesToIds = await this.mapByNaturalPKs(missingNames);
         return { ...namesToIds, ...missingNamesToIds };
     }
 
