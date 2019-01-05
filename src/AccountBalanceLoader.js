@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const HttpStatus = require('http-status-codes');
 const mysql = require('mysql2/promise');
+const mysqlStream = require('mysql2');
 const { AccountDao } = require('./dao');
 const { AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
@@ -16,9 +17,10 @@ class AccountBalanceLoader {
             available: httpEndpoints.map(endpoint => endpoint + '/v1/chain/get_account'),
             inuse: []
         };
-        this.streamMargin = 5;
-        this.accountsFetched = 0;
+        this.buffer = 5;
         this.accountsStreamed = 0;
+        this.accountsFetched = 0;
+        this.isPaused = false;
         this.lock = new Lock(httpEndpoints.length);
     }
 
@@ -26,35 +28,46 @@ class AccountBalanceLoader {
         const date = new Date();
         this.dayId = TimeUtil.dayId(date);
         logger.debug('Loading account balances.... For date: ', date);
-        const dbCon = await mysql.createConnection(this.config.db);
-        this.accountDao = new AccountDao(dbCon);
-        this.accountBalanceDao = new AccountBalanceDao(dbCon);
+        this.dbCon = await mysql.createConnection(this.config.db);
+        this.dbConStream = mysqlStream.createConnection(this.config.db);
+        this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
+        this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
         logger.debug('Deleting existing account balances for date: ', date);
         this.accountBalanceDao.deleteByDayId(this.dayId);
-        this.statement = this.accountDao.selectStream();
-        await this.statement.execute();
-        this.numAccounts = this.statement.getNumRows();
-        logger.debug('Num accounts: ', this.numAccounts);
-        this._streamRows();
+        this._loadAccounts();
 
     }
-
-    _streamRows() {
-        if (this.numAccounts <= this.accountsStreamed) {
-            return;
+    _getStreamMargin() {
+        return this.endpoints.available.length + this.buffer;
+    }
+    _shouldPause() {
+        if (!this.isPaused) {
+            if ((this.accountsStreamed - this.accountsFetched) >= this._getStreamMargin()) {
+                this.dbConStream.pause();
+                this.isPaused = true;
+            }
         }
-        const start = this.accountsStreamed;
-        let end = start + this.endpoints.available.length + this.streamMargin;
-        end = Math.min(end, this.numAccounts);
-        this.accountsStreamed = end;
-        this.statement.streamRows({ start: start, end: end - 1 })
-            .on('error', logger.error)
-            .on('data', async account => {
-                const accountDetails = await this._getAccountDetails(account.ACCOUNT_NAME);
+    }
+    _shouldContinue() {
+        if (this.isPaused) {
+            if ((this.accountsStreamed - this.accountsFetched) < this.buffer) {
+                this.isPaused = false;
+                this.dbConStream.resume();
+            }
+        }
+    }
+    _loadAccounts() {
+        const query = this.accountDao.selectStream();
+        query
+            .on('result', async account => {
+                this.accountsStreamed++;
+                this._shouldPause();
+                const accountDetails = await this._getAccountDetails(account.account_name);
                 this.accountsFetched++;
-                if (this._streamMore()) {
-                    this._streamRows();
+                if (this.accountsFetched % 100 == 0) {
+                    console.log(`Streamed: ${this.accountsStreamed} Fetched: ${this.accountsFetched}`);
                 }
+                this._shouldContinue();
                 if (accountDetails) {
                     const { core_liquid_balance, voter_info, refund_request } = accountDetails;
                     const liquidObj = Util.parseAsset(core_liquid_balance)
@@ -73,7 +86,7 @@ class AccountBalanceLoader {
                         refund = refundCPU + refundNet;
                     }
                     const toInsert = {
-                        accountId: account.ACCOUNT_ID,
+                        accountId: account.account_id,
                         dayId: this.dayId,
                         liquid,
                         staked,
@@ -82,17 +95,20 @@ class AccountBalanceLoader {
                     logger.debug('To insert: ', toInsert);
                     await this.accountBalanceDao.batchInsert(toInsert);
                 }
-                if (this.numAccounts <= this.accountsFetched) {
-                    this.accountBalanceDao.flush();
-                }
-
             })
-            .on('end', () => { });
+            .on('end', async () => {
+                console.log('All rows have been processed. Flushing and closing connections...');
+                this.dbConStream.end();
+                await this.accountBalanceDao.flush();
+                await this.dbCon.end();
+                console.log('Connections closed.');
+            })
+            .on('error', async err => {
+                console.log('Error:', err);
+            });
+
     }
 
-    _streamMore() {
-        return (this.accountsStreamed - this.accountsFetched) <= this.streamMargin;
-    }
 
     async _getAccountDetails(accountName) {
         logger.debug('Getting account for: ', accountName);

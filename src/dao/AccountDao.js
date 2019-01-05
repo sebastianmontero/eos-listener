@@ -3,8 +3,9 @@ const { Util } = require('../util');
 
 
 class AccountDAO extends BaseDao {
-    constructor(dbCon) {
+    constructor(dbCon, dbConStream) {
         super(dbCon, 'account_id');
+        this.dbConStream = dbConStream;
     }
 
     async selectAccountId(accountName) {
@@ -77,7 +78,7 @@ class AccountDAO extends BaseDao {
     }
 
     selectStream() {
-        return this.dbCon.query(
+        return this.dbConStream.query(
             `SELECT * 
                 FROM account
                 WHERE account_id > 0`

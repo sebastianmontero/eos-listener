@@ -12,7 +12,7 @@ class AccountBalanceDAO extends BaseBatchDao {
 
     async _insert(values) {
 
-        await this.dbCon.execute(
+        await this.dbCon.query(
             `INSERT INTO account_balance(
                 account_id,
                 day_id,
