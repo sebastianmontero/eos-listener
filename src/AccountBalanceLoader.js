@@ -27,12 +27,12 @@ class AccountBalanceLoader {
     async start() {
         const date = new Date();
         this.dayId = TimeUtil.dayId(date);
-        logger.debug('Loading account balances.... For date: ', date);
+        logger.info('Loading account balances.... For date: ', date);
         this.dbCon = await mysql.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
         this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
         this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
-        logger.debug('Deleting existing account balances for date: ', date);
+        logger.info('Deleting existing account balances for date: ', date);
         this.accountBalanceDao.deleteByDayId(this.dayId);
         this._loadAccounts();
 
@@ -65,7 +65,7 @@ class AccountBalanceLoader {
                 const accountDetails = await this._getAccountDetails(account.account_name);
                 this.accountsFetched++;
                 if (this.accountsFetched % 100 == 0) {
-                    console.log(`Streamed: ${this.accountsStreamed} Fetched: ${this.accountsFetched}`);
+                    logger.info(`Streamed: ${this.accountsStreamed} Fetched: ${this.accountsFetched}`);
                 }
                 this._shouldContinue();
                 if (accountDetails) {
@@ -97,14 +97,14 @@ class AccountBalanceLoader {
                 }
             })
             .on('end', async () => {
-                console.log('All rows have been processed. Flushing and closing connections...');
+                logger.info('All rows have been processed. Flushing and closing connections...');
                 this.dbConStream.end();
                 await this.accountBalanceDao.flush();
                 await this.dbCon.end();
-                console.log('Connections closed.');
+                logger.info('Connections closed.');
             })
             .on('error', async err => {
-                console.log('Error:', err);
+                logger.error('Error:', err);
             });
 
     }
