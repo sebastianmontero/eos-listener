@@ -34,9 +34,18 @@ class VoterBlockProducerDAO {
             [voterId]);
     }
 
-    async updateVotes(voterId, votes, blockProducerIds) {
+    async revote(voterId, votes, blockProducerIds) {
         await this.deleteByVoterId(voterId);
         await this.insertVoterVotes(voterId, votes, blockProducerIds);
+    }
+
+    async updateVotes(voterId, votes) {
+        await this.dbCon.execute(
+            `UPDATE voter_block_producer
+             SET votes = ?
+             WHERE voter_id = ?`,
+            [votes, voterId]
+        );
     }
 
     async truncate() {

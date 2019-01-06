@@ -175,9 +175,13 @@ class EOSListener {
                         const { mode } = streamOptions;
                         const oldRow = dbop.old && dbop.old.json;
                         const newRow = dbop.new && dbop.new.json;
+                        let modifiedProps = null;
+                        if (op === DBOps.UPDATE) {
+                            modifiedProps = Util.modifiedProps(oldRow, newRow, fieldsOfInterest);
+                            if (!modifiedProps) {
+                                return;
+                            }
 
-                        if (oldRow && newRow && fieldsOfInterest && !Util.havePropsChanged(oldRow, newRow, fieldsOfInterest)) {
-                            return;
                         }
 
                         let payload = {
@@ -188,6 +192,7 @@ class EOSListener {
                             dappTableId,
                             oldRow,
                             newRow,
+                            modifiedProps,
                         };
                         const isHistoryMode = mode === TableListenerModes.HISTORY;
                         if (step === ForkSteps.NEW || step === ForkSteps.REDO) {

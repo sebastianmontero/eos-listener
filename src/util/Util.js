@@ -44,13 +44,15 @@ class Util {
         return null;
     }
 
-    static havePropsChanged(oldObj, newObj, props) {
+    static modifiedProps(oldObj, newObj, props) {
+        const mod = {};
+        props = props || Object.keys(oldObj);
         for (let prop of props) {
             if (oldObj[prop] != newObj[prop]) {
-                return true;
+                mod[prop] = true;
             }
         }
-        return false;
+        return Util.isEmptyObj(mod) ? null : mod;
     }
 
     static toKeyValue(objs, key, value) {
