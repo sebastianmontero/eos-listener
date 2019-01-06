@@ -132,17 +132,26 @@ class EOSListener {
 
     async _addTableListeners(listenerObj) {
         let tables = await listenerObj.getTables();
-        logger.debug('Table listeners: ', tables);
+        logger.info('Table listeners: ', tables);
         const { streamOptions, fieldsOfInterest } = listenerObj;
         tables.forEach(table => {
             const { dappTableId } = table;
-            let processDeltas = streamOptions.fetch ? false : true;
-            this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage((message) => {
+            let processDeltas = true;
+            let processedSnapshot = true;
+            let msgBuffer;
+            if (streamOptions.fetch) {
+                processDeltas = false;
+                processedSnapshot = false;
+                msgBuffer = [];
+            }
+            processDeltas = true;
+
+            const processMessage = async message => {
                 try {
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
-                        console.log("Number of rows in table snapshot: ", rows.length);
-                        listenerObj.snapshot({
+                        logger.info("Number of rows in table snapshot: ", rows.length);
+                        const promise = listenerObj.snapshot({
                             data,
                             dappTableId,
                             rows: rows.map(row => row.json),
@@ -150,7 +159,18 @@ class EOSListener {
                             step: ForkSteps.NEW,
                         });
                         processDeltas = true;
+                        await promise;
+                        processedSnapshot = true;
+                        console.log('Processed Snapshot. Processing msg buffer...');
+                        for (let msg of msgBuffer) {
+                            processMessage(msg);
+                        }
+                        console.log('Finished processing buffer');
                     } else if (message.type == InboundMessageType.TABLE_DELTA && processDeltas) {
+                        if (!processedSnapshot) {
+                            msgBuffer.push(message);
+                            return;
+                        }
                         const { data, data: { step, dbop, dbop: { op } } } = message;
                         const { mode } = streamOptions;
                         const oldRow = dbop.old && dbop.old.json;
@@ -197,7 +217,8 @@ class EOSListener {
                 } catch (error) {
                     logger.error(error);
                 }
-            });
+            };
+            this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage(processMessage);
 
         });
     }

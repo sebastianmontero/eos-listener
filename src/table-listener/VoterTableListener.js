@@ -102,8 +102,8 @@ class VoterTableListener extends BaseTableListener {
     }
 
     async update(payload) {
-        /* console.log('Update');
-        await this._update(payload.newRow); */
+        console.log('Update');
+        await this._update(payload.newRow);
     }
 
     async _update(newRow) {
