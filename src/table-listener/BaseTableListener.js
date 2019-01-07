@@ -19,7 +19,13 @@ class BaseTableListener {
         this.accountDao = accountDao;
         this.tokenDao = tokenDao;
         this.dappTableDao = dappTableDao;
-        this.streamOptions = { fetch: false, listen: true, mode: TableListenerModes.HISTORY };
+        this.streamOptions = {
+            fetch: false,
+            listen: true,
+            mode: TableListenerModes.HISTORY,
+            tableId: null,
+            serializeRowUpdates: false,
+        };
     }
 
     async _getDappTableListeners() {

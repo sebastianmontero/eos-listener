@@ -5,26 +5,15 @@ class VoterBlockProducerDAO {
     }
 
     async insert(values) {
-        await this.dbCon.query(
-            `INSERT INTO voter_block_producer(
-                voter_id,
-                block_producer_id,
-                votes
-            ) VALUES ?`,
-            [values]);
-    }
-
-    async insertVoterVotes(voterId, votes, blockProducerIds) {
-        let toInsert = [];
-
-        for (let blockProducerId of blockProducerIds) {
-            toInsert.push([
-                voterId,
-                blockProducerId,
-                votes
-            ]);
+        if (values.length > 0) {
+            await this.dbCon.query(
+                `INSERT INTO voter_block_producer(
+                    voter_id,
+                    block_producer_id,
+                    votes
+                ) VALUES ?`,
+                [values]);
         }
-        await this.insert(toInsert);
     }
 
     async deleteByVoterId(voterId) {
@@ -34,9 +23,10 @@ class VoterBlockProducerDAO {
             [voterId]);
     }
 
-    async revote(voterId, votes, blockProducerIds) {
+    async revote(voterId, voterProducers) {
         await this.deleteByVoterId(voterId);
-        await this.insertVoterVotes(voterId, votes, blockProducerIds);
+        console.log(voterProducers);
+        await this.insert(voterProducers);
     }
 
     async updateVotes(voterId, votes) {

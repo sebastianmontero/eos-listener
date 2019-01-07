@@ -13,6 +13,14 @@ class VoterDAO {
             [values]);
     }
 
+    async delete(accountId) {
+        await this.dbCon.execute(
+            `DELETE
+             FROM voter
+             WHERE account_id = ?`,
+            [accountId]);
+    }
+
     async truncate() {
         await this.dbCon.execute(
             `truncate voter`);

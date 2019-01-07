@@ -1,8 +1,9 @@
 const { EventEmitter } = require('events');
 
 class Lock {
-    constructor(count = 1) {
-        this._count = count;
+    constructor(size = 1) {
+        this._size = size;
+        this._count = size;
         this._ee = new EventEmitter();
     }
 
@@ -36,6 +37,10 @@ class Lock {
         // Release the lock immediately
         this._count++;
         setImmediate(() => this._ee.emit('release'));
+    }
+
+    isInUse() {
+        return this._count < this._size;
     }
 }
 

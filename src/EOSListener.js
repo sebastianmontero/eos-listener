@@ -3,6 +3,7 @@ const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/e
 const { logger } = require('./Logger');
 const { DBOps, ForkSteps, TableListenerModes } = require('./const');
 const { Util } = require('./util');
+const Lock = require('./lock/Lock');
 
 
 class EOSListener {
@@ -138,13 +139,14 @@ class EOSListener {
             const { dappTableId } = table;
             let processDeltas = true;
             let processedSnapshot = true;
-            let msgBuffer;
-            if (streamOptions.fetch) {
+            let msgBuffer, lockStore = {};
+            const { fetch, tableId, mode } = streamOptions;
+            let serializeRowUpdates = streamOptions.serializeRowUpdates && tableId;
+            if (fetch) {
                 processDeltas = false;
                 processedSnapshot = false;
                 msgBuffer = [];
             }
-            processDeltas = true;
 
             const processMessage = async message => {
                 try {
@@ -172,7 +174,6 @@ class EOSListener {
                             return;
                         }
                         const { data, data: { step, dbop, dbop: { op } } } = message;
-                        const { mode } = streamOptions;
                         const oldRow = dbop.old && dbop.old.json;
                         const newRow = dbop.new && dbop.new.json;
                         let modifiedProps = null;
@@ -181,41 +182,57 @@ class EOSListener {
                             if (!modifiedProps) {
                                 return;
                             }
-
                         }
 
-                        let payload = {
-                            data,
-                            step,
-                            dbop,
-                            message,
-                            dappTableId,
-                            oldRow,
-                            newRow,
-                            modifiedProps,
-                        };
-                        const isHistoryMode = mode === TableListenerModes.HISTORY;
-                        if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
-                            if (op === DBOps.INSERT) {
-                                logger.debug('Insert new o redo:', payload);
-                                listenerObj.insert(payload);
-                            } else if (op === DBOps.UPDATE) {
-                                logger.debug('Update new o redo:', payload);
-                                listenerObj.update(payload);
-                            } else if (op === DBOps.REMOVE && !isHistoryMode) {
-                                logger.debug('Remove new o redo:', payload);
-                                listenerObj.remove(payload);
+                        const id = newRow ? newRow[tableId] : oldRow[tableId];
+                        try {
+                            if (serializeRowUpdates) {
+                                if (!lockStore[id]) {
+                                    lockStore[id] = new Lock();
+                                }
+                                await lockStore[id].acquire();
                             }
-                        } else if (step === ForkSteps.UNDO) {
-                            if (op === DBOps.INSERT && !isHistoryMode) {
-                                logger.debug('Insert undo:', payload);
-                                listenerObj.insert(payload);
-                            } else if (op === DBOps.UPDATE) {
-                                logger.debug('Update undo:', payload);
-                                listenerObj.update(payload);
-                            } else if (op === DBOps.REMOVE) {
-                                logger.debug('Remove undo:', payload);
-                                listenerObj.remove(payload);
+
+                            let payload = {
+                                data,
+                                step,
+                                dbop,
+                                message,
+                                dappTableId,
+                                oldRow,
+                                newRow,
+                                modifiedProps,
+                            };
+                            const isHistoryMode = mode === TableListenerModes.HISTORY;
+                            if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
+                                if (op === DBOps.INSERT) {
+                                    logger.debug('Insert new o redo:', payload);
+                                    await listenerObj.insert(payload);
+                                } else if (op === DBOps.UPDATE) {
+                                    logger.debug('Update new o redo:', payload);
+                                    await listenerObj.update(payload);
+                                } else if (op === DBOps.REMOVE && !isHistoryMode) {
+                                    logger.debug('Remove new o redo:', payload);
+                                    await listenerObj.remove(payload);
+                                }
+                            } else if (step === ForkSteps.UNDO) {
+                                if (op === DBOps.INSERT && !isHistoryMode) {
+                                    logger.debug('Insert undo:', payload);
+                                    await listenerObj.insert(payload);
+                                } else if (op === DBOps.UPDATE) {
+                                    logger.debug('Update undo:', payload);
+                                    await listenerObj.update(payload);
+                                } else if (op === DBOps.REMOVE) {
+                                    logger.debug('Remove undo:', payload);
+                                    await listenerObj.remove(payload);
+                                }
+                            }
+                        } finally {
+                            if (serializeRowUpdates) {
+                                lockStore[id].release();
+                                if (!lockStore[id].isInUse()) {
+                                    delete lockStore[id];
+                                }
                             }
                         }
                     }
