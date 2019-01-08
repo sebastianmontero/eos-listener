@@ -1,5 +1,6 @@
 const BaseTableListener = require('./BaseTableListener');
 const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes } = require('../const');
+const { logger } = require('../Logger');
 
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
@@ -87,7 +88,7 @@ class VoterTableListener extends BaseTableListener {
 
     async snapshot(payload) {
         const { rows } = payload;
-        console.log('Started processing snapshot', new Date());
+        logger.info('Started processing voter snapshot', new Date());
         let numBatches = Math.ceil(rows.length / this.batchSize);
         for (let i = 0; i < numBatches; i++) {
             let start = i * this.batchSize;
@@ -100,7 +101,6 @@ class VoterTableListener extends BaseTableListener {
                 accountNames.push(toInsert.accountName);
             }
             const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
-            console.log('Obtained Id maps', new Date());
             let voters = [];
             let votersProducers = [];
             for (let voter of inserted) {
@@ -112,16 +112,15 @@ class VoterTableListener extends BaseTableListener {
                 await this._processProducers(voter, votersProducers);
             }
             await this.voterDao.insert(voters);
-            console.log(`Loaded Voters from: ${start} to ${end}`, new Date());
+            logger.info(`Loaded Voters from: ${start} to ${end}`, new Date());
             await this.voterBlockProducerDao.insert(votersProducers);
-            console.log('Loaded VoterBlockProducer Table', new Date());
+            logger.info('Loaded VoterBlockProducer Table', new Date());
         }
-        console.log('Finished processing snapshot', new Date());
+        logger.info('Finished processing voter snapshot', new Date());
 
     }
 
     async insert(payload) {
-        console.log('Insert', payload);
         const voter = await this._processRow(payload.newRow);
         const { voterId, isProxy } = voter;
         await this.voterDao.insert([
@@ -132,27 +131,20 @@ class VoterTableListener extends BaseTableListener {
     }
 
     async update(payload) {
-        console.log('Update', payload);
         const voter = await this._processRow(payload.newRow);
         const { modifiedProps } = payload;
         const { voterId, votes } = voter;
         if (!modifiedProps.producers) {
-            console.log('----Updating votes...------');
             await this.voterBlockProducerDao.updateVotes(voterId, votes);
-            console.log('----Updated votes----');
         } else {
-            console.log('----Revoting...-----');
             await this.voterBlockProducerDao.revote(voterId, await this._processProducers(voter));
-            console.log('----Revoted-----');
         }
     }
 
     async remove(payload) {
-        console.log('Remove', payload);
         const { voterId } = await this._processRow(payload.oldRow);
         await this.voterBlockProducerDao.deleteByVoterId(voterId);
         await this.voterDao.delete(voterId);
-        console.log('Removed voter');
     }
 
     async _getAccountId(owner) {

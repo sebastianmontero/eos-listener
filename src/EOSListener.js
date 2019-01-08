@@ -153,7 +153,7 @@ class EOSListener {
                 try {
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
-                        logger.info("Number of rows in table snapshot: ", rows.length);
+                        logger.info(`Number of rows in table snapshot: ${rows.length}. DappTableId: ${dappTableId}.`);
                         const promise = listenerObj.snapshot({
                             data,
                             dappTableId,
@@ -164,11 +164,11 @@ class EOSListener {
                         processDeltas = true;
                         await promise;
                         processedSnapshot = true;
-                        console.log('Processed Snapshot. Processing msg buffer...');
+                        logger.info(`Processed Snapshot. Msg buffer size: ${msgBuffer.length}. Processing msg buffer...DappTableId: ${dappTableId}.`);
                         for (let msg of msgBuffer) {
                             processMessage(msg);
                         }
-                        console.log('Finished processing buffer');
+                        logger.info(`Finished processing buffer.DappTableId: ${dappTableId}.`);
                     } else if (message.type == InboundMessageType.TABLE_DELTA && processDeltas) {
                         if (!processedSnapshot) {
                             msgBuffer.push(message);
