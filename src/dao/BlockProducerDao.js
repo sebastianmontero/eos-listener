@@ -1,10 +1,24 @@
-const BaseBatchDao = require('./BaseBatchDao');
-const { Util } = require('../util');
-
-class BlockProducerDAO extends BaseBatchDao {
+class BlockProducerDAO {
     constructor(dbCon) {
-        super('accountName', 600);
         this.dbCon = dbCon;
+    }
+
+    async _insert(values, toArray) {
+
+        await this.dbCon.insertBatch(
+            `INSERT INTO block_producer(
+                account_id,
+                is_active,
+                url,
+                total_votes,
+                location
+            ) VALUES ?`,
+            values,
+            toArray);
+    }
+
+    async insert(values) {
+        await this._insert(values);
     }
 
     _toInsertArray({
@@ -23,25 +37,13 @@ class BlockProducerDAO extends BaseBatchDao {
         ];
     }
 
-    async insert(obj) {
-        await this._insert(this._toInsertArray(obj));
-    }
 
-    async _insert(values) {
-
-        await this.dbCon.query(
-            `INSERT INTO block_producer(
-                account_id,
-                is_active,
-                url,
-                total_votes,
-                location
-            ) VALUES ?`,
-            [values]);
+    async insertObj(objs) {
+        await this._insert(objs, this._toInsertArray);
     }
 
 
-    async _update({
+    async update({
         accountId,
         isActive,
         url,
@@ -65,23 +67,17 @@ class BlockProducerDAO extends BaseBatchDao {
         );
     }
 
-    async _selectAccountIdAndName() {
-        const [rows] = await this.dbCon.execute(
+    async mapAccountNameToId() {
+        return await this.dbCon.keyValueMap(
             `SELECT a.account_id, 
                     a.account_name
              FROM block_producer bp inner join 
-                  account a on bp.account_id = a.account_id`);
-        return rows;
+                  account a on bp.account_id = a.account_id`,
+            'account_name',
+            'account_id');
     }
 
-    async mapAccountIdToName() {
-        const accounts = await this._selectAccountIdAndName();
-        return Util.toKeyValue(accounts, 'account_name', 'account_id');
-    }
-
-    async _remove({
-        accountId
-    }) {
+    async delete(accountId) {
         await this.dbCon.execute(
             `DELETE 
             FROM block_producer

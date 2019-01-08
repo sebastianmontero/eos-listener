@@ -28,6 +28,17 @@ class BaseTableListener {
         };
     }
 
+    getStreamOptions(afterReconnect = false) {
+        let streamOptions = this.streamOptions;
+        if (afterReconnect) {
+            streamOptions = {
+                ...streamOptions,
+                fetch: false
+            }
+        }
+        return streamOptions;
+    }
+
     async _getDappTableListeners() {
         const dappTables = this.dappId ? await this.dappTableDao.selectByDappId(this.dappId) : await this.dappTableDao.select(this.dappTableId);
         let listeners = [];

@@ -1,5 +1,7 @@
 const BaseTableListener = require('./BaseTableListener');
 const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes } = require('../const');
+const { logger } = require('../Logger');
+
 
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
@@ -17,8 +19,13 @@ class BlockProducerTableListener extends BaseTableListener {
             dappTableDao,
         });
         this.blockProducerDao = blockProducerDao;
-        this.streamOptions.fetch = true;
-        this.streamOptions.mode = TableListenerModes.REPLICATE;
+        this.streamOptions = {
+            ...this.streamOptions,
+            fetch: true,
+            mode: TableListenerModes.REPLICATE,
+            tableId: 'owner',
+            serializeRowUpdates: true,
+        };
         this.fieldsOfInterest = [
             'is_active',
             'url',
@@ -53,45 +60,37 @@ class BlockProducerTableListener extends BaseTableListener {
 
     async snapshot(payload) {
         const { rows } = payload;
-        console.log('Started processing snapshot', new Date());
-        let inserted = [];
+        logger.info('Started processing block producer snapshot', new Date());
+        let processed = [];
         let accountNames = [];
         for (let row of rows) {
             const toInsert = this._extractFields(row);
-            inserted.push(toInsert);
+            processed.push(toInsert);
             accountNames.push(toInsert.accountName);
-            this.blockProducerDao.batchInsert(toInsert);
         }
-        console.log('batch inserts finished', new Date());
+        logger.info('Block producer batch inserts finished', new Date());
         const accountNamesToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.BLOCK_PRODUCER, NOT_APPLICABLE);
-        for (let bp of inserted) {
+        for (let bp of processed) {
             bp.accountId = accountNamesToIds[bp.accountName];
-            this.blockProducerDao.batchUpdate(bp);
         }
-        console.log('Resolved accounts', new Date());
-        await this.blockProducerDao.flush();
-        this.blockProducerDao.batchSize = 1;
-        console.log('Finished processing snapshot', new Date());
+        logger.info('Resolved block producer accounts', new Date());
+        await this.blockProducerDao.insertObj(processed);
+        logger.info('Finished processing block producer snapshot', new Date());
     }
 
     async insert(payload) {
         const toInsert = await this._processRow(payload.newRow);
-        await this.blockProducerDao.batchInsert(toInsert);
+        await this.blockProducerDao.insertObj(toInsert);
     }
 
     async update(payload) {
-        console.log('Update');
-        await this._update(payload.newRow);
-    }
-
-    async _update(newRow) {
-        let toUpdate = await this._processRow(newRow);
-        await this.blockProducerDao.batchUpdate(toUpdate);
+        let toUpdate = await this._processRow(payload.newRow);
+        await this.blockProducerDao.update(toUpdate);
     }
 
     async remove(payload) {
         const { oldRow: { owner } } = payload;
-        await this.betDao.remove({
+        await this.blockProducerDao.delete({
             accountId: await this._getAccountId(owner),
         });
     }

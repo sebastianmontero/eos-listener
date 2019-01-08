@@ -134,14 +134,14 @@ class EOSListener {
     async _addTableListeners(listenerObj, afterReconnect = false) {
         let tables = await listenerObj.getTables();
         logger.info('Table listeners: ', tables);
-        const { streamOptions, fieldsOfInterest } = listenerObj;
+        const { fieldsOfInterest } = listenerObj;
+        const streamOptions = listenerObj.getStreamOptions(afterReconnect);
         tables.forEach(table => {
             const { dappTableId } = table;
             let processDeltas = true;
             let processedSnapshot = true;
             let msgBuffer, lockStore = {};
-            const { tableId, mode } = streamOptions;
-            let fetch = !afterReconnect && streamOptions.fetch;
+            const { fetch, tableId, mode } = streamOptions;
             let serializeRowUpdates = streamOptions.serializeRowUpdates && tableId;
             if (fetch) {
                 processDeltas = false;

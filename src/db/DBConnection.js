@@ -1,4 +1,5 @@
 const mysql2 = require('mysql2/promise');
+const Util = require('../util/Util');
 
 class DBConnection {
     constructor(dbCon) {
@@ -17,9 +18,28 @@ class DBConnection {
         return await this.dbCon.end(...args);
     }
 
-    async insertBatch(statement, values) {
+    async insertBatch(statement, values, toArrayFn) {
+        if (toArrayFn) {
+            values = this._objsToArray(values, toArrayFn);
+        }
         values = this._fixInsertArray(values);
-        return await this.dbCon.query(statement, [values]);
+        return await this.query(statement, [values]);
+    }
+
+    _objsToArray(objs, toArrayFn) {
+        let toInsert = [];
+        if (!Array.isArray(objs)) {
+            objs = [objs];
+        }
+        for (let obj of objs) {
+            toInsert.push(toArrayFn(obj));
+        }
+        return toInsert;
+    }
+
+    async keyValueMap(statement, key, value, params) {
+        const [rows] = await this.execute(statement, params);
+        return Util.toKeyValue(rows, key, value);
     }
 
     _fixInsertArray(toInsert) {

@@ -39,7 +39,7 @@ class VoterTableListener extends BaseTableListener {
 
     async _getBPId(bp) {
         if (!this.bpIds) {
-            this.bpIds = await this.blockProducerDao.mapAccountIdToName();
+            this.bpIds = await this.blockProducerDao.mapAccountNameToId();
         }
         if (!this.bpIds[bp]) {
             const id = await this.accountDao.selectAccountId(bp);
