@@ -19,7 +19,7 @@ class DBConnection {
 
     async insertBatch(statement, values) {
         values = this._fixInsertArray(values);
-        return await this.dbCon.query(statement, values);
+        return await this.dbCon.query(statement, [values]);
     }
 
     _fixInsertArray(toInsert) {

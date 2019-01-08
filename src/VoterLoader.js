@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const mysql = require('mysql2/promise');
+const DBCon = require('./db/DBConnection');
 const EOSListener = require('./EOSListener');
 const {
     AccountDao,
@@ -56,7 +56,7 @@ class VoterLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await mysql.createConnection(this.config.db);
+            const dbCon = await DBCon.createConnection(this.config.db);
             const voterBlockProducerDao = new VoterBlockProducerDao(dbCon);
             let config = {
                 accountDao: new AccountDao(dbCon),

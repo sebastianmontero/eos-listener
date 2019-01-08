@@ -6,13 +6,13 @@ class VoterBlockProducerDAO {
 
     async insert(values) {
         if (values.length > 0) {
-            await this.dbCon.query(
+            await this.dbCon.insertBatch(
                 `INSERT INTO voter_block_producer(
                     voter_id,
                     block_producer_id,
                     votes
                 ) VALUES ?`,
-                [values]);
+                values);
         }
     }
 

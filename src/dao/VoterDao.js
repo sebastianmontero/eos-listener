@@ -5,15 +5,12 @@ class VoterDAO {
     }
 
     async insert(values) {
-        if (!Array.isArray(values[0])) {
-            values = [values];
-        }
         await this.dbCon.insertBatch(
             `INSERT IGNORE INTO voter(
                 account_id,
                 is_proxy
             ) VALUES ?`,
-            [values]);
+            values);
     }
 
     async delete(accountId) {
