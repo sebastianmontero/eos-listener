@@ -25,7 +25,6 @@ class VoterBlockProducerDAO {
 
     async revote(voterId, voterProducers) {
         await this.deleteByVoterId(voterId);
-        console.log(voterProducers);
         await this.insert(voterProducers);
     }
 

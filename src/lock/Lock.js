@@ -4,6 +4,7 @@ class Lock {
     constructor(size = 1) {
         this._size = size;
         this._count = size;
+        this._waiting = 0;
         this._ee = new EventEmitter();
     }
 
@@ -16,11 +17,12 @@ class Lock {
                 this._count--;
                 return resolve();
             }
-
+            this._waiting++;
             // Otherwise, wait until somebody releases the lock and try again
             const tryAcquire = () => {
                 if (this.canAcquire()) {
                     this._count--;
+                    this._waiting--;
                     this._ee.removeListener('release', tryAcquire);
                     return resolve();
                 }
@@ -40,7 +42,7 @@ class Lock {
     }
 
     isInUse() {
-        return this._count < this._size;
+        return this._count < this._size || this._waiting > 0;
     }
 }
 
