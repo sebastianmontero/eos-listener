@@ -5,7 +5,10 @@ class VoterDAO {
     }
 
     async insert(values) {
-        await this.dbCon.query(
+        if (!Array.isArray(values[0])) {
+            values = [values];
+        }
+        await this.dbCon.insertBatch(
             `INSERT IGNORE INTO voter(
                 account_id,
                 is_proxy

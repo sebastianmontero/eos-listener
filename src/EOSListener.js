@@ -36,7 +36,7 @@ class EOSListener {
                         }
                         logger.error('Adding table listeners...');
                         for (let tableListener of this._addedTableListeners) {
-                            this._addTableListeners(tableListener);
+                            this._addTableListeners(tableListener, true);
                         }
                     },
                 }
@@ -131,7 +131,7 @@ class EOSListener {
         await this._addTableListeners(listenerObj);
     }
 
-    async _addTableListeners(listenerObj) {
+    async _addTableListeners(listenerObj, afterReconnect = false) {
         let tables = await listenerObj.getTables();
         logger.info('Table listeners: ', tables);
         const { streamOptions, fieldsOfInterest } = listenerObj;
@@ -140,7 +140,8 @@ class EOSListener {
             let processDeltas = true;
             let processedSnapshot = true;
             let msgBuffer, lockStore = {};
-            const { fetch, tableId, mode } = streamOptions;
+            const { tableId, mode } = streamOptions;
+            let fetch = !afterReconnect && streamOptions.fetch;
             let serializeRowUpdates = streamOptions.serializeRowUpdates && tableId;
             if (fetch) {
                 processDeltas = false;
