@@ -1,10 +1,12 @@
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
+const config = require('config');
+const { logLevel } = config;
 const { combine, timestamp, prettyPrint } = winston.format;
 const dir = '../logs';
 module.exports = {
     logger: winston.createLogger({
-        level: 'debug',
+        level: logLevel,
         format: combine(
             timestamp(),
             prettyPrint()
