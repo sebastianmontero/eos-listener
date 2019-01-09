@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const mysql = require('mysql2/promise');
+const DBCon = require('./db/DBConnection');
 const EOSListener = require('./EOSListener');
 const Interpreter = require('./Interpreter');
 const { Util, TimeUtil } = require('./util');
@@ -178,7 +178,7 @@ class ExchangeDataLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await mysql.createConnection(this.config.db);
+            const dbCon = await DBCon.createConnection(this.config.db);
             this.accountDao = new AccountDao(dbCon);
             this.actionDao = new ActionDao(dbCon);
             this.tokenDao = new TokenDao(dbCon);
@@ -186,9 +186,9 @@ class ExchangeDataLoader {
             this.dappDao = new DappDao(dbCon);
             this.exchangeTradeDao = new ExchangeTradeDao(dbCon);
             const actionTraces = await this._getActionTraces();
-            logger.debug("Action Traces:", actionTraces);
+            logger.info("Action Traces:", actionTraces);
             const actionFilters = await this._getActionFilters();
-            logger.debug("Action Filters:", actionFilters);
+            logger.info("Action Filters:", actionFilters);
 
             this.listener.addActionTraces({
                 actionTraces,

@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const mysql = require('mysql2/promise');
+const DBCon = require('./db/DBConnection');
 const EOSListener = require('./EOSListener');
 const { AccountDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
@@ -56,7 +56,7 @@ class BetDataLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await mysql.createConnection(this.config.db);
+            const dbCon = await DBCon.createConnection(this.config.db);
             let config = {
                 accountDao: new AccountDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
@@ -64,19 +64,19 @@ class BetDataLoader {
                 betDao: new BetDao(dbCon)
             };
             let fishJoyTableListener = new FishjoyTableListener(config);
-            logger.debug('Adding Fishjoy Table Listener');
+            logger.info('Adding Fishjoy Table Listener');
             this.listener.addTableListeners(fishJoyTableListener);
             let farmEOSTableListener = new FarmEOSTableListener(config);
-            logger.debug('Adding FarmEOS Table Listener');
+            logger.info('Adding FarmEOS Table Listener');
             this.listener.addTableListeners(farmEOSTableListener);
             let eosBetTableListener = new EOSBetTableListener(config);
-            logger.debug('Adding EOSBet Table Listener');
+            logger.info('Adding EOSBet Table Listener');
             this.listener.addTableListeners(eosBetTableListener);
             let fastwinTableListener = new FastwinTableListener(config);
-            logger.debug('Adding Fastwin Table Listener');
+            logger.info('Adding Fastwin Table Listener');
             this.listener.addTableListeners(fastwinTableListener);
             let endlessDiceTableListener = new EndlessDiceTableListener(config);
-            logger.debug('Adding Endless Table Listener');
+            logger.info('Adding Endless Table Listener');
             this.listener.addTableListeners(endlessDiceTableListener);
         } catch (error) {
             logger.error(error);
