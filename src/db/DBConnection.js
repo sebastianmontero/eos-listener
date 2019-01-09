@@ -11,7 +11,8 @@ class DBConnection {
     }
 
     async execute(...args) {
-        return await this.dbCon.execute(...args);
+        const [result] = await this.dbCon.execute(...args);
+        return result;
     }
 
     async end(...args) {

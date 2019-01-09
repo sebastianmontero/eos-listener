@@ -11,14 +11,14 @@ class ChannelDAO extends BaseDao {
     }
 
     async _selectId({ channelName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT channel_id FROM channel WHERE channel_name = ?',
             [channelName.toUpperCase()]);
         return rows.length ? rows[0].channel_id : null;
     }
 
     async _selectByNaturalPK({ channelName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT * FROM channel WHERE channel_name = ?',
             [channelName.toUpperCase()]);
         return rows.length ? rows[0] : null;
@@ -26,11 +26,10 @@ class ChannelDAO extends BaseDao {
 
 
     async _insert({ channelName }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO channel (channel_name)
              VALUES (?)`,
             [channelName.toUpperCase()]);
-        return result;
     }
 
     async insert(channelName) {

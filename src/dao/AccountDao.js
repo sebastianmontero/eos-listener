@@ -1,5 +1,4 @@
 const BaseDao = require('./BaseDao');
-const { Util } = require('../util');
 
 
 class AccountDAO extends BaseDao {
@@ -13,55 +12,43 @@ class AccountDAO extends BaseDao {
     }
 
     async _selectId({ accountName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT account_id FROM account WHERE account_name = ?',
             [accountName.toLowerCase()]);
         return rows.length ? rows[0].account_id : null;
     }
 
     async _selectByNaturalPK({ accountName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT * FROM account WHERE account_name = ?',
             [accountName.toLowerCase()]);
         return rows.length ? rows[0] : null;
     }
 
-    async _selectByNaturalPKs(accountNames) {
-        const [rows] = await this.dbCon.query(
+    async mapByNaturalPKs(accountNames) {
+        return await this.dbCon.keyValueMap(
             `SELECT account_id, 
                     account_name
              FROM account 
              WHERE account_name in (?)`,
+            'account_name',
+            'account_id',
             [accountNames]);
-        return rows;
     }
 
-    async _selectByAccountType(accountTypeId) {
-        const [rows] = await this.dbCon.execute(
+    async mapByAccountType(accountTypeId) {
+        return await this.dbCon.keyValueMap(
             `SELECT account_id, 
                     account_name
              FROM account 
              WHERE account_type_id = ?`,
+            'account_name',
+            'account_id',
             [accountTypeId]);
-        return rows;
-    }
-
-    async mapByNaturalPKs(accountNames) {
-        const accounts = await this._selectByNaturalPKs(accountNames);
-        return this._mapAccountNamesToIds(accounts);
-    }
-
-    async mapByAccountType(accountTypeId) {
-        const accounts = await this._selectByAccountType(accountTypeId);
-        return this._mapAccountNamesToIds(accounts);
-    }
-
-    async _mapAccountNamesToIds(accounts) {
-        return Util.toKeyValue(accounts, 'account_name', 'account_id');
     }
 
     async selectById(accountId) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             `SELECT * 
             FROM account 
             WHERE account_id = ?`,
@@ -70,11 +57,10 @@ class AccountDAO extends BaseDao {
     }
 
     async select() {
-        const [rows] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `SELECT * 
             FROM account
             WHERE account_id > 0`);
-        return rows;
     }
 
     selectStream() {
@@ -86,7 +72,7 @@ class AccountDAO extends BaseDao {
     }
 
     async selectByDappType(dappTypeId) {
-        const [rows] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `SELECT a.account_id, 
                     a.account_name, 
                     a.account_type_id, 
@@ -95,22 +81,20 @@ class AccountDAO extends BaseDao {
                  dapp d ON a.dapp_id = d.dapp_id
             WHERE d.dapp_type_id = ?`,
             [dappTypeId]);
-        return rows;
     }
 
     async _insert({ accountName, accountTypeId, dappId }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO account (account_name, account_type_id, dapp_id)
              VALUES (?, ?, ?)`,
             [accountName.toLowerCase(), accountTypeId, dappId]);
-        return result;
     }
 
     async _insertBatch(accounts) {
-        await this.dbCon.query(
+        await this.dbCon.insertBatch(
             `INSERT IGNORE INTO account (account_name, account_type_id, dapp_id)
              VALUES ?`,
-            [accounts]);
+            accounts);
     }
 
     async insert(accountName, accountTypeId, dappId) {

@@ -11,14 +11,14 @@ class TokenDAO extends BaseDao {
     }
 
     async _selectId({ tokenName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT token_id FROM token WHERE token_name = ?',
             [tokenName.toUpperCase()]);
         return rows.length ? rows[0].token_id : null;
     }
 
     async _selectByNaturalPK({ tokenName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             `SELECT *
             FROM token 
             WHERE token_name = ?`,
@@ -27,16 +27,15 @@ class TokenDAO extends BaseDao {
     }
 
     async _insert({ tokenName, accountId }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO token (token_name, account_id)
              VALUES (?, ?)`,
             [tokenName.toUpperCase(), accountId]);
-        return result;
     }
 
 
     async selectById(tokenId) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             `SELECT token_id, 
                     token_name, 
                     account_id 

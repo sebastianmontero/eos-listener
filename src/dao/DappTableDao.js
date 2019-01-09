@@ -12,7 +12,7 @@ class DappTableDAO extends BaseDao {
     }
 
     async _selectId({ dappTableName, codeAccountId, scopeAccountId }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             `SELECT dapp_table_id 
             FROM dapp_table
             WHERE dapp_table_name = ? AND
@@ -24,7 +24,7 @@ class DappTableDAO extends BaseDao {
     }
 
     async _selectByNaturalPK({ dappTableName, codeAccountId, scopeAccountId }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             `SELECT * 
             FROM dapp_table
             WHERE dapp_table_name = ? AND
@@ -36,12 +36,11 @@ class DappTableDAO extends BaseDao {
     }
 
     async _insert({ dappTableName, codeAccountId, scopeAccountId }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO dapp_table (dapp_table_name, code_account_id, scope_account_id)
              VALUES (?, ?, ?)`,
             [dappTableName, codeAccountId, scopeAccountId]
         );
-        return result;
     }
 
     async insert(dappTableName, codeAccountId, scopeAccountId) {
@@ -53,7 +52,7 @@ class DappTableDAO extends BaseDao {
     }
 
     async select(dappTableId) {
-        const [rows] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -66,11 +65,10 @@ class DappTableDAO extends BaseDao {
             WHERE dt.dapp_table_id = ?`,
             [dappTableId]
         );
-        return rows;
     }
 
     async selectByDappId(dappId) {
-        const [rows] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -83,11 +81,10 @@ class DappTableDAO extends BaseDao {
             WHERE ca.dapp_id = ?`,
             [dappId]
         );
-        return rows;
     }
 
     async selectByDappTypeId(dappTypeId) {
-        const [rows] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `SELECT dapp_table_id, 
                     dapp_table_name, 
                     code_account_id,
@@ -101,7 +98,6 @@ class DappTableDAO extends BaseDao {
             WHERE d.dapp_type_id = ?`,
             [dappTypeId]
         );
-        return rows;
     }
 
 }

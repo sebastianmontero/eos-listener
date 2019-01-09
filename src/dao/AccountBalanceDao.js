@@ -6,13 +6,9 @@ class AccountBalanceDAO extends BaseBatchDao {
         this.dbCon = dbCon;
     }
 
-    async insert(obj) {
-        await this._insert(this._toInsertArray(obj));
-    }
+    async _insert(values, toArray) {
 
-    async _insert(values) {
-
-        await this.dbCon.query(
+        await this.dbCon.insertBatch(
             `INSERT INTO account_balance(
                 account_id,
                 day_id,
@@ -20,7 +16,16 @@ class AccountBalanceDAO extends BaseBatchDao {
                 staked,
                 refund
             ) VALUES ?`,
-            [values]);
+            values,
+            toArray);
+    }
+
+    async insert(values) {
+        await this._insert(values);
+    }
+
+    async insertObj(objs) {
+        await this._insert(objs, this._toInsertArray);
     }
 
     _toInsertArray({

@@ -41,9 +41,9 @@ class BetDAO extends BaseBatchDao {
         ];
     }
 
-    async _insert(values) {
+    async _insert(values, toArray) {
 
-        await this.dbCon.query(
+        await this.dbCon.insertBatch(
             `INSERT INTO bet (
                 dapp_table_id,
                 game_bet_id,
@@ -60,8 +60,16 @@ class BetDAO extends BaseBatchDao {
                 completed_hour_of_day,
                 completed_time
             ) VALUES ?`,
-            [values]
-        );
+            values,
+            toArray);
+    }
+
+    async insert(values) {
+        await this._insert(values);
+    }
+
+    async insertObj(objs) {
+        await this._insert(objs, this._toInsertArray);
     }
 
     async _update({
@@ -122,7 +130,7 @@ class BetDAO extends BaseBatchDao {
         dappTableId,
         gameBetId,
     }) {
-        const [row] = await this.dbCon.execute(
+        const row = await this.dbCon.execute(
             `SELECT bet_id
             FROM bet
             WHERE dapp_table_id = ? AND

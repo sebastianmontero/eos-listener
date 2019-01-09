@@ -11,25 +11,24 @@ class ActionDAO extends BaseDao {
     }
 
     async _selectId({ actionName, accountId }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT action_id FROM action WHERE action_name = ? and account_id = ?',
             [actionName, accountId]);
         return rows.length ? rows[0].action_id : null;
     }
 
     async _selectByNaturalPK({ actionName, accountId }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT * FROM action WHERE action_name = ? and account_id = ?',
             [actionName, accountId]);
         return rows.length ? rows[0] : null;
     }
 
     async _insert({ actionName, accountId }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO action (action_name, account_id)
              VALUES (?, ?)`,
             [actionName, accountId]);
-        return result;
     }
 
     async insert(actionName, accountId) {

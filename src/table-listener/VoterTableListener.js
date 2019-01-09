@@ -28,7 +28,7 @@ class VoterTableListener extends BaseTableListener {
             mode: TableListenerModes.REPLICATE,
             tableId: 'owner',
             serializeRowUpdates: true,
-        }
+        };
         this.fieldsOfInterest = [
             'producers',
             'staked',

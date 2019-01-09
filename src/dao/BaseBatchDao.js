@@ -8,11 +8,7 @@ class BaseBatchDAO {
         this.batchSize = batchSize;
     }
 
-    async _insert(values) {
-        throw new Error('Method must be overriden by subclass');
-    }
-
-    _toInsertArray(obj) {
+    async insertObj(objs) {
         throw new Error('Method must be overriden by subclass');
     }
 
@@ -93,12 +89,7 @@ class BaseBatchDAO {
             const batchArray = Object.values(this.batch);
             this.batch = [];
             this.count = 0;
-
-            let values = [];
-            for (let value of batchArray) {
-                values.push(this._toInsertArray(value));
-            }
-            await this._insert(values);
+            await this.insertObj(batchArray);
         }
     }
 

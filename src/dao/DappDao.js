@@ -12,7 +12,7 @@ class DappDAO extends BaseDao {
     }
 
     async _selectId({ dappName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT dapp_id FROM dapp WHERE dapp_name = ?',
             [dappName]
         );
@@ -20,7 +20,7 @@ class DappDAO extends BaseDao {
     }
 
     async _selectByNaturalPK({ dappName }) {
-        const [rows] = await this.dbCon.execute(
+        const rows = await this.dbCon.execute(
             'SELECT * FROM dapp WHERE dapp_name = ?',
             [dappName]
         );
@@ -28,12 +28,11 @@ class DappDAO extends BaseDao {
     }
 
     async _insert({ dappName, dappTypeId }) {
-        const [result] = await this.dbCon.execute(
+        return await this.dbCon.execute(
             `INSERT INTO dapp (dapp_name, dapp_type_id)
              VALUES (?, ?)`,
             [dappName, dappTypeId]
         );
-        return result;
     }
 
     async insert(dappName, dappTypeId) {

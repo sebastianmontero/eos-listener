@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const HttpStatus = require('http-status-codes');
-const mysql = require('mysql2/promise');
+const DBCon = require('./db/DBConnection');
 const mysqlStream = require('mysql2');
 const { AccountDao } = require('./dao');
 const { AccountBalanceDao } = require('./dao');
@@ -28,7 +28,7 @@ class AccountBalanceLoader {
         const date = new Date();
         this.dayId = TimeUtil.dayId(date);
         logger.info('Loading account balances.... For date: ', date);
-        this.dbCon = await mysql.createConnection(this.config.db);
+        this.dbCon = await DBCon.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
         this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
         this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
