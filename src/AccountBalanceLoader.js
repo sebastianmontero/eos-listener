@@ -55,8 +55,8 @@ class AccountBalanceLoader {
             }
         }
     }
-    _loadAccounts() {
-        const query = this.accountDao.selectStream();
+    _loadAccounts(offset = 0) {
+        const query = this.accountDao.selectStream(offset);
         query
             .on('result', async account => {
                 this.accountsStreamed++;
@@ -104,6 +104,10 @@ class AccountBalanceLoader {
             })
             .on('error', async err => {
                 logger.error('Error:', err);
+                this.isPaused = false;
+                this.dbConStream = mysqlStream.createConnection(this.config.db);
+                logger.info('Created new connection. Loading remaining accounts...');
+                this._loadAccounts(this.accountsStreamed);
             });
 
     }

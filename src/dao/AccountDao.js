@@ -63,11 +63,13 @@ class AccountDAO extends BaseDao {
             WHERE account_id > 0`);
     }
 
-    selectStream() {
+    selectStream(offset = 0) {
         return this.dbConStream.query(
             `SELECT * 
-                FROM account
-                WHERE account_id > 0`
+             FROM account
+             WHERE account_id > 0
+             OFFSET ?, 18446744073709551615`,
+            [offset]
         );
     }
 
