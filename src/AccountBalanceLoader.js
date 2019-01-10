@@ -61,7 +61,7 @@ class AccountBalanceLoader {
             .on('result', async account => {
                 this.accountsStreamed++;
                 this._shouldPause();
-                const accountDetails = await this._getAccountDetails('blocksmithio');
+                const accountDetails = await this._getAccountDetails(account.account_name);
                 this.accountsFetched++;
                 if (this.accountsFetched % 100 == 0) {
                     logger.info(`Streamed: ${this.accountsStreamed} Fetched: ${this.accountsFetched}`);
@@ -137,12 +137,12 @@ class AccountBalanceLoader {
             if (status === HttpStatus.OK) {
                 account = await response.json();
                 //console.log('Fetched: ', accountName);
-            } /*else if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+            } else if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
                 const error = await response.json();
-                console.log(`account: ${accountName} url: ${endpoint}`);
-                console.log(error.error.details[0].message);
+                //console.log(`account: ${accountName} url: ${endpoint}`);
+                //console.log(error.error.details[0].message);
                 logger.error(`Invalid account name: ${accountName}, status: ${status}, endpoint: ${endpoint}`);
-            }*/ else {
+            } else {
                 throw new Error(`Server responded with status: ${status}`);
             }
             inuse.splice(inusePos, 1);
@@ -153,9 +153,6 @@ class AccountBalanceLoader {
             inuse.splice(inusePos, 1);
             logger.error(`Invalid endpoint:${endpoint}. Removing from available endpoints. Account name: ${accountName}`);
             account = await this._getAccountDetails(accountName);
-            console.log('');
-            console.log('');
-            console.log(JSON.stringify(this.endpoints))
         }
         return account;
 
