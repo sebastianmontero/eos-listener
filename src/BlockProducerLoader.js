@@ -1,9 +1,11 @@
 const figlet = require('figlet');
+const cron = require('node-cron');
 const DBCon = require('./db/DBConnection');
 const EOSListener = require('./EOSListener');
-const { AccountDao, TokenDao, DappTableDao, BlockProducerDao } = require('./dao');
+const { AccountDao, TokenDao, DappTableDao, BlockProducerDao, BlockProducerHistoryDao } = require('./dao');
 const { logger } = require('./Logger');
 const { BlockProducerTableListener } = require('./table-listener');
+const { TimeUtil } = require('./util');
 
 class BlockProducerLoader {
     constructor(config) {
@@ -52,24 +54,36 @@ class BlockProducerLoader {
         try {
             const dbCon = await DBCon.createConnection(this.config.db);
             const blockProducerDao = new BlockProducerDao(dbCon);
+            const blockProducerHistoryDao = new BlockProducerHistoryDao(dbCon);
             let config = {
                 accountDao: new AccountDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
                 dappTableDao: new DappTableDao(dbCon),
                 blockProducerDao,
             };
-            /* const parameters = await this.blockProducerDao.showParameters();
-            for (let parameter of parameters) {
-                const { key, value } = parameter;
-                console.log(`${key}:${value}`);
-            } */
             await blockProducerDao.truncate();
             let blockProducerTableListener = new BlockProducerTableListener(config);
-            logger.debug('Adding Block Producer Table Listener');
+            logger.info('Adding Block Producer Table Listener');
             this.listener.addTableListeners(blockProducerTableListener);
+
+            cron.schedule('0 29 16 * * *', () => {
+                this.takeSnapshot(blockProducerHistoryDao);
+            });
+            logger.info('Added block producer snapshot cron job');
         } catch (error) {
             logger.error(error);
         }
+    }
+
+
+    async takeSnapshot(blockProducerHistoryDao) {
+        const date = new Date();
+        const dayId = TimeUtil.dayId(date);
+        logger.info('Taking block producer snapshot.... For date: ', date);
+        await blockProducerHistoryDao.deleteByDayId(dayId);
+        logger.info('Deleted block producer snapshot.... For date: ', date);
+        await blockProducerHistoryDao.storeSnapshot(dayId);
+        logger.info('Block producer snapshot created For date: ', date);
     }
 }
 

@@ -39,10 +39,14 @@ class BlockProducerTableListener extends BaseTableListener {
             owner,
             total_votes,
             is_active,
-            url,
             location,
         } = row;
 
+        let { url } = row;
+
+        if (url.trim() == '') {
+            url = null;
+        }
         return {
             accountName: owner,
             isActive: Number(is_active) === 1,

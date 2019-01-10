@@ -67,6 +67,14 @@ class BlockProducerDAO {
         );
     }
 
+    async selectUniqueUrls() {
+        return await this.dbCon.execute(
+            `SELECT DISTINCT url
+             FROM block_producer
+             WHERE url IS NOT NULL`
+        );
+    }
+
     async mapAccountNameToId() {
         return await this.dbCon.keyValueMap(
             `SELECT a.account_id, 
@@ -83,6 +91,27 @@ class BlockProducerDAO {
             FROM block_producer
             WHERE account_id = ?`,
             [accountId]
+        );
+    }
+
+    async storeSnapshot(dayId) {
+        await this.dbCon.execute(
+            `INSERT INTO block_producer_history(
+                account_id,
+                day_id,
+                is_active,
+                url,
+                total_votes,
+                location
+            )
+             SELECT account_id,
+                    ?,
+                    is_active,
+                    url,
+                    total_votes,
+                    location
+            FROM block_producer`,
+            [dayId]
         );
     }
 

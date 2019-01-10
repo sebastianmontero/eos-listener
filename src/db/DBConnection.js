@@ -7,7 +7,8 @@ class DBConnection {
     }
 
     async query(...args) {
-        return await this.dbCon.query(...args);
+        const [result] = await this.dbCon.query(...args);
+        return result;
     }
 
     async execute(...args) {
@@ -39,7 +40,7 @@ class DBConnection {
     }
 
     async keyValueMap(statement, key, value, params) {
-        const [rows] = await this.execute(statement, params);
+        const rows = await this.query(statement, params);
         return Util.toKeyValue(rows, key, value);
     }
 

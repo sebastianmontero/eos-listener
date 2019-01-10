@@ -25,6 +25,7 @@ class VoterTableListener extends BaseTableListener {
         this.streamOptions = {
             ...this.streamOptions,
             fetch: true,
+            //listen: false,
             mode: TableListenerModes.REPLICATE,
             tableId: 'owner',
             serializeRowUpdates: true,
@@ -112,7 +113,7 @@ class VoterTableListener extends BaseTableListener {
                 await this._processProducers(voter, votersProducers);
             }
             await this.voterDao.insert(voters);
-            logger.info(`Loaded Voters from: ${start} to ${end}`, new Date());
+            logger.info(`Loaded Voters from: ${start} to ${end}. Length: ${voters.length}`, new Date());
             await this.voterBlockProducerDao.insert(votersProducers);
             logger.info('Loaded VoterBlockProducer Table', new Date());
         }

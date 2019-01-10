@@ -1,4 +1,5 @@
 const figlet = require('figlet');
+const cron = require('node-cron');
 const DBCon = require('./db/DBConnection');
 const EOSListener = require('./EOSListener');
 const {
@@ -7,9 +8,11 @@ const {
     DappTableDao,
     BlockProducerDao,
     VoterDao,
-    VoterBlockProducerDao } = require('./dao');
+    VoterBlockProducerDao,
+    VoterBlockProducerHistoryDao } = require('./dao');
 const { logger } = require('./Logger');
 const { VoterTableListener } = require('./table-listener');
+const { TimeUtil } = require('./util');
 
 class VoterLoader {
     constructor(config) {
@@ -58,6 +61,7 @@ class VoterLoader {
         try {
             const dbCon = await DBCon.createConnection(this.config.db);
             const voterBlockProducerDao = new VoterBlockProducerDao(dbCon);
+            const voterBlockProducerHistoryDao = new VoterBlockProducerHistoryDao(dbCon);
             let config = {
                 accountDao: new AccountDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
@@ -66,18 +70,28 @@ class VoterLoader {
                 voterDao: new VoterDao(dbCon),
                 voterBlockProducerDao,
             };
-            /* const parameters = await this.blockProducerDao.showParameters();
-            for (let parameter of parameters) {
-                const { key, value } = parameter;
-                console.log(`${key}:${value}`);
-            } */
             await voterBlockProducerDao.truncate();
             let voterTableListener = new VoterTableListener(config);
             logger.debug('Adding Voter Table Listener');
             this.listener.addTableListeners(voterTableListener);
+
+            cron.schedule('0 43 16 * * *', () => {
+                this.takeSnapshot(voterBlockProducerHistoryDao);
+            });
+            logger.info('Added voter block producer snapshot cron job');
         } catch (error) {
             logger.error(error);
         }
+    }
+
+    async takeSnapshot(voterBlockProducerHistoryDao) {
+        const date = new Date();
+        const dayId = TimeUtil.dayId(date);
+        logger.info('Taking voter block producer snapshot.... For date: ', date);
+        await voterBlockProducerHistoryDao.deleteByDayId(dayId);
+        logger.info('Deleted voter block producer snapshot.... For date: ', date);
+        await voterBlockProducerHistoryDao.storeSnapshot(dayId);
+        logger.info('Voter block producer snapshot created For date: ', date);
     }
 }
 
