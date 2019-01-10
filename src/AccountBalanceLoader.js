@@ -140,8 +140,8 @@ class AccountBalanceLoader {
             } else if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
                 const error = await response.json();
                 //console.log(`account: ${accountName} url: ${endpoint}`);
-                //console.log(error.error.details[0].message);
                 logger.error(`Invalid account name: ${accountName}, status: ${status}, endpoint: ${endpoint}`);
+                logger.error(error.error.details[0].message);
             } else {
                 throw new Error(`Server responded with status: ${status}`);
             }
@@ -152,6 +152,7 @@ class AccountBalanceLoader {
         } catch (error) {
             inuse.splice(inusePos, 1);
             logger.error(`Invalid endpoint:${endpoint}. Removing from available endpoints. Account name: ${accountName}`);
+            logger.error(`Endpoints remaining: ${inuse.length + available.length}`);
             account = await this._getAccountDetails(accountName);
         }
         return account;
