@@ -207,24 +207,24 @@ class EOSListener {
                             const isHistoryMode = mode === TableListenerModes.HISTORY;
                             if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
                                 if (op === DBOps.INSERT) {
-                                    logger.debug('Insert new o redo:', payload);
+                                    logger.debug(`Insert new o redo.DappTableId: ${dappTableId}. payload:`, payload);
                                     await listenerObj.insert(payload);
                                 } else if (op === DBOps.UPDATE) {
-                                    logger.debug('Update new o redo:', payload);
+                                    logger.debug(`Update new o redo.DappTableId: ${dappTableId}. payload:`, payload);
                                     await listenerObj.update(payload);
                                 } else if (op === DBOps.REMOVE && !isHistoryMode) {
-                                    logger.debug('Remove new o redo:', payload);
+                                    logger.debug(`Remove new o redo.DappTableId: ${dappTableId}. Payload:`, payload);
                                     await listenerObj.remove(payload);
                                 }
                             } else if (step === ForkSteps.UNDO) {
                                 if (op === DBOps.INSERT && !isHistoryMode) {
-                                    logger.debug('Insert undo:', payload);
+                                    logger.debug(`Insert undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.insert(payload);
                                 } else if (op === DBOps.UPDATE) {
-                                    logger.debug('Update undo:', payload);
+                                    logger.debug(`Update undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.update(payload);
                                 } else if (op === DBOps.REMOVE) {
-                                    logger.debug('Remove undo:', payload);
+                                    logger.debug(`Remove undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.remove(payload);
                                 }
                             }

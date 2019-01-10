@@ -66,7 +66,7 @@ class BlockProducerLoader {
             logger.info('Adding Block Producer Table Listener');
             this.listener.addTableListeners(blockProducerTableListener);
 
-            cron.schedule('0 29 16 * * *', () => {
+            cron.schedule(this.config.blockProducerSnapshotTime, () => {
                 this.takeSnapshot(blockProducerHistoryDao);
             });
             logger.info('Added block producer snapshot cron job');

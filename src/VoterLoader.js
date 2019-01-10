@@ -75,7 +75,7 @@ class VoterLoader {
             logger.debug('Adding Voter Table Listener');
             this.listener.addTableListeners(voterTableListener);
 
-            cron.schedule('0 43 16 * * *', () => {
+            cron.schedule(this.config.voterSnapshotTime, () => {
                 this.takeSnapshot(voterBlockProducerHistoryDao);
             });
             logger.info('Added voter block producer snapshot cron job');
