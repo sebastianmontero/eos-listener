@@ -103,7 +103,7 @@ class AccountBalanceLoader {
                 logger.info('Connections closed.');
             })
             .on('error', async err => {
-                logger.error('Error:', err);
+                logger.error('Error1:', err);
                 this.isPaused = false;
                 this.dbConStream = mysqlStream.createConnection(this.config.db);
                 logger.info('Created new connection. Loading remaining accounts...');

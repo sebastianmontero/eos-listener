@@ -88,7 +88,8 @@ class VoterTableListener extends BaseTableListener {
     }
 
     async snapshot(payload) {
-        const { rows } = payload;
+        let { rows } = payload;
+        rows = rows.slice(0, 10);
         logger.info('Started processing voter snapshot', new Date());
         let numBatches = Math.ceil(rows.length / this.batchSize);
         for (let i = 0; i < numBatches; i++) {
