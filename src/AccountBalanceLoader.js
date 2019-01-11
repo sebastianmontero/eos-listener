@@ -60,6 +60,7 @@ class AccountBalanceLoader {
         }
     }
     _loadAccounts(offset = 0) {
+        logger.info(`Loading accounts from: ${offset}`);
         const query = this.accountDao.selectStream(offset);
         query
             .on('result', async account => {
