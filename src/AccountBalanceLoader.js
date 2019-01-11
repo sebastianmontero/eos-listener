@@ -120,6 +120,7 @@ class AccountBalanceLoader {
         this.isPaused = false;
         this.dbConStream = mysqlStream.createConnection(this.config.db);
         logger.info('Created new connection. Loading remaining accounts...');
+        this.accountDao.dbConStream = this.dbConStream;
         this._loadAccounts(this.accountsStreamed);
     }
 
