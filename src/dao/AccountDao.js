@@ -68,7 +68,7 @@ class AccountDAO extends BaseDao {
             `SELECT * 
              FROM account
              WHERE account_id > 0
-             OFFSET ?, 18446744073709551615`,
+             LIMIT ?, 18446744073709551615`,
             [offset]
         );
     }
