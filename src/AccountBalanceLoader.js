@@ -29,7 +29,7 @@ class AccountBalanceLoader {
         logger.info('Loading account balances.... For date: ', date);
         this.dbCon = await DBCon.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
-        this.dbConStream.on('error', function (err) {
+        this.dbConStream.on('error', err => {
             logger.error('Error2:', err);
             this._handleReconnect();
         });
