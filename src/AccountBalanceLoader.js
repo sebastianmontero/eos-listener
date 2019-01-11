@@ -30,10 +30,6 @@ class AccountBalanceLoader {
         logger.info('Loading account balances.... For date: ', date);
         this.dbCon = await DBCon.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
-        this.dbConStream.on('error', err => {
-            logger.error('Error2:', err);
-            this._handleReconnect();
-        });
         this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
         this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
         logger.info('Deleting existing account balances for date: ', date);
@@ -62,6 +58,10 @@ class AccountBalanceLoader {
     }
     _loadAccounts(offset = 0) {
         logger.info(`Loading accounts from: ${offset}`);
+        this.dbConStream.on('error', err => {
+            logger.error('Error2:', err);
+            this._handleReconnect();
+        });
         const query = this.accountDao.selectStream(offset);
         query
             .on('result', async account => {
