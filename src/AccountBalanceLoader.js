@@ -29,6 +29,10 @@ class AccountBalanceLoader {
         logger.info('Loading account balances.... For date: ', date);
         this.dbCon = await DBCon.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
+        this.dbConStream.on('error', function (err) {
+            logger.error('Error2:', err);
+            this._handleReconnect();
+        });
         this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
         this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
         logger.info('Deleting existing account balances for date: ', date);
@@ -104,12 +108,17 @@ class AccountBalanceLoader {
             })
             .on('error', async err => {
                 logger.error('Error1:', err);
-                this.isPaused = false;
-                this.dbConStream = mysqlStream.createConnection(this.config.db);
-                logger.info('Created new connection. Loading remaining accounts...');
-                this._loadAccounts(this.accountsStreamed);
+                this._handleReconnect();
             });
 
+    }
+
+    _handleReconnect() {
+        logger.info('Reconnecting...');
+        this.isPaused = false;
+        this.dbConStream = mysqlStream.createConnection(this.config.db);
+        logger.info('Created new connection. Loading remaining accounts...');
+        this._loadAccounts(this.accountsStreamed);
     }
 
 
