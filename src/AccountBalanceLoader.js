@@ -11,7 +11,8 @@ class AccountBalanceLoader {
 
     constructor(config) {
         this.config = config;
-        const { httpEndpoints } = config;
+        let { httpEndpoints } = config;
+        httpEndpoints = [...new Set(httpEndpoints)];
         this.endpoints = {
             available: httpEndpoints.map(endpoint => endpoint + '/v1/chain/get_account'),
             inuse: []
