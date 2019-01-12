@@ -59,7 +59,7 @@ class AccountBalanceLoader {
     _loadAccounts(offset = 0) {
         logger.info(`Loading accounts from: ${offset}`);
         this.dbConStream.on('error', err => {
-            logger.error('Error2:', err);
+            logger.error('Connection Error:', err);
             this._handleReconnect();
         });
         const query = this.accountDao.selectStream(offset);
@@ -109,7 +109,7 @@ class AccountBalanceLoader {
                 logger.info('Connections closed.');
             })
             .on('error', async err => {
-                logger.error('Error1:', err);
+                logger.error('Stream Error:', err);
                 this._handleReconnect();
             });
 

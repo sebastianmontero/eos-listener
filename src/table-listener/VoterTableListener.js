@@ -25,7 +25,6 @@ class VoterTableListener extends BaseTableListener {
         this.streamOptions = {
             ...this.streamOptions,
             fetch: true,
-            //listen: false,
             mode: TableListenerModes.REPLICATE,
             tableId: 'owner',
             serializeRowUpdates: true,
@@ -88,8 +87,7 @@ class VoterTableListener extends BaseTableListener {
     }
 
     async snapshot(payload) {
-        let { rows } = payload;
-        rows = rows.slice(0, 10);
+        const { rows } = payload;
         logger.info('Started processing voter snapshot', new Date());
         let numBatches = Math.ceil(rows.length / this.batchSize);
         for (let i = 0; i < numBatches; i++) {

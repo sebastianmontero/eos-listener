@@ -16,6 +16,11 @@ class DBConnection {
         return result;
     }
 
+    async singleValue(...args) {
+        const rows = await this.execute(...args);
+        return rows.length ? Object.values(rows[0])[0] : null;
+    }
+
     async end(...args) {
         return await this.dbCon.end(...args);
     }

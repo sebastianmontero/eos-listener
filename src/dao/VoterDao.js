@@ -13,6 +13,12 @@ class VoterDAO {
             values);
     }
 
+    async count() {
+        return await this.dbCon.singleValue(
+            `SELECT COUNT(*)
+             FROM voter`);
+    }
+
     async delete(accountId) {
         await this.dbCon.execute(
             `DELETE
