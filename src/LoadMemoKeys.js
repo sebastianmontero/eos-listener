@@ -1,4 +1,4 @@
-const EOSListener = require('./EOSListener.js');
+const EOSListener = require('./eos-listener/EOSListener.js');
 const figlet = require('figlet');
 const mysql = require('mysql');
 const JSONFieldParser = require('./JSONFieldParser');

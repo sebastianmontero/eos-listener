@@ -1,6 +1,7 @@
 const figlet = require('figlet');
 const DBCon = require('./db/DBConnection');
-const EOSListener = require('./EOSListener');
+const EOSListener = require('./eos-listener/EOSListener');
+const BlockProgress = require('./eos-listener/BlockProgress');
 const Interpreter = require('./Interpreter');
 const { Util, TimeUtil } = require('./util');
 const { AccountTypeIds, SpecialValues, OrderTypeIds, DappTypeIds } = require('./const');
@@ -157,7 +158,7 @@ class ExchangeDataLoader {
                 account: tokenAccount.account_name,
                 action_name: 'transfer',
                 streamOptions: { ...this.baseStreamOptions },
-                blockProgress: {},
+                blockProgress: new BlockProgress({}),
             });
         }
         return actionTraces;

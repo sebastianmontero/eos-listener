@@ -1,6 +1,6 @@
 const figlet = require('figlet');
 const DBCon = require('./db/DBConnection');
-const EOSListener = require('./EOSListener');
+const EOSListener = require('./eos-listener/EOSListener');
 const { AccountDao, TokenDao, DappTableDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
 const {
