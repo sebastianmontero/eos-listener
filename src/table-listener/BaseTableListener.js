@@ -1,10 +1,10 @@
 const { TableListenerModes } = require('../const');
-
+const BlockProgress = require('../eos-listener/BlockProgress');
 class BaseTableListener {
     /**
      * dappId or dappTableId must be specified
      * @param {*} param0 
-     */
+      */
     constructor({
         dappId,
         dappTableId,
@@ -29,7 +29,7 @@ class BaseTableListener {
         };
     }
 
-    getStreamOptions(afterReconnect = false) {
+    getStreamOptions(blockProgress, afterReconnect = false) {
         let streamOptions = this.streamOptions;
         if (afterReconnect) {
             streamOptions = {
@@ -37,6 +37,7 @@ class BaseTableListener {
                 fetch: false
             }
         }
+        streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
         return streamOptions;
     }
 
@@ -49,6 +50,7 @@ class BaseTableListener {
                 code: dappTable.code_account_name,
                 scope: dappTable.scope_account_name,
                 table: dappTable.dapp_table_name,
+                blockProgress: new BlockProgress({}),
             });
         }
         return listeners;

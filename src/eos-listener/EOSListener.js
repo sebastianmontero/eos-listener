@@ -118,7 +118,6 @@ class EOSListener {
                             logger.debug('Payload', payload);
                             await callbackFn(payload);
                             blockProgress.processedBlock(blockInfo);
-                            console.log(blockProgress);
                         }
                     }
                 } catch (error) {
@@ -146,9 +145,9 @@ class EOSListener {
         let tables = await listenerObj.getTables();
         logger.info('Table listeners: ', tables);
         const { fieldsOfInterest } = listenerObj;
-        const streamOptions = listenerObj.getStreamOptions(afterReconnect);
         tables.forEach(table => {
-            const { dappTableId } = table;
+            const { dappTableId, blockProgress } = table;
+            const streamOptions = listenerObj.getStreamOptions(blockProgress, afterReconnect);
             let processDeltas = true;
             let processedSnapshot = true;
             let msgBuffer, lockStore = {};
@@ -162,9 +161,6 @@ class EOSListener {
 
             const processMessage = async message => {
                 try {
-                    console.log('----MESSAGE START ------');
-                    console.log(message);
-                    console.log('----MESSAGE END ------');
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
                         logger.info(`Number of rows in table snapshot: ${rows.length}. DappTableId: ${dappTableId}.`);
@@ -188,15 +184,19 @@ class EOSListener {
                             msgBuffer.push(message);
                             return;
                         }
-                        const { data, data: { step, dbop, dbop: { op } } } = message;
+                        const { data, data: { block_num, step, dbop, dbop: { op, action_idx } } } = message;
                         const oldRow = dbop.old && dbop.old.json;
                         const newRow = dbop.new && dbop.new.json;
-                        console.log('----OLD ROW ------');
-                        console.log(oldRow);
-                        console.log('----NEW ROW ------');
-                        console.log(newRow);
-                        console.log('----END ------');
                         let modifiedProps = null;
+
+                        const blockInfo = {
+                            blockNum: block_num,
+                            idx: action_idx
+                        };
+                        if (!blockProgress.shouldProcessBlock(blockInfo)) {
+                            return;
+                        }
+
                         if (op === DBOps.UPDATE) {
                             modifiedProps = Util.modifiedProps(oldRow, newRow, fieldsOfInterest);
                             if (!modifiedProps) {
@@ -247,6 +247,7 @@ class EOSListener {
                                     await listenerObj.remove(payload);
                                 }
                             }
+                            blockProgress.processedBlock(blockInfo);
                         } finally {
                             if (serializeRowUpdates) {
                                 lockStore[id].release();
