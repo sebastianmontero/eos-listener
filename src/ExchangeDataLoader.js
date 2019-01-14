@@ -27,6 +27,7 @@ class ExchangeDataLoader {
         });
 
         this.interpreter = new Interpreter(keyDictionary);
+        this.baseStreamOptions = {};
 
     }
 
@@ -155,6 +156,8 @@ class ExchangeDataLoader {
             actionTraces.push({
                 account: tokenAccount.account_name,
                 action_name: 'transfer',
+                streamOptions: { ...this.baseStreamOptions },
+                blockProgress: {},
             });
         }
         return actionTraces;

@@ -48,13 +48,11 @@ class EOSListener {
         actionTraces,
         actionFilters,
         callbackFn,
-        streamOptions = {}
     }) {
         const listenerConfig = {
             actionTraces,
             actionFilters,
             callbackFn,
-            streamOptions
         };
 
         this._addedActionTraces.push(listenerConfig);
@@ -71,11 +69,11 @@ class EOSListener {
         actionTraces,
         actionFilters,
         callbackFn,
-        streamOptions = {}
     }) {
         actionTraces.forEach(actionTrace => {
-            this.client.getActionTraces(actionTrace, streamOptions).onMessage((message) => {
+            this.client.getActionTraces(actionTrace, actionTrace.streamOptions).onMessage((message) => {
                 try {
+
                     if (message.type === InboundMessageType.ACTION_TRACE) {
                         const data = message.data.trace.act;
                         const {
@@ -96,6 +94,9 @@ class EOSListener {
                         }
 
                         if (passFilter) {
+                            console.log('----MESSAGE START ------');
+                            console.log(message);
+                            console.log('----MESSAGE END ------');
                             let { block_num, block_time } = message.data;
                             block_time = new Date(block_time);
                             let payload = {
@@ -151,6 +152,9 @@ class EOSListener {
 
             const processMessage = async message => {
                 try {
+                    console.log('----MESSAGE START ------');
+                    console.log(message);
+                    console.log('----MESSAGE END ------');
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
                         logger.info(`Number of rows in table snapshot: ${rows.length}. DappTableId: ${dappTableId}.`);
@@ -177,6 +181,11 @@ class EOSListener {
                         const { data, data: { step, dbop, dbop: { op } } } = message;
                         const oldRow = dbop.old && dbop.old.json;
                         const newRow = dbop.new && dbop.new.json;
+                        console.log('----OLD ROW ------');
+                        console.log(oldRow);
+                        console.log('----NEW ROW ------');
+                        console.log(newRow);
+                        console.log('----END ------');
                         let modifiedProps = null;
                         if (op === DBOps.UPDATE) {
                             modifiedProps = Util.modifiedProps(oldRow, newRow, fieldsOfInterest);
