@@ -115,12 +115,13 @@ class AccountBalanceLoader {
 
     }
     _closeStreamConnection(label) {
+        logger.info(`Ending stream connection....${label}`);
         this.dbConStream.end(function (err) {
             if (err) {
-                logger.error(`Error closing stream connection. ${label}`, err);
+                logger.error(`Error ending stream connection. ${label}`, err);
                 return;
             }
-            logger.info(`Closed stream connection. ${label}`);
+            logger.info(`Ended stream connection. ${label}`);
         });
     }
 
