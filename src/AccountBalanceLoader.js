@@ -20,6 +20,8 @@ class AccountBalanceLoader {
         this.buffer = 5;
         this.accountsStreamed = 0;
         this.accountsFetched = 0;
+        this.accountsInserted = 0;
+        this.streamFinished = false;
         this.isPaused = false;
         this.lock = new Lock(httpEndpoints.length);
     }
@@ -62,8 +64,8 @@ class AccountBalanceLoader {
             logger.error('Connection Error:', err);
             this._handleReconnect();
         });
-        const query = this.accountDao.selectStream(offset);
-        query
+        this.query = this.accountDao.selectStream(offset);
+        this.query
             .on('result', async account => {
                 this.accountsStreamed++;
                 this._shouldPause();
@@ -100,13 +102,18 @@ class AccountBalanceLoader {
                     logger.debug('To insert: ', toInsert);
                     await this.accountBalanceDao.batchInsert(toInsert);
                 }
+                if (this.streamFinished && this.accountsFetched == this.accountsStreamed) {
+                    logger.info('Finshed processing accounts. Flushing last inserts...')
+                    await this.accountBalanceDao.flush();
+                    await this.dbCon.end();
+                    logger.info('Finished updating database. Connection closed.');
+                }
             })
             .on('end', async () => {
-                logger.info('All rows have been processed. Flushing and closing connections...');
+                logger.info('All rows have been streamed. Waiting for processing to finish...');
                 this._closeStreamConnection('End of processing.');
-                await this.accountBalanceDao.flush();
-                await this.dbCon.end();
-                logger.info('Connections closed.');
+                this.streamFinished = true;
+
             })
             .on('error', async err => {
                 logger.error('Stream Error:', err);
@@ -128,6 +135,7 @@ class AccountBalanceLoader {
     _handleReconnect() {
         logger.info('Reconnecting...');
         this.isPaused = false;
+        this.query.removeAllListeners();
         this._closeStreamConnection('Handling reconnect.');
         this.dbConStream = mysqlStream.createConnection(this.config.db);
         logger.info('Created new connection. Loading remaining accounts...');
