@@ -103,7 +103,7 @@ class AccountBalanceLoader {
             })
             .on('end', async () => {
                 logger.info('All rows have been processed. Flushing and closing connections...');
-                this.dbConStream.end();
+                this._closeStreamConnection('End of processing.');
                 await this.accountBalanceDao.flush();
                 await this.dbCon.end();
                 logger.info('Connections closed.');
@@ -114,10 +114,20 @@ class AccountBalanceLoader {
             });
 
     }
+    _closeStreamConnection(label) {
+        this.dbConStream.end(function (err) {
+            if (err) {
+                logger.error(`Error closing stream connection. ${label}`, err);
+                return;
+            }
+            logger.info(`Closed stream connection. ${label}`);
+        });
+    }
 
     _handleReconnect() {
         logger.info('Reconnecting...');
         this.isPaused = false;
+        this._closeStreamConnection('Handling reconnect.');
         this.dbConStream = mysqlStream.createConnection(this.config.db);
         logger.info('Created new connection. Loading remaining accounts...');
         this.accountDao.dbConStream = this.dbConStream;

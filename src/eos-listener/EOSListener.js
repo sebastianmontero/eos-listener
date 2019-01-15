@@ -73,7 +73,7 @@ class EOSListener {
         actionTraces.forEach(actionTrace => {
             let { blockProgress, streamOptions } = actionTrace;
             streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
-            console.log('Stream options: ', streamOptions);
+            logger.info(`Stream options. Account:${actionTrace.account}`, streamOptions);
             this.client.getActionTraces(actionTrace, streamOptions).onMessage(async (message) => {
                 try {
 
@@ -104,6 +104,7 @@ class EOSListener {
                                 idx: idx
                             };
                             if (!blockProgress.shouldProcessBlock(blockInfo)) {
+                                logger.info(`Processed block. Account: ${account}`, blockInfo);
                                 return;
                             }
                             block_time = new Date(block_time);
@@ -148,7 +149,7 @@ class EOSListener {
         tables.forEach(table => {
             const { dappTableId, blockProgress } = table;
             const streamOptions = listenerObj.getStreamOptions(blockProgress, afterReconnect);
-            console.log('StreamOptions', streamOptions);
+            logger.info(`StreamOptions. DappTableId: ${dappTableId}.`, streamOptions);
             let processDeltas = true;
             let processedSnapshot = true;
             let msgBuffer, lockStore = {};
@@ -196,8 +197,7 @@ class EOSListener {
                             idx: action_idx
                         };
                         if (!blockProgress.shouldProcessBlock(blockInfo)) {
-                            console.log(`Processed block.DappTableId: ${dappTableId}`, blockInfo);
-                            //console.log(`Processed block.DappTableId: ${dappTableId}`, blockInfo, oldRow, newRow);
+                            logger.info(`Processed block.DappTableId: ${dappTableId}`, blockInfo);
                             return;
                         }
 
@@ -252,8 +252,6 @@ class EOSListener {
                                 }
                             }
                             blockProgress.processedBlock(blockInfo);
-                            //console.log(`BlockProgress.DappTableId: ${dappTableId}`, blockProgress);
-                            //console.log(`BlockProgress.DappTableId: ${dappTableId}`, blockProgress, oldRow, newRow);
                         } finally {
                             if (serializeRowUpdates) {
                                 lockStore[id].release();
