@@ -148,6 +148,7 @@ class EOSListener {
         tables.forEach(table => {
             const { dappTableId, blockProgress } = table;
             const streamOptions = listenerObj.getStreamOptions(blockProgress, afterReconnect);
+            console.log('StreamOptions', streamOptions);
             let processDeltas = true;
             let processedSnapshot = true;
             let msgBuffer, lockStore = {};
@@ -188,12 +189,15 @@ class EOSListener {
                         const oldRow = dbop.old && dbop.old.json;
                         const newRow = dbop.new && dbop.new.json;
                         let modifiedProps = null;
-
+                        const id = newRow ? newRow[tableId] : oldRow[tableId];
                         const blockInfo = {
                             blockNum: block_num,
+                            trxId: id,
                             idx: action_idx
                         };
                         if (!blockProgress.shouldProcessBlock(blockInfo)) {
+                            console.log(`Processed block.DappTableId: ${dappTableId}`, blockInfo);
+                            //console.log(`Processed block.DappTableId: ${dappTableId}`, blockInfo, oldRow, newRow);
                             return;
                         }
 
@@ -204,7 +208,7 @@ class EOSListener {
                             }
                         }
 
-                        const id = newRow ? newRow[tableId] : oldRow[tableId];
+
                         try {
                             if (serializeRowUpdates) {
                                 if (!lockStore[id]) {
@@ -248,6 +252,8 @@ class EOSListener {
                                 }
                             }
                             blockProgress.processedBlock(blockInfo);
+                            //console.log(`BlockProgress.DappTableId: ${dappTableId}`, blockProgress);
+                            //console.log(`BlockProgress.DappTableId: ${dappTableId}`, blockProgress, oldRow, newRow);
                         } finally {
                             if (serializeRowUpdates) {
                                 lockStore[id].release();

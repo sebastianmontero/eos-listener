@@ -21,6 +21,10 @@ class FarmEOSTableListener extends BaseTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
+        this.streamOptions = {
+            ...this.streamOptions,
+            tableId: 'bet_id',
+        };
     }
 
     async insert(payload) {

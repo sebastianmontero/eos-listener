@@ -2,17 +2,19 @@ class BlockProgress {
     constructor({
         blockNum = -1,
         trxIds = {},
-        idxs = {},
     }) {
         this.blockNum = blockNum;
         this.trxIds = trxIds;
-        this.idxs = idxs;
     }
 
     getStartBlock(startBlock) {
         return startBlock || this.blockNum < 0 ? startBlock : this.blockNum;
     }
 
+    /**
+     * 
+     * @param {blockNum, trxId, idx} trxId is the transaction id for action traces, and the primary key of the table for tableListeners 
+     */
     shouldProcessBlock({
         blockNum,
         trxId,
@@ -21,12 +23,7 @@ class BlockProgress {
         if (blockNum < this.blockNum) {
             return false;
         } else if (blockNum == this.blockNum) {
-            let processedIdxs;
-            if (trxId) {
-                processedIdxs = this.trxIds[trxId];
-            } else {
-                processedIdxs = this.idxs;
-            }
+            let processedIdxs = this.trxIds[trxId];
             if (processedIdxs && processedIdxs[idx]) {
                 return false;
             }
@@ -45,23 +42,16 @@ class BlockProgress {
         }
 
         if (this.blockNum == blockNum) {
-            let processedIdxs;
-            if (trxId) {
-                if (!this.trxIds[trxId]) {
-                    processedIdxs = {}
-                    this.trxIds[trxId] = processedIdxs;
-                }
-            } else {
-                processedIdxs = this.idxs;
+            if (!this.trxIds[trxId]) {
+                this.trxIds[trxId] = {};
             }
-            processedIdxs[idx] = true;
+            this.trxIds[trxId][idx] = true;
         }
     }
 
     _reset(blockNum) {
         this.blockNum = blockNum;
         this.trxIds = {};
-        this.idxs = {};
     }
 }
 

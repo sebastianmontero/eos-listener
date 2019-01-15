@@ -21,6 +21,10 @@ class FishjoyTableListener extends BaseTableListener {
             dappTableDao,
         });
         this.betDao = betDao;
+        this.streamOptions = {
+            ...this.streamOptions,
+            tableId: 'id',
+        };
     }
 
     async insert(payload) {
