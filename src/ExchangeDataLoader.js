@@ -242,6 +242,9 @@ class ExchangeDataLoader {
             logger.error(error);
         }
     }
+    async stop() {
+        await this.listener.stop();
+    }
 }
 
 module.exports = ExchangeDataLoader;

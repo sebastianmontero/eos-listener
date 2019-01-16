@@ -14,6 +14,8 @@ class EOSListener {
     }) {
         this._addedActionTraces = [];
         this._addedTableListeners = [];
+        this._actionMsgsInProcess = 0;
+        this._tableMsgsInProcess = 0;
         this.client = new EoswsClient(
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
@@ -74,9 +76,10 @@ class EOSListener {
             let { blockProgress, streamOptions } = actionTrace;
             streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
             logger.info(`Stream options. Account:${actionTrace.account}`, streamOptions);
-            this.client.getActionTraces(actionTrace, streamOptions).onMessage(async (message) => {
+            actionTrace.listener = this.client.getActionTraces(actionTrace, streamOptions);
+            actionTrace.listener.onMessage(async (message) => {
                 try {
-
+                    this._actionMsgsInProcess++;
                     if (message.type === InboundMessageType.ACTION_TRACE) {
                         const data = message.data.trace.act;
                         const {
@@ -117,16 +120,50 @@ class EOSListener {
                                 message
                             };
                             logger.debug('Payload', payload);
+
                             await callbackFn(payload);
                             blockProgress.processedBlock(blockInfo);
                         }
                     }
                 } catch (error) {
                     logger.error(error);
+                } finally {
+                    this._actionMsgsInProcess--;
                 }
             });
 
         });
+    }
+
+    _unlisten(objs) {
+        for (let obj of objs) {
+            obj.listener.unlisten()
+        }
+    }
+
+    _unlistenActionTraces() {
+        logger.info('Unlistening action traces...');
+        for (let actionTrace of this._addedActionTraces) {
+            this._unlisten(actionTrace.actionTraces);
+        }
+    }
+
+    async _unlistenTableListeners() {
+        logger.info('Unlistening table listeners...');
+        for (let tableListener of this._addedTableListeners) {
+            this._unlisten(await tableListener.getTables());
+        }
+    }
+
+    async _unlistenAll() {
+        this._unlistenActionTraces();
+        await this._unlistenTableListeners();
+    }
+
+    async stop() {
+        logger.info('Unlistening action traces and table listeners...');
+        await this._unlistenAll();
+        logger.info('Finished unlistening.');
     }
 
     async addTableListeners(listenerObj) {
@@ -163,6 +200,7 @@ class EOSListener {
 
             const processMessage = async message => {
                 try {
+                    this._tableMsgsInProcess++;
                     if (message.type == InboundMessageType.TABLE_SNAPSHOT) {
                         const { data, data: { rows } } = message;
                         logger.info(`Number of rows in table snapshot: ${rows.length}. DappTableId: ${dappTableId}.`);
@@ -263,9 +301,12 @@ class EOSListener {
                     }
                 } catch (error) {
                     logger.error(error);
+                } finally {
+                    this._tableMsgsInProcess--;
                 }
             };
-            this.client.getTableRows({ ...table, json: true }, streamOptions).onMessage(processMessage);
+            table.listener = this.client.getTableRows({ ...table, json: true }, streamOptions);
+            table.listener.onMessage(processMessage);
 
         });
     }
