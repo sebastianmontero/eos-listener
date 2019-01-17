@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const EventEmitter = require('events');
 const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/eosws-js');
 const { logger } = require('../Logger');
 const { DBOps, ForkSteps, TableListenerModes } = require('../const');
@@ -6,12 +7,13 @@ const { Util } = require('../util');
 const Lock = require('../lock/Lock');
 
 
-class EOSListener {
+class EOSListener extends EventEmitter {
     constructor({
         eoswsToken,
         origin,
         eoswsEndpoint,
     }) {
+        super();
         this._addedActionTraces = [];
         this._addedTableListeners = [];
         this._actionMsgsInProcess = 0;
@@ -129,10 +131,20 @@ class EOSListener {
                     logger.error(error);
                 } finally {
                     this._actionMsgsInProcess--;
+                    this._messageProcessed();
                 }
             });
 
         });
+    }
+    _messageProcessed() {
+        if (!this._areMsgsInProcess()) {
+            this.emit('no-msgs-in-process');
+        }
+    }
+
+    _areMsgsInProcess() {
+        return this._actionMsgsInProcess > 0 || this._tableMsgsInProcess > 0
     }
 
     _unlisten(objs) {
@@ -141,18 +153,20 @@ class EOSListener {
         }
     }
 
-    _unlistenActionTraces() {
-        logger.info('Unlistening action traces...');
+    _getIndividualActionTraces() {
+        let traces = [];
         for (let actionTrace of this._addedActionTraces) {
-            this._unlisten(actionTrace.actionTraces);
+            traces = traces.concat(actionTrace.actionTraces);
         }
+        return traces;
     }
 
-    async _unlistenTableListeners() {
-        logger.info('Unlistening table listeners...');
+    async _getIndividualTableListeners() {
+        let tables = [];
         for (let tableListener of this._addedTableListeners) {
-            this._unlisten(await tableListener.getTables());
+            tables = tables.concat(await tableListener.getTables());
         }
+        return tables;
     }
 
     async _unlistenAll() {
@@ -161,9 +175,31 @@ class EOSListener {
     }
 
     async stop() {
-        logger.info('Unlistening action traces and table listeners...');
-        await this._unlistenAll();
-        logger.info('Finished unlistening.');
+        logger.info('Unlistening for EOS events...');
+        const actionTraces = this._getIndividualActionTraces();
+        const tableListeners = await this._getIndividualTableListeners();
+        logger.info('Unlistening Action Traces...');
+        this._unlisten(actionTraces);
+        logger.info('Unlistening Table Listeners...');
+        this._unlisten(tableListeners);
+        logger.info('Finished unlistening. Waiting for processing of messages to finish...');
+
+        return new Promise((resolve) => {
+            const onProcessingFinished = () => {
+                logger.info('All EOS messages have been processed.');
+                resolve({
+                    actionTraces: actionTraces,
+                    tableListeners: tableListeners,
+                });
+            }
+            if (this._areMsgsInProcess()) {
+                logger.info(`${this._actionMsgsInProcess} action trace messages in process. ${this._tableMsgsInProcess} table messages in process.`);
+                this.once('no-msgs-in-process', onProcessingFinished);
+            } else {
+                onProcessingFinished();
+            }
+        });
+
     }
 
     async addTableListeners(listenerObj) {
@@ -303,6 +339,7 @@ class EOSListener {
                     logger.error(error);
                 } finally {
                     this._tableMsgsInProcess--;
+                    this._messageProcessed();
                 }
             };
             table.listener = this.client.getTableRows({ ...table, json: true }, streamOptions);

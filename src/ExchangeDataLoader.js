@@ -5,7 +5,7 @@ const BlockProgress = require('./eos-listener/BlockProgress');
 const Interpreter = require('./Interpreter');
 const { Util, TimeUtil } = require('./util');
 const { AccountTypeIds, SpecialValues, OrderTypeIds, DappTypeIds } = require('./const');
-const { AccountDao, ActionDao, ChannelDao, DappDao, TokenDao, ExchangeTradeDao } = require('./dao');
+const { AccountDao, ActionDao, ActionBlockProgressDao, ChannelDao, DappDao, TokenDao, ExchangeTradeDao } = require('./dao');
 const { logger } = require('./Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
@@ -151,14 +151,18 @@ class ExchangeDataLoader {
     }
 
     async _getActionTraces() {
-        const tokenAccounts = await this.accountDao.selectByDappType(DappTypeIds.TOKEN);
+        const tokenTransferActions = await this.actionDao.selectByDappTypeAndActionNameWithProgress(
+            DappTypeIds.TOKEN,
+            'transfer'
+        );
         let actionTraces = [];
-        for (let tokenAccount of tokenAccounts) {
+        for (let tokenTransferAction of tokenTransferActions) {
             actionTraces.push({
-                account: tokenAccount.account_name,
-                action_name: 'transfer',
+                actionId: tokenTransferAction.action_id,
+                account: tokenTransferAction.account_name,
+                action_name: tokenTransferAction.action_name,
                 streamOptions: { ...this.baseStreamOptions },
-                blockProgress: new BlockProgress({}),
+                blockProgress: new BlockProgress(tokenTransferAction.block_progress),
             });
         }
         return actionTraces;
@@ -183,6 +187,7 @@ class ExchangeDataLoader {
 
         try {
             const dbCon = await DBCon.createConnection(this.config.db);
+            this.dbCon = dbCon;
             this.accountDao = new AccountDao(dbCon);
             this.actionDao = new ActionDao(dbCon);
             this.tokenDao = new TokenDao(dbCon);
@@ -195,7 +200,7 @@ class ExchangeDataLoader {
             logger.info("Action Filters:", actionFilters);
 
             this.listener.addActionTraces({
-                actionTraces,
+                actionTraces: actionTraces,
                 actionFilters,
                 callbackFn: async payload => {
                     const {
@@ -243,7 +248,18 @@ class ExchangeDataLoader {
         }
     }
     async stop() {
-        await this.listener.stop();
+        const { actionTraces } = await this.listener.stop();
+        logger.info('Storing block progress for action traces...', actionTraces);
+        const toInsert = actionTraces.map((actionTrace) => [
+            actionTrace.actionId,
+            actionTrace.blockProgress.serialize(),
+        ]);
+        const actionBlockProgressDao = new ActionBlockProgressDao(this.dbCon);
+        await actionBlockProgressDao.insert(toInsert);
+        logger.info('Stored block progress for action traces...', toInsert);
+        await this.dbCon.end();
+        logger.info('Closed database connection.');
+
     }
 }
 

@@ -67,6 +67,24 @@ class DappTableDAO extends BaseDao {
         );
     }
 
+    async selectWithProgress(dappTableId) {
+        return await this.dbCon.execute(
+            `SELECT dt.dapp_table_id, 
+                    dt.dapp_table_name, 
+                    dt.code_account_id,
+                    ca.account_name code_account_name,
+                    dt.scope_account_id,
+                    sa.account_name scope_account_name,
+                    dtbp.block_progress
+            FROM dapp_table dt INNER JOIN
+                account ca ON dt.code_account_id = ca.account_id INNER JOIN
+                account sa ON dt.scope_account_id = sa.account_id LEFT JOIN
+                dapp_table_block_progress dtbp ON dt.dapp_table_id = dtbp.dapp_table_id 
+            WHERE dt.dapp_table_id = ?`,
+            [dappTableId]
+        );
+    }
+
     async selectByDappId(dappId) {
         return await this.dbCon.execute(
             `SELECT dapp_table_id, 
@@ -97,6 +115,25 @@ class DappTableDAO extends BaseDao {
                  dapp d ON ca.dapp_id = d.dapp_id
             WHERE d.dapp_type_id = ?`,
             [dappTypeId]
+        );
+    }
+
+
+    async selectByDappIdWithProgress(dappId) {
+        return await this.dbCon.execute(
+            `SELECT dt.dapp_table_id, 
+                    dt.dapp_table_name, 
+                    dt.code_account_id,
+                    ca.account_name code_account_name,
+                    dt.scope_account_id,
+                    sa.account_name scope_account_name,
+                    dtbp.block_progress
+            FROM dapp_table dt INNER JOIN
+                account ca ON dt.code_account_id = ca.account_id INNER JOIN
+                account sa ON dt.scope_account_id = sa.account_id LEFT JOIN
+                dapp_table_block_progress dtbp ON dt.dapp_table_id = dtbp.dapp_table_id
+            WHERE ca.dapp_id = ?`,
+            [dappId]
         );
     }
 

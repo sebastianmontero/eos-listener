@@ -41,7 +41,7 @@ class BaseTableListener {
     }
 
     async _getDappTableListeners() {
-        const dappTables = this.dappId ? await this.dappTableDao.selectByDappId(this.dappId) : await this.dappTableDao.select(this.dappTableId);
+        const dappTables = this.dappId ? await this.dappTableDao.selectByDappIdWithProgress(this.dappId) : await this.dappTableDao.selectWithProgress(this.dappTableId);
         let listeners = [];
         for (let dappTable of dappTables) {
             listeners.push({
@@ -49,7 +49,7 @@ class BaseTableListener {
                 code: dappTable.code_account_name,
                 scope: dappTable.scope_account_name,
                 table: dappTable.dapp_table_name,
-                blockProgress: new BlockProgress({}),
+                blockProgress: new BlockProgress(dappTable.block_progress),
             });
         }
         return listeners;

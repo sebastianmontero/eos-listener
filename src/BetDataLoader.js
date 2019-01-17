@@ -1,7 +1,7 @@
 const figlet = require('figlet');
 const DBCon = require('./db/DBConnection');
 const EOSListener = require('./eos-listener/EOSListener');
-const { AccountDao, TokenDao, DappTableDao, BetDao } = require('./dao');
+const { AccountDao, TokenDao, DappTableDao, DappTableBlockProgressDao, BetDao } = require('./dao');
 const { logger } = require('./Logger');
 const {
     FishjoyTableListener,
@@ -57,6 +57,7 @@ class BetDataLoader {
 
         try {
             const dbCon = await DBCon.createConnection(this.config.db);
+            this.dbCon = dbCon;
             let config = {
                 accountDao: new AccountDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
@@ -81,6 +82,21 @@ class BetDataLoader {
         } catch (error) {
             logger.error(error);
         }
+    }
+
+    async stop() {
+        const { tableListeners } = await this.listener.stop();
+        logger.info('Storing block progress for table listeners...', tableListeners);
+        const toInsert = tableListeners.map((tableListener) => [
+            tableListener.dappTableId,
+            tableListener.blockProgress.serialize(),
+        ]);
+        const dappTableBlockProgressDao = new DappTableBlockProgressDao(this.dbCon);
+        await dappTableBlockProgressDao.insert(toInsert);
+        logger.info('Stored block progress for action traces...', toInsert);
+        await this.dbCon.end();
+        logger.info('Closed database connection.');
+
     }
 }
 

@@ -1,10 +1,30 @@
 class BlockProgress {
-    constructor({
+    constructor(serializedState) {
+        this.deserialize(serializedState);
+    }
+
+    serialize() {
+        return JSON.stringify(this.getState());
+    }
+
+    deserialize(serializedState) {
+        const state = serializedState ? JSON.parse(serializedState) : {};
+        this.setState(state);
+    }
+
+    setState({
         blockNum = -1,
-        trxIds = {},
+        trxIds = {}
     }) {
         this.blockNum = blockNum;
         this.trxIds = trxIds;
+    }
+
+    getState() {
+        return {
+            blockNum: this.blockNum,
+            trxIds: this.trxIds,
+        }
     }
 
     getStartBlock(startBlock) {
