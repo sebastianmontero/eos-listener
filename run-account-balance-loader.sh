@@ -2,6 +2,7 @@
 
 export NODE_ENV=$1
 echo $NODE_ENV
+cd "${BASH_SOURCE%/*}" || exit
 pushd src
 nodejs RunAccountBalanceLoader.js > ../logs/account-balance-loader-stdout.log 2> ../logs/account-balance-loader-stderr.log &
 popd
