@@ -1,5 +1,5 @@
 
-const parseAssetRegex = /^\s*(\d+.?\d*)\s*([a-zA-Z]+)\s*$/;
+const parseAssetRegex = /^\s*(-?\d+.?\d*)\s*([a-zA-Z]+)\s*$/;
 
 class Util {
     static isEmptyObj(obj) {

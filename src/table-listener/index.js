@@ -5,6 +5,8 @@ const FastwinTableListener = require('./FastwinTableListener');
 const EndlessDiceTableListener = require('./EndlessDiceTableListener');
 const BlockProducerTableListener = require('./BlockProducerTableListener');
 const VoterTableListener = require('./VoterTableListener');
+const PokerEOSGameGamesRecordTableListener = require('./PokerEOSGameGamesRecordTableListener');
+const PokerEOSBullBetRecordTableListener = require('./PokerEOSBullBetRecordTableListener');
 
 module.exports = {
     FishjoyTableListener,
@@ -14,4 +16,6 @@ module.exports = {
     EndlessDiceTableListener,
     BlockProducerTableListener,
     VoterTableListener,
+    PokerEOSGameGamesRecordTableListener,
+    PokerEOSBullBetRecordTableListener,
 };

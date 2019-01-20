@@ -9,6 +9,8 @@ const {
     EOSBetTableListener,
     FastwinTableListener,
     EndlessDiceTableListener,
+    PokerEOSGameGamesRecordTableListener,
+    PokerEOSBullBetRecordTableListener
 } = require('./table-listener');
 
 class BetDataLoader {
@@ -64,7 +66,7 @@ class BetDataLoader {
                 dappTableDao: new DappTableDao(dbCon),
                 betDao: new BetDao(dbCon)
             };
-            let fishJoyTableListener = new FishjoyTableListener(config);
+            /* let fishJoyTableListener = new FishjoyTableListener(config);
             logger.info('Adding Fishjoy Table Listener');
             this.listener.addTableListeners(fishJoyTableListener);
             let farmEOSTableListener = new FarmEOSTableListener(config);
@@ -78,7 +80,13 @@ class BetDataLoader {
             this.listener.addTableListeners(fastwinTableListener);
             let endlessDiceTableListener = new EndlessDiceTableListener(config);
             logger.info('Adding Endless Table Listener');
-            this.listener.addTableListeners(endlessDiceTableListener);
+            this.listener.addTableListeners(endlessDiceTableListener); */
+            /* let pokerEOSGameGamesRecordTableListener = new PokerEOSGameGamesRecordTableListener(config);
+            logger.info('Adding PokerEOSGame GamesRecord Table Listener');
+            this.listener.addTableListeners(pokerEOSGameGamesRecordTableListener); */
+            let pokerEOSBullBetRecordTableListener = new PokerEOSBullBetRecordTableListener(config);
+            logger.info('Adding PokerEOSBull BetRecord Table Listener');
+            this.listener.addTableListeners(pokerEOSBullBetRecordTableListener);
         } catch (error) {
             logger.error(error);
         }

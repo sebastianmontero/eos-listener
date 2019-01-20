@@ -47,7 +47,7 @@ class FarmEOSTableListener extends BaseTableListener {
 
         let betStatusId = status === BET_COMPLETED ? BetStatusIds.COMPLETED : BetStatusIds.PLACED;
 
-        const placedDate = new Date(bet_time * 1000);
+        const placedDate = TimeUtil.fromUnixTimestamp(bet_time);
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {

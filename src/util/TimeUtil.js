@@ -23,6 +23,11 @@ class TimeUtil {
     static toUTCDate(dayDate) {
         return new Date(Date.UTC(dayDate.getUTCFullYear(), dayDate.getUTCMonth(), dayDate.getUTCDate()));
     }
+
+    static fromUnixTimestamp(timestamp) {
+        return new Date(timestamp * 1000);
+    }
+
     static dayId(dayDate) {
         if (!dayDate) {
             dayDate = new Date();

@@ -1,12 +1,12 @@
 const BaseTableListener = require('./BaseTableListener');
 const { TimeUtil, Util } = require('../util');
-const { AccountTypeIds, SpecialValues, DappIds, BetStatusIds } = require('../const');
+const { AccountTypeIds, SpecialValues, DappTableIds, BetStatusIds } = require('../const');
 const { logger } = require('../Logger');
 
 const UNKNOWN = SpecialValues.UNKNOWN.id;
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 
-class EndlessDiceTableListener extends BaseTableListener {
+class PokerEOSBullBetRecordTableListener extends BaseTableListener {
     constructor({
         accountDao,
         tokenDao,
@@ -14,7 +14,7 @@ class EndlessDiceTableListener extends BaseTableListener {
         betDao
     }) {
         super({
-            dappId: DappIds.ENDLESS_DICE,
+            dappTableId: DappTableIds.POKEREOSBULL_BETRECORD,
             accountDao,
             tokenDao,
             dappTableDao,
@@ -22,7 +22,21 @@ class EndlessDiceTableListener extends BaseTableListener {
         this.betDao = betDao;
         this.streamOptions = {
             ...this.streamOptions,
-            tableId: 'id',
+            tableId: 'billid',
+        };
+    }
+
+    _determineBetAmount(betVector) {
+        let betAmount = 0;
+        let betSymbol;
+        for (let bet of betVector) {
+            const { amount, symbol } = Util.parseAsset(bet.betAmount);
+            betAmount += amount;
+            betSymbol = symbol;
+        }
+        return {
+            betAmount,
+            betSymbol,
         };
     }
 
@@ -30,30 +44,33 @@ class EndlessDiceTableListener extends BaseTableListener {
         const {
             dappTableId,
             newRow: {
-                id,
-                player,
-                amount,
-                et_amount,
+                billid,
+                vecBets,
                 created_at,
+                player,
+                playerWin
+
             }
         } = payload;
 
-        const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(amount);
-        const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(et_amount);
-        const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
-        const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
-
         const placedDate = TimeUtil.fromUnixTimestamp(created_at);
         const placedDayId = TimeUtil.dayId(placedDate);
+        const { betAmount, betSymbol } = this._determineBetAmount(vecBets);
+        let { amount: winAmount } = Util.parseAsset(playerWin);
+        console.log(`player win: ${playerWin}, winAmount: ${winAmount}`);
+        if (winAmount < 0) {
+            winAmount = 0;
+        }
+        const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
         const toInsert = {
             dappTableId,
-            gameBetId: id,
+            gameBetId: billid,
             userAccountId: await this.accountDao.getAccountId(player, AccountTypeIds.USER, NOT_APPLICABLE),
-            betAmount,
-            betTokenId,
+            betAmount: betAmount,
+            betTokenId: betTokenId,
             winAmount,
-            winTokenId,
+            winTokenId: betTokenId,
             betStatusId: BetStatusIds.COMPLETED,
             placedDayId,
             placedHourOfDay: placedDate.getUTCHours(),
@@ -67,18 +84,17 @@ class EndlessDiceTableListener extends BaseTableListener {
     }
 
     async update(payload) {
-        const { dappTableId, newRow: { id } } = payload;
-
-        logger.debug("Endless Dice Update, nothing to update, id: " + id);
+        const { dappTableId, newRow: { billid } } = payload;
+        logger.debug("EOS Bet Update, nothing to update, id: " + billid);
     }
 
     async remove(payload) {
-        const { dappTableId, oldRow: { id } } = payload;
+        const { dappTableId, oldRow: { billid } } = payload;
         await this.betDao.batchRemove({
             dappTableId,
-            gameBetId: id,
+            gameBetId: billid,
         });
     }
 }
 
-module.exports = EndlessDiceTableListener;
+module.exports = PokerEOSBullBetRecordTableListener;
