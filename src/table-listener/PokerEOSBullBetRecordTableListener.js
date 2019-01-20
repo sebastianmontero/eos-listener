@@ -57,7 +57,6 @@ class PokerEOSBullBetRecordTableListener extends BaseTableListener {
         const placedDayId = TimeUtil.dayId(placedDate);
         const { betAmount, betSymbol } = this._determineBetAmount(vecBets);
         let { amount: winAmount } = Util.parseAsset(playerWin);
-        console.log(`player win: ${playerWin}, winAmount: ${winAmount}`);
         if (winAmount < 0) {
             winAmount = 0;
         }
