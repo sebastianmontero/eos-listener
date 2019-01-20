@@ -131,7 +131,6 @@ class EOSListener extends EventEmitter {
                         blockProgress.processedBlock({
                             blockNum: block_num
                         });
-                        console.log(`With progress: ${block_num}`, blockProgress);
                     }
                 } catch (error) {
                     logger.error(error);
