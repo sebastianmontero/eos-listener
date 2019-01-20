@@ -61,7 +61,7 @@ class BlockProgress {
             this._reset(blockNum);
         }
 
-        if (this.blockNum == blockNum) {
+        if (this.blockNum == blockNum && trxId !== undefined) {
             if (!this.trxIds[trxId]) {
                 this.trxIds[trxId] = {};
             }

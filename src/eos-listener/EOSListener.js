@@ -126,6 +126,12 @@ class EOSListener extends EventEmitter {
                             await callbackFn(payload);
                             blockProgress.processedBlock(blockInfo);
                         }
+                    } else if (message.type == InboundMessageType.PROGRESS) {
+                        const { data: { block_num } } = message;
+                        blockProgress.processedBlock({
+                            blockNum: block_num
+                        });
+                        console.log(`With progress: ${block_num}`, blockProgress);
                     }
                 } catch (error) {
                     logger.error(error);
@@ -334,6 +340,11 @@ class EOSListener extends EventEmitter {
                                 }
                             }
                         }
+                    } else if (message.type == InboundMessageType.PROGRESS && processDeltas) {
+                        const { data: { block_num } } = message;
+                        blockProgress.processedBlock({
+                            blockNum: block_num
+                        });
                     }
                 } catch (error) {
                     logger.error(error);
