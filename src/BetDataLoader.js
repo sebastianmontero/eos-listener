@@ -60,11 +60,12 @@ class BetDataLoader {
         try {
             const dbCon = await DBCon.createConnection(this.config.db);
             this.dbCon = dbCon;
+            this.betDao = new BetDao(dbCon);
             let config = {
                 accountDao: new AccountDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
                 dappTableDao: new DappTableDao(dbCon),
-                betDao: new BetDao(dbCon)
+                betDao: this.betDao,
             };
             /* let fishJoyTableListener = new FishjoyTableListener(config);
             logger.info('Adding Fishjoy Table Listener');
@@ -99,6 +100,8 @@ class BetDataLoader {
             tableListener.dappTableId,
             tableListener.blockProgress.serialize(),
         ]);
+        logger.info('Flushing Bet Data in batch to the database...');
+        await this.betDao.flush();
         const dappTableBlockProgressDao = new DappTableBlockProgressDao(this.dbCon);
         await dappTableBlockProgressDao.insert(toInsert);
         logger.info('Stored block progress for action traces...', toInsert);

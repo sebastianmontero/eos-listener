@@ -25,6 +25,7 @@ class BaseTableListener {
             mode: TableListenerModes.HISTORY,
             tableId: null,
             serializeRowUpdates: false,
+            with_progress: 20,
         };
     }
 

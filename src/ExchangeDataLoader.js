@@ -28,7 +28,9 @@ class ExchangeDataLoader {
         });
 
         this.interpreter = new Interpreter(keyDictionary);
-        this.baseStreamOptions = {};
+        this.baseStreamOptions = {
+            with_progress: 20,
+        };
 
     }
 
