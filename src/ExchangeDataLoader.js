@@ -161,6 +161,7 @@ class ExchangeDataLoader {
         for (let tokenTransferAction of tokenTransferActions) {
             actionTraces.push({
                 actionId: tokenTransferAction.action_id,
+                codeAccountId: tokenTransferAction.account_id,
                 account: tokenTransferAction.account_name,
                 action_name: tokenTransferAction.action_name,
                 streamOptions: { ...this.baseStreamOptions },

@@ -28,6 +28,7 @@ class FastwinTableListener extends BaseTableListener {
 
     async insert(payload) {
         const {
+            codeAccountId,
             dappTableId,
             newRow: {
                 id,
@@ -41,8 +42,10 @@ class FastwinTableListener extends BaseTableListener {
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: id,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(bettor, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount: bet_amt,
             betTokenId: TokenIds.EOS,

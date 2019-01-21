@@ -1,10 +1,14 @@
 const { logger } = require('../Logger');
 
 class BaseBatchDAO {
-    constructor(batchId, batchSize) {
-        this.batchId = batchId;
+    constructor(batchIds, batchSize) {
+        if (!Array.isArray(batchIds)) {
+            batchIds = [batchIds];
+        }
+        this.batchIds = batchIds;
         this.count = 0;
-        this.batch = {}
+        this.batchMap = {};
+        this.batchArray = [];
         this.batchSize = batchSize;
     }
 
@@ -13,7 +17,14 @@ class BaseBatchDAO {
     }
 
     _getBatchId(obj) {
-        return obj[this.batchId];
+        let id = '';
+        for (let batchId of this.batchIds) {
+            if (obj[batchId] === null) {
+                return null;
+            }
+            id += `${obj[batchId]}-`
+        }
+        return id;
     }
 
     /**
@@ -22,7 +33,11 @@ class BaseBatchDAO {
      */
     async batchInsert(obj) {
         const _id = this._getBatchId(obj);
-        this.batch[_id] = obj;
+        if (_id) {
+            this.batchMap[_id] = obj;
+        } else {
+            this.batchArray.push(obj);
+        }
         this.count++;
         logger.debug('Batch count: ', this.count);
         logger.debug('In batchInsert, toInsert:', obj);
@@ -37,9 +52,9 @@ class BaseBatchDAO {
 
     _updateBatchObj(obj) {
         const _id = this._getBatchId(obj);
-        if (_id in this.batch) {
-            this.batch[_id] = {
-                ...this.batch[_id],
+        if (_id in this.batchMap) {
+            this.batchMap[_id] = {
+                ...this.batchMap[_id],
                 ...obj
             }
             logger.debug('Found in batch, updated, id: ', _id);
@@ -67,9 +82,9 @@ class BaseBatchDAO {
         logger.debug('In batchRemove, toRemove:', obj);
         const _id = this._getBatchId(obj);
 
-        if (_id in this.batch) {
+        if (_id in this.batchMap) {
             this.count--;
-            delete this.batch[_id];
+            delete this.batchMap[_id];
             logger.debug('Found in batch removed, id: ', _id);
         } else {
             await this._remove(obj);
@@ -86,8 +101,9 @@ class BaseBatchDAO {
 
     async flush() {
         if (this.count > 0) {
-            const batchArray = Object.values(this.batch);
-            this.batch = [];
+            const batchArray = Object.values(this.batchMap).concat(this.batchArray);
+            this.batchMap = {};
+            this.batchArray = [];
             this.count = 0;
             await this.insertObj(batchArray);
         }

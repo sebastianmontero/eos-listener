@@ -29,6 +29,7 @@ class FarmEOSTableListener extends BaseTableListener {
 
     async insert(payload) {
         const {
+            codeAccountId,
             dappTableId,
             newRow: {
                 bet_id,
@@ -51,8 +52,10 @@ class FarmEOSTableListener extends BaseTableListener {
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: bet_id,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(user_name, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount,
             betTokenId,

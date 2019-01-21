@@ -28,7 +28,17 @@ class FishjoyTableListener extends BaseTableListener {
     }
 
     async insert(payload) {
-        const { dappTableId, newRow: { id, buyer, eosToken, create_time, result } } = payload;
+        const {
+            codeAccountId,
+            dappTableId,
+            newRow: {
+                id,
+                buyer,
+                eosToken,
+                create_time,
+                result
+            }
+        } = payload;
         const { amount: betAmount, symbol: betSymbol } = Util.parseAsset(eosToken);
         const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
@@ -47,8 +57,10 @@ class FishjoyTableListener extends BaseTableListener {
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: id,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(buyer, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount,
             betTokenId,

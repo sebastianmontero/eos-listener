@@ -2,13 +2,15 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class BetDAO extends BaseBatchDao {
     constructor(dbCon) {
-        super('gameBetId', 20);
+        super(['dappTableId', 'gameBetId'], 50);
         this.dbCon = dbCon;
     }
 
     _toInsertArray({
+        codeAccountId,
         dappTableId,
         gameBetId,
+        actionId,
         userAccountId,
         betAmount,
         betTokenId,
@@ -24,8 +26,10 @@ class BetDAO extends BaseBatchDao {
 
     }) {
         return [
+            codeAccountId,
             dappTableId,
             gameBetId,
+            actionId,
             userAccountId,
             betAmount,
             betTokenId,
@@ -45,8 +49,10 @@ class BetDAO extends BaseBatchDao {
 
         await this.dbCon.insertBatch(
             `INSERT INTO bet (
+                code_account_id,
                 dapp_table_id,
                 game_bet_id,
+                action_id,
                 user_account_id,
                 bet_amount,
                 bet_token_id,

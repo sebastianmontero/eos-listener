@@ -29,6 +29,7 @@ class PokerEOSGameGamesRecordTableListener extends BaseTableListener {
     async insert(payload) {
         const {
             dappTableId,
+            codeAccountId,
             newRow: {
                 gameid,
                 cellAmount,
@@ -57,8 +58,10 @@ class PokerEOSGameGamesRecordTableListener extends BaseTableListener {
         const betTokenId = await this.tokenDao.getTokenId(symbol, UNKNOWN);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: gameid,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(player, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount: betAmount,
             betTokenId: betTokenId,

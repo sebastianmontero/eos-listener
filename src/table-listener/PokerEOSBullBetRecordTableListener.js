@@ -42,6 +42,7 @@ class PokerEOSBullBetRecordTableListener extends BaseTableListener {
 
     async insert(payload) {
         const {
+            codeAccountId,
             dappTableId,
             newRow: {
                 billid,
@@ -63,8 +64,10 @@ class PokerEOSBullBetRecordTableListener extends BaseTableListener {
         const betTokenId = await this.tokenDao.getTokenId(betSymbol, UNKNOWN);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: billid,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(player, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount: betAmount,
             betTokenId: betTokenId,

@@ -74,8 +74,9 @@ class EOSListener extends EventEmitter {
         actionFilters,
         callbackFn,
     }) {
+        actionFilters = actionFilters || {};
         actionTraces.forEach(actionTrace => {
-            let { blockProgress, streamOptions } = actionTrace;
+            let { actionId, codeAccountId, blockProgress, streamOptions } = actionTrace;
             streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
             logger.info(`Stream options. Account:${actionTrace.account}`, streamOptions);
             actionTrace.listener = this.client.getActionTraces(actionTrace, streamOptions);
@@ -114,6 +115,8 @@ class EOSListener extends EventEmitter {
                             }
                             block_time = new Date(block_time);
                             let payload = {
+                                actionId,
+                                codeAccountId,
                                 action,
                                 actionData,
                                 account,
@@ -225,7 +228,7 @@ class EOSListener extends EventEmitter {
         logger.info('Table listeners: ', tables);
         const { fieldsOfInterest } = listenerObj;
         tables.forEach(table => {
-            const { dappTableId, blockProgress } = table;
+            const { codeAccountId, dappTableId, blockProgress } = table;
             const streamOptions = listenerObj.getStreamOptions(blockProgress, afterReconnect);
             logger.info(`StreamOptions. DappTableId: ${dappTableId}.`, streamOptions);
             let processDeltas = true;
@@ -247,6 +250,7 @@ class EOSListener extends EventEmitter {
                         logger.info(`Number of rows in table snapshot: ${rows.length}. DappTableId: ${dappTableId}.`);
                         const promise = listenerObj.snapshot({
                             data,
+                            codeAccountId,
                             dappTableId,
                             rows: rows.map(row => row.json),
                             message,
@@ -301,6 +305,7 @@ class EOSListener extends EventEmitter {
                                 step,
                                 dbop,
                                 message,
+                                codeAccountId,
                                 dappTableId,
                                 oldRow,
                                 newRow,

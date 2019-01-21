@@ -28,6 +28,7 @@ class EndlessDiceTableListener extends BaseTableListener {
 
     async insert(payload) {
         const {
+            codeAccountId,
             dappTableId,
             newRow: {
                 id,
@@ -47,8 +48,10 @@ class EndlessDiceTableListener extends BaseTableListener {
         const placedDayId = TimeUtil.dayId(placedDate);
 
         const toInsert = {
+            codeAccountId,
             dappTableId,
             gameBetId: id,
+            actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(player, AccountTypeIds.USER, NOT_APPLICABLE),
             betAmount,
             betTokenId,

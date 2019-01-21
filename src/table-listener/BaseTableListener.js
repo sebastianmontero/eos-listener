@@ -47,6 +47,7 @@ class BaseTableListener {
         for (let dappTable of dappTables) {
             listeners.push({
                 dappTableId: dappTable.dapp_table_id,
+                codeAccountId: dappTable.code_account_id,
                 code: dappTable.code_account_name,
                 scope: dappTable.scope_account_name,
                 table: dappTable.dapp_table_name,
