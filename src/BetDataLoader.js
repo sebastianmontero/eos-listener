@@ -91,13 +91,13 @@ class BetDataLoader {
             let endlessDiceTableListener = new EndlessDiceTableListener(config);
             logger.info('Adding Endless Table Listener');
             this.listener.addTableListeners(endlessDiceTableListener); */
-            let pokerEOSGameGamesRecordTableListener = new PokerEOSGameGamesRecordTableListener(config);
+            /* let pokerEOSGameGamesRecordTableListener = new PokerEOSGameGamesRecordTableListener(config);
             logger.info('Adding PokerEOSGame GamesRecord Table Listener');
-            this.listener.addTableListeners(pokerEOSGameGamesRecordTableListener);
-            /* let pokerEOSBullBetRecordTableListener = new PokerEOSBullBetRecordTableListener(config);
+            this.listener.addTableListeners(pokerEOSGameGamesRecordTableListener); */
+            let pokerEOSBullBetRecordTableListener = new PokerEOSBullBetRecordTableListener(config);
             logger.info('Adding PokerEOSBull BetRecord Table Listener');
             this.listener.addTableListeners(pokerEOSBullBetRecordTableListener);
-            logger.info('Adding BetDiceAdmin DiceRecipt Action Trace');
+            /* logger.info('Adding BetDiceAdmin DiceRecipt Action Trace');
             await this._addDiceReciptActionTrace(); */
         } catch (error) {
             logger.error(error);
