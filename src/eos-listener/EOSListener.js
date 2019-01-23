@@ -48,6 +48,18 @@ class EOSListener extends EventEmitter {
         );
     }
 
+    async _connect() {
+        try {
+            if (!this.client.socket.isConnected) {
+                await this.client.connect();
+                logger.info("Connected to mainet!");
+            }
+        } catch (error) {
+            logger.error(error);
+        }
+    }
+
+
     async addActionTraces({
         actionTraces,
         actionFilters,
@@ -60,12 +72,7 @@ class EOSListener extends EventEmitter {
         };
 
         this._addedActionTraces.push(listenerConfig);
-        try {
-            await this.client.connect();
-            logger.info("Connected to mainet!");
-        } catch (error) {
-            logger.error(error);
-        }
+        await this._connect();
         this._addActionTraces(listenerConfig);
     }
 
@@ -214,12 +221,7 @@ class EOSListener extends EventEmitter {
 
 
         this._addedTableListeners.push(listenerObj);
-        try {
-            await this.client.connect();
-            logger.info("Connected to mainet!");
-        } catch (error) {
-            logger.error(error);
-        }
+        await this._connect();
         await this._addTableListeners(listenerObj);
     }
 
