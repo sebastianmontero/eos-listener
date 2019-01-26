@@ -14,12 +14,14 @@ class BlockProducerLoader {
             eoswsToken,
             origin,
             eoswsEndpoint,
+            useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
             eoswsToken,
             origin,
             eoswsEndpoint,
+            useBlockProgress,
         });
 
     }

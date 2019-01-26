@@ -29,7 +29,7 @@ class BaseTableListener {
         };
     }
 
-    getStreamOptions(blockProgress, afterReconnect = false) {
+    getStreamOptions(afterReconnect = false) {
         let streamOptions = this.streamOptions;
         if (afterReconnect) {
             streamOptions = {
@@ -37,7 +37,6 @@ class BaseTableListener {
                 fetch: false
             }
         }
-        streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
         return streamOptions;
     }
 

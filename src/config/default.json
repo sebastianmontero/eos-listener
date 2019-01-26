@@ -1,6 +1,7 @@
 {
     // get eosws_token from: https://dfuse.io/#subscribe
     "logLevel": "debug",
+    "useBlockProgress": false,
     "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTA4ODU2NjEsImp0aSI6ImU2ODA2YTg5LWVlNGYtNDIyZS04ZDFmLTUyZDk1ZDdjYzhiOSIsImlhdCI6MTU0ODI5MzY2MSwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU0QUNBcTNwbEEydzE5VG8vSlNyMnBXL1FpZ3lYOXRyTDd1QmpMelUwb2dTUXdBL0NMUnRCQWtZdER1SkVuUXhFY1FuR3BOSjlZTFg3UUV1MTdJRzRFdXNhWnVuVWJDWXJIQW8xSU5OdDNBSXZOUk55VHV5MXBtYVZ0ekwrQkFwWm81b0ErRT0iLCJ0aWVyIjoiYmV0YS12MSIsInYiOjF9.H56BsygtMsFEDAoNGRT9EJo92YzifTfkqN6cEmV3yBtGp2CUXVC0QaE6JPbPuN76ka_JKSyLFa6SVwSaiPQIDg",
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
     "blockProducerSnapshotTime": "0 0 1 * * *",

@@ -18,13 +18,15 @@ class ExchangeDataLoader {
             eoswsToken,
             origin,
             eoswsEndpoint,
-            keyDictionary
+            keyDictionary,
+            useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
             eoswsToken,
             origin,
             eoswsEndpoint,
+            useBlockProgress,
         });
 
         this.interpreter = new Interpreter(keyDictionary);

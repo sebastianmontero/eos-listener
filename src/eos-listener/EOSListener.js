@@ -12,8 +12,10 @@ class EOSListener extends EventEmitter {
         eoswsToken,
         origin,
         eoswsEndpoint,
+        useBlockProgress = true,
     }) {
         super();
+        this._useBlockProgress = useBlockProgress;
         this._addedActionTraces = [];
         this._addedTableListeners = [];
         this._actionMsgsInProcess = 0;
@@ -84,7 +86,9 @@ class EOSListener extends EventEmitter {
         actionFilters = actionFilters || {};
         actionTraces.forEach(actionTrace => {
             let { actionId, codeAccountId, blockProgress, streamOptions } = actionTrace;
-            streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
+            if (this._useBlockProgress) {
+                streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
+            }
             logger.info(`Stream options. Account:${actionTrace.account}`, streamOptions);
             actionTrace.listener = this.client.getActionTraces(actionTrace, streamOptions);
             actionTrace.listener.onMessage(async (message) => {
@@ -231,7 +235,10 @@ class EOSListener extends EventEmitter {
         const { fieldsOfInterest } = listenerObj;
         tables.forEach(table => {
             const { codeAccountId, dappTableId, blockProgress } = table;
-            const streamOptions = listenerObj.getStreamOptions(blockProgress, afterReconnect);
+            let streamOptions = listenerObj.getStreamOptions(afterReconnect);
+            if (this._useBlockProgress) {
+                streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
+            }
             logger.info(`StreamOptions. DappTableId: ${dappTableId}.`, streamOptions);
             let processDeltas = true;
             let processedSnapshot = true;

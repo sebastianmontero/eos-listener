@@ -13,13 +13,15 @@ class LoadMemoKeys {
             eoswsEndpoint,
             streamOptions,
             db,
+            useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
             eoswsToken,
             origin,
             eoswsEndpoint,
-            streamOptions
+            streamOptions,
+            useBlockProgress,
         });
         this.parser = new JSONFieldParser();
         this.dbCon = mysql.createConnection(db);
