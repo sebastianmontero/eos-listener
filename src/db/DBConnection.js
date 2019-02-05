@@ -7,9 +7,8 @@ class DBConnection {
             ...dbConfig,
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0
+            queueLimit: 10
         };
-        console.log(this.dbConfig);
         this.pool = mysql2.createPool(this.dbConfig);
     }
 
