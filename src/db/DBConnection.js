@@ -2,17 +2,24 @@ const mysql2 = require('mysql2/promise');
 const Util = require('../util/Util');
 
 class DBConnection {
-    constructor(dbCon) {
-        this.dbCon = dbCon;
+    constructor(dbConfig) {
+        this.dbConfig = {
+            ...dbConfig,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        };
+        console.log(this.dbConfig);
+        this.pool = mysql2.createPool(this.dbConfig);
     }
 
     async query(...args) {
-        const [result] = await this.dbCon.query(...args);
+        const [result] = await this.pool.query(...args);
         return result;
     }
 
     async execute(...args) {
-        const [result] = await this.dbCon.execute(...args);
+        const [result] = await this.pool.execute(...args);
         return result;
     }
 
@@ -22,7 +29,7 @@ class DBConnection {
     }
 
     async end(...args) {
-        return await this.dbCon.end(...args);
+        return await this.pool.end(...args);
     }
 
     async insertBatch(statement, values, toArrayFn) {
@@ -61,7 +68,6 @@ class DBConnection {
 
 module.exports = {
     async createConnection(...args) {
-        const dbCon = await mysql2.createConnection(...args);
-        return new DBConnection(dbCon);
+        return new DBConnection(...args);
     }
 };
