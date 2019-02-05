@@ -63,8 +63,6 @@ class DBConnection {
     }
 }
 
-
-
 module.exports = {
     async createConnection(...args) {
         return new DBConnection(...args);
