@@ -241,19 +241,21 @@ class ExchangeDataLoader {
                             hourOfDay: blockTime.getUTCHours(),
                             blockTime: TimeUtil.toUTCDateTimeNTZString(blockTime)
                         };
-                        await this.exchangeTradeDao.insert(toInsert);
+                        await this.exchangeTradeDao.batchInsert(toInsert);
                     } catch (error) {
-                        logger.error(error);
+                        logger.error('Error processing payload.', error);
                         throw error;
                     }
                 }
             });
         } catch (error) {
-            logger.error(error);
+            logger.error('Error setting up the action trace listeners.', error);
         }
     }
     async stop() {
         const { actionTraces } = await this.listener.stop();
+        logger.info('Flushing Exchange Data in batch to the database...');
+        await this.exchangeTradeDao.flush();
         logger.info('Storing block progress for action traces...', actionTraces);
         const toInsert = actionTraces.map((actionTrace) => [
             actionTrace.actionId,
