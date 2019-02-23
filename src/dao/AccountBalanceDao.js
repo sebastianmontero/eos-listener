@@ -2,7 +2,7 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class AccountBalanceDAO extends BaseBatchDao {
     constructor(dbCon) {
-        super('accountId', 50);
+        super('accountId', 200);
         this.dbCon = dbCon;
     }
 
