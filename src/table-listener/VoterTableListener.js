@@ -97,8 +97,10 @@ class VoterTableListener extends BaseTableListener {
             let accountNames = [];
             for (let j = start; j < end; j++) {
                 const toInsert = this._extractFields(rows[j]);
-                inserted.push(toInsert);
-                accountNames.push(toInsert.accountName);
+                if (toInsert.votes > 0) {
+                    inserted.push(toInsert);
+                    accountNames.push(toInsert.accountName);
+                }
             }
             const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
             let voters = [];
