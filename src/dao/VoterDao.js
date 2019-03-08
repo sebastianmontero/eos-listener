@@ -8,7 +8,7 @@ class VoterDAO {
         await this.dbCon.insertBatch(
             `INSERT IGNORE INTO voter(
                 account_id,
-                is_proxy
+                voter_type_id
             ) VALUES ?`,
             values);
     }

@@ -1,5 +1,5 @@
 const BaseTableListener = require('./BaseTableListener');
-const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes } = require('../const');
+const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes, VoterTypeIds } = require('../const');
 const { logger } = require('../Logger');
 
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
@@ -62,7 +62,7 @@ class VoterTableListener extends BaseTableListener {
         return {
             accountName: owner,
             producers: producers,
-            isProxy: Number(is_proxy) === 1,
+            voterTypeId: Number(is_proxy) === 1 ? VoterTypeIds.PROXY : VoterTypeIds.NORMAL,
             votes: staked,
         };
     }
@@ -109,7 +109,7 @@ class VoterTableListener extends BaseTableListener {
                 voter.voterId = usersToIds[voter.accountName];
                 voters.push([
                     voter.voterId,
-                    voter.isProxy,
+                    voter.voterTypeId,
                 ]);
                 await this._processProducers(voter, votersProducers);
             }
@@ -124,10 +124,10 @@ class VoterTableListener extends BaseTableListener {
 
     async insert(payload) {
         const voter = await this._processRow(payload.newRow);
-        const { voterId, isProxy } = voter;
+        const { voterId, voterTypeId } = voter;
         await this.voterDao.insert([
             voterId,
-            isProxy,
+            voterTypeId,
         ]);
         await this.voterBlockProducerDao.insert(await this._processProducers(voter));
     }
