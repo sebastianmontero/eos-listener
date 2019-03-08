@@ -22,7 +22,7 @@ class EOSListener extends EventEmitter {
         this._tableMsgsInProcess = 0;
         this.client = new EoswsClient(
             createEoswsSocket(() =>
-                new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin }),
+                new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin, maxPayload: 1024 * 1024 * 1024 }),
                 {
                     autoReconnect: true,
                     onError: (message) => {
