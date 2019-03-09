@@ -6,6 +6,7 @@ const { AccountDao, AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
 const { Util, TimeUtil } = require('./util');
 const { logger } = require('./Logger');
+const { General } = require('./const');
 
 class AccountBalanceLoader {
 
@@ -81,7 +82,7 @@ class AccountBalanceLoader {
                     const liquid = liquidObj ? liquidObj.amount : 0;
                     let staked = 0;
                     if (voter_info) {
-                        staked = voter_info.staked / 1000;
+                        staked = voter_info.staked / General.STAKED_MULTIPLIER;
                     }
                     let refund = 0;
                     if (refund_request) {

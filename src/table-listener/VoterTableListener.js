@@ -1,5 +1,5 @@
 const BaseTableListener = require('./BaseTableListener');
-const { AccountTypeIds, SpecialValues, DappTableIds, TableListenerModes, VoterTypeIds } = require('../const');
+const { AccountTypeIds, SpecialValues, DappTableIds, General, TableListenerModes, VoterTypeIds } = require('../const');
 const { logger } = require('../Logger');
 
 const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
@@ -63,7 +63,7 @@ class VoterTableListener extends BaseTableListener {
             accountName: owner,
             producers: producers,
             voterTypeId: Number(is_proxy) === 1 ? VoterTypeIds.PROXY : VoterTypeIds.NORMAL,
-            votes: staked,
+            votes: staked / General.STAKED_MULTIPLIER,
         };
     }
 
