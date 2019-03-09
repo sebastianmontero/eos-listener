@@ -2,7 +2,7 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class BetDAO extends BaseBatchDao {
     constructor(dbCon) {
-        super(['dappTableId', 'gameBetId'], 200);
+        super(['dappTableId', 'gameBetId'], 1000);
         this.dbCon = dbCon;
     }
 

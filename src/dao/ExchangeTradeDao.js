@@ -2,7 +2,7 @@ const BaseBatchDao = require('./BaseBatchDao');
 
 class ExchangeTradeDAO extends BaseBatchDao {
     constructor(dbCon) {
-        super([], 200);
+        super([], 1000);
         this.dbCon = dbCon;
     }
 
