@@ -116,7 +116,7 @@ class VoterTableListener extends BaseTableListener {
             await this.voterDao.insert(voters);
             logger.info(`Loaded Voters from: ${start} to ${end}. Length: ${voters.length}`, new Date());
             await this.voterBlockProducerDao.insert(votersProducers);
-            logger.info('Loaded VoterBlockProducer Table', new Date());
+            logger.info(`Loaded Votes from: ${start} to ${end}. Length VotersProducers: ${votersProducers.length}`, new Date());
         }
         logger.info('Finished processing voter snapshot', new Date());
 
