@@ -10,6 +10,7 @@ class VoterBlockProducerDAO {
                 `INSERT INTO voter_block_producer(
                     voter_id,
                     block_producer_id,
+                    proxy_id,
                     votes
                 ) VALUES ?`,
                 values);

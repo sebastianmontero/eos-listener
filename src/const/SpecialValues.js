@@ -14,5 +14,9 @@ module.exports = {
     HASNT_HAPPENED: {
         id: -4,
         desc: "Hasn't Happened",
+    },
+    NOT_PROXIED: {
+        id: -5,
+        desc: "Not Proxied",
     }
 };
