@@ -11,7 +11,8 @@ class VoterBlockProducerDAO {
                     voter_id,
                     block_producer_id,
                     proxy_id,
-                    votes
+                    votes,
+                    proxied_vote
                 ) VALUES ?`,
                 values);
         }

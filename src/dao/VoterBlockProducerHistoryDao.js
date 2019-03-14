@@ -9,13 +9,17 @@ class VoterBlockProducerHistoryDAO {
             `INSERT INTO voter_block_producer_history(
                 voter_id,
                 block_producer_id,
+                proxy_id
                 day_id,
-                votes
+                votes,
+                proxied_vote
             )
              SELECT voter_id,
                     block_producer_id,
+                    proxy_id,
                     ?,
-                    votes
+                    votes,
+                    proxied_vote
             FROM voter_block_producer`,
             [dayId]
         );

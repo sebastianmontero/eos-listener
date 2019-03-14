@@ -1,5 +1,5 @@
 const BaseTableListener = require('./BaseTableListener');
-const { TimeUtil } = require('../util');
+const { TimeUtil, EOSUtil } = require('../util');
 const { AccountTypeIds, SpecialValues, DappIds, TokenIds } = require('../const');
 const { logger } = require('../Logger');
 
@@ -47,7 +47,7 @@ class FastwinTableListener extends BaseTableListener {
             gameBetId: id,
             actionId: NOT_APPLICABLE,
             userAccountId: await this.accountDao.getAccountId(bettor, AccountTypeIds.USER, NOT_APPLICABLE),
-            betAmount: bet_amt,
+            betAmount: EOSUtil.normalizeStaked(bet_amt),
             betTokenId: TokenIds.EOS,
             winAmount: null,
             winTokenId: TokenIds.EOS,

@@ -5,7 +5,7 @@
     "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTM0ODIxMTcsImp0aSI6IjAzY2VlYmNiLWRmNzMtNDBjZi1iOTY2LTQxMzI0ZTNjMGI1NiIsImlhdCI6MTU1MDg5MDExNywiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU2T2phNVFxS0lWaU5UMHBMVDRsUGJEZS8xd01yNUxSTTZvb2xteWYrc0FTUXdBL0NMUnRZa1BmTUJhNjF5dDNOYVVjOW9xQ1RjRG5MMzFIY0RkL3BVT0QwalRJSFRqVU5iaVlZdlpJeFBNQVpBaXNaVkQxUkMrVEJ2RE16eW9pVVA4aTNoMD0iLCJ0aWVyIjoiYmV0YS12MSIsInYiOjF9.zdJSs6EwVwkxJ4d_8BxlC1oDT_Mn32rcV3zSd1PLO2MMR13G-zVUs9Zb0uLqeImubM2YaRcNDPEpu8oBIAU47A",
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
     "blockProducerSnapshotTime": "0 0 1 * * *",
-    "voterSnapshotTime": "30 0 1 * * *",
+    "voterSnapshotTime": "30 14 16 * * *",
     "httpEndpoints": [
         "http://mainnet.eoscalgary.io",
         "http://api.eosbean.com",

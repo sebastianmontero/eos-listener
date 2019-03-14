@@ -9,7 +9,7 @@ class VoterDAO {
             `INSERT IGNORE INTO voter(
                 account_id,
                 voter_type_id
-            ) VALUES ?`,
+            ) VALUES ? ON DUPLICATE KEY UPDATE voter_type_id = IF(voter_type_id = 2, voter_type_id, VALUES(voter_type_id))`,
             values);
     }
 

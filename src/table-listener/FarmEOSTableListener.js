@@ -77,11 +77,14 @@ class FarmEOSTableListener extends BaseTableListener {
         const { dappTableId, newRow: { bet_id, win_amount, status } } = payload;
 
         if (status === BET_COMPLETED) {
-            const { amount: winAmount } = Util.parseAsset(win_amount);
+            const { amount: winAmount, symbol: winSymbol } = Util.parseAsset(win_amount);
+            const winTokenId = await this.tokenDao.getTokenId(winSymbol, UNKNOWN);
+
             const toUpdate = {
                 dappTableId,
                 gameBetId: bet_id,
                 winAmount,
+                winTokenId,
                 betStatusId: BetStatusIds.COMPLETED,
                 completedDayId: UNKNOWN,
                 completedHourOfDay: null,

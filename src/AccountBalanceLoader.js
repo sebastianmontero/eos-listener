@@ -4,9 +4,8 @@ const DBCon = require('./db/DBConnection');
 const mysqlStream = require('mysql2');
 const { AccountDao, AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
-const { Util, TimeUtil } = require('./util');
+const { Util, TimeUtil, EOSUtil } = require('./util');
 const { logger } = require('./Logger');
-const { General } = require('./const');
 
 class AccountBalanceLoader {
 
@@ -82,7 +81,7 @@ class AccountBalanceLoader {
                     const liquid = liquidObj ? liquidObj.amount : 0;
                     let staked = 0;
                     if (voter_info) {
-                        staked = voter_info.staked / General.STAKED_MULTIPLIER;
+                        staked = EOSUtil.normalizeStaked(voter_info.staked);
                     }
                     let refund = 0;
                     if (refund_request) {
