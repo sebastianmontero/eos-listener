@@ -1,4 +1,5 @@
 const JSONFieldParser = require('./JSONFieldParser');
+const { logger } = require('./Logger');
 
 class Interpreter {
 
@@ -8,8 +9,13 @@ class Interpreter {
     }
 
     interpret(value) {
-        const obj = this.parser.parse(value);
-        return obj ? this._interpretObject(obj) : null;
+        try {
+            const obj = this.parser.parse(value);
+            return obj ? this._interpretObject(obj) : null;
+        } catch (error) {
+            logger.error("Unable to interpret value.", error);
+            return null;
+        }
     }
 
     _interpretObject(obj) {
