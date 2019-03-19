@@ -35,11 +35,10 @@ class VoterTableListener extends BaseTableListener {
             'staked',
             'proxy',
             'is_proxy',
-            'proxied_vote_weight'
         ];
         this.batchSize = 50000;
         this.bpIds = null;
-        this.proxies = {};
+        this.proxies = null;
     }
 
     async _getBPId(bp) {
@@ -62,7 +61,6 @@ class VoterTableListener extends BaseTableListener {
             producers,
             staked,
             proxy,
-            proxied_vote_weight,
         } = row;
 
         return {
@@ -71,8 +69,7 @@ class VoterTableListener extends BaseTableListener {
             voterTypeId: this._isProxy(row) ? VoterTypeIds.PROXY : VoterTypeIds.NORMAL,
             votes: EOSUtil.normalizeStaked(staked),
             proxy: proxy,
-            proxiedVote: proxied_vote_weight,
-
+            proxiedVote: 0,
         };
     }
 
@@ -81,10 +78,7 @@ class VoterTableListener extends BaseTableListener {
     }
 
 
-    async _getProxy(accountName) {
-        if (!this._proxyExists(accountName)) {
-            this.proxies[accountName] = await this._getAccountId(accountName);
-        }
+    _getProxy(accountName) {
         return this.proxies[accountName];
     }
 
@@ -96,18 +90,16 @@ class VoterTableListener extends BaseTableListener {
 
     async _processProducers(voter) {
         let votersProducers = [];
-
-        if (voter.proxy) {
-            console.log('Voter:');
-            console.dir(voter);
-            voter.proxyId = await this._getProxy(voter.proxy);
+        let proxy = voter.proxy && this._getProxy(voter.proxy);
+        if (proxy) {
             votersProducers.push([
                 voter.voterId,
-                SpecialValues.NOT_APPLICABLE,
-                voter.proxyId,
+                SpecialValues.NOT_APPLICABLE.id,
+                proxy.voterId,
                 voter.votes,
-                voter.proxiedVote,
+                0,
             ]);
+            proxy.proxiedVote += voter.votes;
         } else if (voter.voterTypeId === VoterTypeIds.PROXY) {
             voter.proxyId = voter.voterId;
         } else {
@@ -141,18 +133,14 @@ class VoterTableListener extends BaseTableListener {
                 rows[i] = null;
             }
         }
-        for (let key of Object.keys(ps)) {
-            console.log(key);
-        }
         return proxies;
     }
 
     _isProxy(row) {
-        const { is_proxy, proxied_vote_weight } = row;
-        return (Number(is_proxy) === 1 || proxied_vote_weight > 0);
+        return Number(row.is_proxy) === 1;
     }
 
-    async _processVotes(rows, start, end, areProxies = false) {
+    async _processVoters(rows, start, end) {
         let inserted = [];
         let accountNames = [];
         for (let j = start; j < end; j++) {
@@ -166,29 +154,34 @@ class VoterTableListener extends BaseTableListener {
         }
         const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
         let voters = [];
-        let votersProducers = [];
-        if (areProxies) {
-            this.proxies = usersToIds;
-        }
+        let votersMap = {};
         for (let voter of inserted) {
             voter.voterId = usersToIds[voter.accountName];
             voters.push([
                 voter.voterId,
                 voter.voterTypeId,
             ]);
-            let vps = await this._processProducers(voter);
-            votersProducers = votersProducers.concat(vps);
+            votersMap[voter.accountName] = voter;
         }
         await this.voterDao.insert(voters);
         logger.info(`Loaded Voters from: ${start} to ${end}. Length: ${voters.length}`, new Date());
+        return votersMap;
+    }
+
+    async _processVotersProducers(votersMap) {
+        let votersProducers = [];
+        for (let voter of Object.values(votersMap)) {
+            let vps = await this._processProducers(voter);
+            votersProducers = votersProducers.concat(vps);
+        }
         await this.voterBlockProducerDao.insert(votersProducers);
-        logger.info(`Loaded Votes from: ${start} to ${end}. Length VotersProducers: ${votersProducers.length}`, new Date());
+        logger.info(`Inserting VotersProducers. Length VotersProducers: ${votersProducers.length}`, new Date());
     }
 
     async _processProxies(rows) {
         logger.info('Processing proxies...', new Date());
         let proxies = this._extractProxies(rows);
-        this.proxies = await this._processVotes(proxies, 0, proxies.length, true);
+        this.proxies = await this._processVoters(proxies, 0, proxies.length, true);
         logger.info(`Finished processing proxies. Number of proxies: ${proxies.length}`, new Date());
     }
 
@@ -200,8 +193,10 @@ class VoterTableListener extends BaseTableListener {
         for (let i = 0; i < numBatches; i++) {
             let start = i * this.batchSize;
             let end = Math.min(rows.length, start + this.batchSize);
-            await this._processVotes(rows, start, end);
+            let voters = await this._processVoters(rows, start, end);
+            await this._processVotersProducers(voters)
         }
+        await this._processVotersProducers(this.proxies);
         logger.info('Finished processing voter snapshot', new Date());
 
     }
