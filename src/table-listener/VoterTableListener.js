@@ -69,7 +69,7 @@ class VoterTableListener extends BaseTableListener {
             voterTypeId: this._isProxy(row) ? VoterTypeIds.PROXY : VoterTypeIds.NORMAL,
             votes: EOSUtil.normalizeStaked(staked),
             proxy: proxy,
-            proxiedVote: 0,
+            proxiedVotes: 0,
         };
     }
 
@@ -88,9 +88,31 @@ class VoterTableListener extends BaseTableListener {
         return processed;
     }
 
-    async _processProducers(voter) {
-        let votersProducers = [];
+    async _handleProxiedVotesChange(voter, oldVoter, updateDB = false) {
+        let oldProxy = oldVoter && oldVoter.proxy && this._getProxy(oldVoter.proxy);
         let proxy = voter.proxy && this._getProxy(voter.proxy);
+        if (proxy == oldProxy && oldVoter && oldVoter.votes == voter.votes) {
+            return proxy;
+        }
+        if (oldProxy) {
+            oldProxy.proxiedVotes -= voter.votes;
+        }
+        if (proxy) {
+            proxy.proxiedVotes += voter.votes;
+        }
+        if (updateDB) {
+            if (oldProxy) {
+                await this._updateVotes(oldProxy);
+            }
+            if (proxy && proxy != oldProxy) {
+                await this._updateVotes(proxy);
+            }
+        }
+        return proxy;
+
+    }
+    async _processProducers(voter, proxy) {
+        let votersProducers = [];
         if (proxy) {
             votersProducers.push([
                 voter.voterId,
@@ -99,7 +121,6 @@ class VoterTableListener extends BaseTableListener {
                 voter.votes,
                 0,
             ]);
-            proxy.proxiedVote += voter.votes;
         } else if (voter.voterTypeId === VoterTypeIds.PROXY) {
             voter.proxyId = voter.voterId;
         } else {
@@ -113,7 +134,7 @@ class VoterTableListener extends BaseTableListener {
                 bpId,
                 voter.proxyId,
                 voter.votes,
-                voter.proxiedVote,
+                voter.proxiedVotes,
             ]);
         }
         return votersProducers;
@@ -171,7 +192,8 @@ class VoterTableListener extends BaseTableListener {
     async _processVotersProducers(votersMap) {
         let votersProducers = [];
         for (let voter of Object.values(votersMap)) {
-            let vps = await this._processProducers(voter);
+            let proxy = await this._handleProxiedVotesChange(voter);
+            let vps = await this._processProducers(voter, proxy);
             votersProducers = votersProducers.concat(vps);
         }
         await this.voterBlockProducerDao.insert(votersProducers);
@@ -208,7 +230,9 @@ class VoterTableListener extends BaseTableListener {
             voterId,
             voterTypeId,
         ]);
-        await this.voterBlockProducerDao.insert(await this._processProducers(voter));
+        let chosenProxy = await this._handleProxiedVotesChange(voter, null, true);
+        let vps = await this._processProducers(voter, chosenProxy);
+        await this.voterBlockProducerDao.insert(vps);
         if (voter.voterTypeId === VoterTypeIds.PROXY) {
             this.proxies[voter.accountName] = voter;
         }
@@ -216,22 +240,41 @@ class VoterTableListener extends BaseTableListener {
 
     async update(payload) {
         const voter = await this._processRow(payload.newRow);
+        const oldVoter = this._extractFields(payload.oldRow);
         const { modifiedProps } = payload;
-        const { voterId, votes } = voter;
-        if (!modifiedProps.producers) {
-            await this.voterBlockProducerDao.updateVotes(voterId, votes);
+        const { voterId, voterTypeId, accountName } = voter;
+        let proxy = this._getProxy(accountName);
+
+        if (voterTypeId === VoterTypeIds.PROXY) {
+            if (proxy) {
+                voter.proxiedVotes = proxy.proxiedVotes;
+            }
+            this.proxies[accountName] = voter;
         } else {
-            await this.voterBlockProducerDao.revote(voterId, await this._processProducers(voter));
+            if (proxy) {
+                delete this.proxies[accountName];
+            }
         }
-        if (voter.voterTypeId === VoterTypeIds.PROXY) {
-            this.proxies[voter.accountName] = voter;
+        if (modifiedProps.is_proxy) {
+            await this.voterDao.insert([
+                voterId,
+                voterTypeId,
+            ]);
         }
+        let chosenProxy = await this._handleProxiedVotesChange(voter, oldVoter, true);
+        let vps = await this._processProducers(voter, chosenProxy);
+        await this.voterBlockProducerDao.revote(voterId, vps);
+    }
+
+    async _updateVotes(voter) {
+        const { voterId, votes, proxiedVotes } = voter;
+        await this.voterBlockProducerDao.updateVotes(voterId, votes, proxiedVotes);
     }
 
     async remove(payload) {
         const { voterId } = await this._processRow(payload.oldRow);
         await this.voterBlockProducerDao.deleteByVoterId(voterId);
-        await this.voterDao.delete(voterId);
+        //await this.voterDao.delete(voterId);
     }
 
     async _getAccountId(owner) {

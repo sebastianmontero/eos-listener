@@ -12,7 +12,7 @@ class VoterBlockProducerDAO {
                     block_producer_id,
                     proxy_id,
                     votes,
-                    proxied_vote
+                    proxied_votes
                 ) VALUES ?`,
                 values);
         }
@@ -30,12 +30,13 @@ class VoterBlockProducerDAO {
         await this.insert(voterProducers);
     }
 
-    async updateVotes(voterId, votes) {
+    async updateVotes(voterId, votes, proxiedVotes) {
         await this.dbCon.execute(
             `UPDATE voter_block_producer
-             SET votes = ?
+             SET votes = ?,
+                 proxied_votes = ?
              WHERE voter_id = ?`,
-            [votes, voterId]
+            [votes, proxiedVotes, voterId]
         );
     }
 
