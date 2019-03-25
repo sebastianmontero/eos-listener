@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const DBCon = require('./db/DBConnection');
+const dbCon = require('./db/DBConnection');
 const EOSListener = require('./eos-listener/EOSListener');
 const BlockProgress = require('./eos-listener/BlockProgress');
 const Interpreter = require('./Interpreter');
@@ -15,7 +15,9 @@ class ExchangeDataLoader {
     constructor(config) {
         this.config = config;
         const {
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             keyDictionary,
@@ -23,7 +25,9 @@ class ExchangeDataLoader {
         } = config;
 
         this.listener = new EOSListener({
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
@@ -191,8 +195,6 @@ class ExchangeDataLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await DBCon.createConnection(this.config.db);
-            this.dbCon = dbCon;
             this.accountDao = new AccountDao(dbCon);
             this.actionDao = new ActionDao(dbCon);
             this.tokenDao = new TokenDao(dbCon);
@@ -203,7 +205,7 @@ class ExchangeDataLoader {
             logger.info("Action Traces:", actionTraces);
             const actionFilters = await this._getActionFilters();
             logger.info("Action Filters:", actionFilters);
-
+            await this.listener.connect();
             this.listener.addActionTraces({
                 actionTraces: actionTraces,
                 actionFilters,
@@ -261,10 +263,10 @@ class ExchangeDataLoader {
             actionTrace.actionId,
             actionTrace.blockProgress.serialize(),
         ]);
-        const actionBlockProgressDao = new ActionBlockProgressDao(this.dbCon);
+        const actionBlockProgressDao = new ActionBlockProgressDao(dbCon);
         await actionBlockProgressDao.insert(toInsert);
         logger.info('Stored block progress for action traces...', toInsert);
-        await this.dbCon.end();
+        await dbCon.end();
         logger.info('Closed database connection.');
 
     }

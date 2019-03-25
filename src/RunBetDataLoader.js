@@ -1,8 +1,10 @@
 const BetDataLoader = require('./BetDataLoader');
 const config = require('config');
 const logger = require('./Logger');
+const dbCon = require('./db/DBConnection');
 
 logger.configure('load-bet-data');
+dbCon.init(config.db);
 let loader = new BetDataLoader(config);
 
 process.on('SIGTERM', async () => {

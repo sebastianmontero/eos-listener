@@ -1,8 +1,10 @@
 const ExchangeDataLoader = require('./ExchangeDataLoader');
 const config = require('config');
 const logger = require('./Logger');
+const dbCon = require('./db/DBConnection');
 
 logger.configure('load-exchange-data');
+dbCon.init(config.db);
 let loader = new ExchangeDataLoader(config);
 
 process.on('SIGTERM', async () => {

@@ -1,6 +1,6 @@
 const figlet = require('figlet');
 const cron = require('node-cron');
-const DBCon = require('./db/DBConnection');
+const dbCon = require('./db/DBConnection');
 const EOSListener = require('./eos-listener/EOSListener');
 const { AccountDao, TokenDao, DappTableDao, BlockProducerDao, BlockProducerHistoryDao } = require('./dao');
 const { logger } = require('./Logger');
@@ -11,14 +11,18 @@ class BlockProducerLoader {
     constructor(config) {
         this.config = config;
         const {
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
@@ -54,7 +58,6 @@ class BlockProducerLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await DBCon.createConnection(this.config.db);
             const blockProducerDao = new BlockProducerDao(dbCon);
             const blockProducerHistoryDao = new BlockProducerHistoryDao(dbCon);
             let config = {
@@ -65,6 +68,7 @@ class BlockProducerLoader {
             };
             await blockProducerDao.truncate();
             let blockProducerTableListener = new BlockProducerTableListener(config);
+            await this.listener.connect();
             logger.info('Adding Block Producer Table Listener');
             this.listener.addTableListeners(blockProducerTableListener);
 

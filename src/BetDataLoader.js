@@ -1,5 +1,5 @@
 const figlet = require('figlet');
-const DBCon = require('./db/DBConnection');
+const dbCon = require('./db/DBConnection');
 const EOSListener = require('./eos-listener/EOSListener');
 const BlockProgress = require('./eos-listener/BlockProgress');
 const { AccountDao, ActionDao, ActionBlockProgressDao, TokenDao, DappTableDao, DappTableBlockProgressDao, BetDao } = require('./dao');
@@ -24,14 +24,18 @@ class BetDataLoader {
     constructor(config) {
         this.config = config;
         const {
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
@@ -67,8 +71,7 @@ class BetDataLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await DBCon.createConnection(this.config.db);
-            this.dbCon = dbCon;
+
             this.betDao = new BetDao(dbCon);
             this.accountDao = new AccountDao(dbCon);
             this.tokenDao = new TokenDao(dbCon);
@@ -78,6 +81,7 @@ class BetDataLoader {
                 dappTableDao: new DappTableDao(dbCon),
                 betDao: this.betDao,
             };
+            await this.listener.connect();
             let fishJoyTableListener = new FishjoyTableListener(config);
             logger.info('Adding Fishjoy Table Listener');
             this.listener.addTableListeners(fishJoyTableListener);
@@ -107,7 +111,7 @@ class BetDataLoader {
     }
 
     async _addDiceReciptActionTrace() {
-        const actionDao = new ActionDao(this.dbCon);
+        const actionDao = new ActionDao(dbCon);
         const actions = await actionDao.selectByAccountNameAndActionNameWithProgress(
             'betdiceadmin',
             'dicereceipt'
@@ -186,7 +190,7 @@ class BetDataLoader {
                 tableListener.dappTableId,
                 tableListener.blockProgress.serialize(),
             ]);
-            const dappTableBlockProgressDao = new DappTableBlockProgressDao(this.dbCon);
+            const dappTableBlockProgressDao = new DappTableBlockProgressDao(dbCon);
             await dappTableBlockProgressDao.insert(toInsert);
             logger.info('Stored block progress for table listeners...', toInsert);
         }
@@ -196,11 +200,11 @@ class BetDataLoader {
                 actionTrace.actionId,
                 actionTrace.blockProgress.serialize(),
             ]);
-            const actionBlockProgressDao = new ActionBlockProgressDao(this.dbCon);
+            const actionBlockProgressDao = new ActionBlockProgressDao(dbCon);
             await actionBlockProgressDao.insert(toInsert);
             logger.info('Stored block progress for action traces...', toInsert);
         }
-        await this.dbCon.end();
+        await dbCon.end();
         logger.info('Closed database connection.');
 
     }
