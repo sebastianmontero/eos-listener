@@ -28,6 +28,11 @@ class TimeUtil {
         return new Date(timestamp * 1000);
     }
 
+    static toUnixTimestamp(date) {
+        date = date || new Date();
+        return Math.floor(date / 1000);
+    }
+
     static dayId(dayDate) {
         if (!dayDate) {
             dayDate = new Date();

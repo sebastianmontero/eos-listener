@@ -1,5 +1,6 @@
 const AccountDao = require('./AccountDao');
 const ActionDao = require('./ActionDao');
+const AuthTokenDao = require('./AuthTokenDao');
 const ChannelDao = require('./ChannelDao');
 const DappDao = require('./DappDao');
 const TokenDao = require('./TokenDao');
@@ -18,6 +19,7 @@ const DappTableBlockProgressDao = require('./DappTableBlockProgressDao');
 module.exports = {
     AccountDao,
     ActionDao,
+    AuthTokenDao,
     TokenDao,
     ChannelDao,
     DappDao,

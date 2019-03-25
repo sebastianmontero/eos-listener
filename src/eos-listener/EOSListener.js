@@ -5,11 +5,14 @@ const { logger } = require('../Logger');
 const { DBOps, ForkSteps, TableListenerModes } = require('../const');
 const { Util } = require('../util');
 const Lock = require('../lock/Lock');
+const TokenManager = require('./TokenManager');
 
 
 class EOSListener extends EventEmitter {
     constructor({
-        eoswsToken,
+        eoswsAPIKey,
+        eoswsAuthUrl,
+        eoswsAuthTimeBuffer,
         origin,
         eoswsEndpoint,
         useBlockProgress = true,
@@ -20,22 +23,35 @@ class EOSListener extends EventEmitter {
         this._addedTableListeners = [];
         this._actionMsgsInProcess = 0;
         this._tableMsgsInProcess = 0;
-        this.client = new EoswsClient(
+        this._origin = origin;
+        this._eoswsEndpoint = eoswsEndpoint;
+        this._tokenManager = new TokenManager({
+            apiKey: eoswsAPIKey,
+            authUrl: eoswsAuthUrl,
+            timeBuffer: eoswsAuthTimeBuffer,
+        });
+        this.client = null;
+    }
+
+    async _createClient() {
+
+        const eoswsToken = await this._tokenManager.getToken();
+        const eoswsEndpoint = this._eoswsEndpoint;
+        const origin = this._origin;
+        return new EoswsClient(
             createEoswsSocket(() =>
                 new WebSocket(`wss://${eoswsEndpoint}/v1/stream?token=${eoswsToken}`, { origin, maxPayload: 1024 * 1024 * 1024 }),
                 {
-                    autoReconnect: true,
+                    autoReconnect: false,
                     onError: (message) => {
                         logger.error('On Socket error', message);
                     },
-                    onClose: () => {
-                        logger.error('Connection with mainet has been closed. Waiting for reconnect to restablish listeners');
-                    },
-                    onInvalidMessage: (message) => {
-                        logger.error('On Socket invalid message', message);
-                    },
-                    onReconnect: () => {
-                        logger.error('Reconnected to mainet.');
+                    onClose: async () => {
+                        logger.error('Connection with mainet has been closed. Stopping current listeners...');
+                        await this.stop();
+                        this.client = null;
+                        logger.error('Old listener stopped. Connecting new client...');
+                        await this.connect();
                         logger.error('Adding action traces...');
                         for (let actionTrace of this._addedActionTraces) {
                             this._addActionTraces(actionTrace);
@@ -45,19 +61,28 @@ class EOSListener extends EventEmitter {
                             this._addTableListeners(tableListener, true);
                         }
                     },
+                    onInvalidMessage: (message) => {
+                        logger.error('On Socket invalid message', message);
+                    },
                 }
             )
         );
     }
 
-    async _connect() {
+    async connect() {
         try {
+            if (!this.client) {
+                logger.info('Client not created. Creating...');
+                this.client = await this._createClient();
+            }
             if (!this.client.socket.isConnected) {
+                logger.info('Client not connected. Connecting...');
                 await this.client.connect();
                 logger.info("Connected to mainet!");
             }
         } catch (error) {
-            logger.error(error);
+            logger.error("An error ocurred while creating and connecting client.", error);
+            throw error;
         }
     }
 
@@ -74,11 +99,10 @@ class EOSListener extends EventEmitter {
         };
 
         this._addedActionTraces.push(listenerConfig);
-        await this._connect();
-        this._addActionTraces(listenerConfig);
+        await this._addActionTraces(listenerConfig);
     }
 
-    _addActionTraces({
+    async _addActionTraces({
         actionTraces,
         actionFilters,
         callbackFn,
@@ -225,7 +249,6 @@ class EOSListener extends EventEmitter {
 
 
         this._addedTableListeners.push(listenerObj);
-        await this._connect();
         await this._addTableListeners(listenerObj);
     }
 
@@ -299,7 +322,6 @@ class EOSListener extends EventEmitter {
                                 return;
                             }
                         }
-
 
                         try {
                             if (serializeRowUpdates) {

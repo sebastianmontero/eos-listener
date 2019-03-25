@@ -2,7 +2,12 @@ const mysql2 = require('mysql2/promise');
 const Util = require('../util/Util');
 
 class DBConnection {
-    constructor(dbConfig) {
+
+    init(dbConfig) {
+
+        if (this.pool) {
+            return;
+        }
         this.dbConfig = {
             ...dbConfig,
             waitForConnections: true,
@@ -20,6 +25,11 @@ class DBConnection {
     async execute(...args) {
         const [result] = await this.pool.execute(...args);
         return result;
+    }
+
+    async singleRow(...args) {
+        const rows = await this.execute(...args);
+        return rows.length ? rows[0] : null;
     }
 
     async singleValue(...args) {
@@ -63,8 +73,4 @@ class DBConnection {
     }
 }
 
-module.exports = {
-    async createConnection(...args) {
-        return new DBConnection(...args);
-    }
-};
+module.exports = new DBConnection();

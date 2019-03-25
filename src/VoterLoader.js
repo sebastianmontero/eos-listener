@@ -1,6 +1,6 @@
 const figlet = require('figlet');
 const cron = require('node-cron');
-const DBCon = require('./db/DBConnection');
+const dbCon = require('./db/DBConnection');
 const EOSListener = require('./eos-listener/EOSListener');
 const {
     AccountDao,
@@ -18,14 +18,18 @@ class VoterLoader {
     constructor(config) {
         this.config = config;
         const {
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
         } = config;
 
         this.listener = new EOSListener({
-            eoswsToken,
+            eoswsAPIKey,
+            eoswsAuthUrl,
+            eoswsAuthTimeBuffer,
             origin,
             eoswsEndpoint,
             useBlockProgress,
@@ -61,7 +65,6 @@ class VoterLoader {
         this.printFiglet();
 
         try {
-            const dbCon = await DBCon.createConnection(this.config.db);
             const voterBlockProducerDao = new VoterBlockProducerDao(dbCon);
             const voterBlockProducerHistoryDao = new VoterBlockProducerHistoryDao(dbCon);
             let config = {
@@ -74,7 +77,8 @@ class VoterLoader {
             };
             await voterBlockProducerDao.truncate();
             let voterTableListener = new VoterTableListener(config);
-            logger.debug('Adding Voter Table Listener');
+            await this.listener.connect();
+            logger.info('Adding Voter Table Listener');
             this.listener.addTableListeners(voterTableListener);
 
             cron.schedule(this.config.voterSnapshotTime, () => {
@@ -82,7 +86,7 @@ class VoterLoader {
             });
             logger.info('Added voter block producer snapshot cron job');
         } catch (error) {
-            logger.error(error);
+            logger.error("Failed to start VoterLoader.", error);
         }
     }
 
