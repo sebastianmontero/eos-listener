@@ -13,6 +13,7 @@ class VoterTableListener extends BaseTableListener {
         blockProducerDao,
         voterDao,
         voterBlockProducerDao,
+        voterBlockProducerHistoryDao,
     }) {
         super({
             dappTableId: DappTableIds.EOSIO_VOTERS,
@@ -23,6 +24,7 @@ class VoterTableListener extends BaseTableListener {
         this.blockProducerDao = blockProducerDao;
         this.voterDao = voterDao;
         this.voterBlockProducerDao = voterBlockProducerDao;
+        this.voterBlockProducerHistoryDao = voterBlockProducerHistoryDao;
         this.streamOptions = {
             ...this.streamOptions,
             fetch: true,
@@ -209,7 +211,9 @@ class VoterTableListener extends BaseTableListener {
 
     async snapshot(payload) {
         let { rows } = payload;
-        logger.info('Started processing voter snapshot', new Date());
+
+        logger.info('Started processing voter snapshot. Truncating voterBlockProducerTable...', new Date());
+        await this.voterBlockProducerDao.truncate();
         await this._processProxies(rows);
         let numBatches = Math.ceil(rows.length / this.batchSize);
         for (let i = 0; i < numBatches; i++) {
@@ -279,6 +283,15 @@ class VoterTableListener extends BaseTableListener {
 
     async _getAccountId(owner) {
         return await this.accountDao.getAccountId(owner, AccountTypeIds.USER, NOT_APPLICABLE);
+    }
+
+
+    async takeSnapshot(date) {
+        await this.voterBlockProducerHistoryDao.takeSnapshot(date);
+    }
+
+    reset() {
+        this.proxies = null;
     }
 }
 

@@ -33,6 +33,16 @@ class TimeUtil {
         return Math.floor(date / 1000);
     }
 
+    static secondsDiff(date1, date2) {
+        return TimeUtil.toUnixTimestamp(date1) - TimeUtil.toUnixTimestamp(date2);
+    }
+
+    static addDays(date, days) {
+        let newDate = new Date(date);
+        newDate.setDate(newDate.getDate() + days);
+        return newDate;
+    }
+
     static dayId(dayDate) {
         if (!dayDate) {
             dayDate = new Date();
@@ -70,6 +80,10 @@ class TimeUtil {
 
     static toUTCDateTimeNTZString(date) {
         return this.toUTCDateString(date) + ` ${this._zeroPad(date.getUTCHours())}:${this._zeroPad(date.getUTCMinutes())}:${this._zeroPad(date.getUTCSeconds())}.${date.getUTCMilliseconds()}`
+    }
+
+    static toUTCDateFromNTZString(dateString) {
+        return new Date(dateString + 'Z');
     }
 }
 

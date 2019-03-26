@@ -12,7 +12,6 @@ const {
     VoterBlockProducerHistoryDao } = require('./dao');
 const { logger } = require('./Logger');
 const { VoterTableListener } = require('./table-listener');
-const { TimeUtil } = require('./util');
 
 class VoterLoader {
     constructor(config) {
@@ -38,7 +37,9 @@ class VoterLoader {
     }
 
     printFiglet() {
-        figlet('Loading Voters', {
+        const { voterNumDaysBack } = this.config;
+        const title = 'Loading Voters.' + (voterNumDaysBack ? `History Mode: ${voterNumDaysBack}` : '');
+        figlet(title, {
             font: "Big",
             horizontalLayout: 'default',
             verticalLayout: 'default'
@@ -74,30 +75,39 @@ class VoterLoader {
                 blockProducerDao: new BlockProducerDao(dbCon),
                 voterDao: new VoterDao(dbCon),
                 voterBlockProducerDao,
+                voterBlockProducerHistoryDao,
             };
-            await voterBlockProducerDao.truncate();
+            const { voterNumDaysBack } = this.config;
             let voterTableListener = new VoterTableListener(config);
-            await this.listener.connect();
-            logger.info('Adding Voter Table Listener');
-            this.listener.addTableListeners(voterTableListener);
+            if (voterNumDaysBack) {
+                logger.info(`Loading Voter History. Number of days: ${voterNumDaysBack}`);
+                await this.historyMode(voterTableListener, voterNumDaysBack);
+                logger.info('Finished loading voter history');
+                dbCon.end();
+                logger.info('Closed database connection.');
+            } else {
+                this.normalMode(voterTableListener);
+            }
 
-            cron.schedule(this.config.voterSnapshotTime, () => {
-                this.takeSnapshot(voterBlockProducerHistoryDao);
-            });
-            logger.info('Added voter block producer snapshot cron job');
         } catch (error) {
             logger.error("Failed to start VoterLoader.", error);
         }
     }
 
-    async takeSnapshot(voterBlockProducerHistoryDao) {
-        const date = new Date();
-        const dayId = TimeUtil.dayId(date);
-        logger.info('Taking voter block producer snapshot.... For date: ', date);
-        await voterBlockProducerHistoryDao.deleteByDayId(dayId);
-        logger.info('Deleted voter block producer snapshot.... For date: ', date);
-        await voterBlockProducerHistoryDao.storeSnapshot(dayId);
-        logger.info('Voter block producer snapshot created For date: ', date);
+    async normalMode(voterTableListener) {
+        await this.listener.connect();
+        logger.info('Adding Voter Table Listener');
+        this.listener.addTableListeners(voterTableListener);
+
+        cron.schedule(this.config.voterSnapshotTime, () => {
+            this.listener.takeSnapshot();
+        });
+        logger.info('Added voter block producer snapshot cron job');
+    }
+
+    async historyMode(voterTableListener, numDaysBack) {
+        await this.listener.loadTableHistory(voterTableListener, numDaysBack)
+
     }
 }
 

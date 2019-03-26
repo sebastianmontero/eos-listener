@@ -56,6 +56,14 @@ class BaseTableListener {
         return listeners;
     }
 
+    reset() {
+        //Should be overriden by table listeners, this method is called after each snapshot is retrieved in the load history functionality
+    }
+
+    async takeSnapshot(date) {
+        //Should be overriden by the table listeners that want to use the load history functionality, called once after the table for each day is loaded
+    }
+
     async getTables() {
         if (!this.tables) {
             this.tables = await this._getDappTableListeners();

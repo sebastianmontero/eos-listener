@@ -6,6 +6,7 @@ const { DBOps, ForkSteps, TableListenerModes } = require('../const');
 const { Util } = require('../util');
 const Lock = require('../lock/Lock');
 const TokenManager = require('./TokenManager');
+const { EOSHTTPService } = require('../service');
 
 
 class EOSListener extends EventEmitter {
@@ -48,7 +49,7 @@ class EOSListener extends EventEmitter {
                     },
                     onClose: async () => {
                         logger.error('Connection with mainet has been closed. Stopping current listeners...');
-                        await this.stop();
+                        await this.stop(false);
                         this.client = null;
                         logger.error('Old listener stopped. Connecting new client...');
                         await this.connect();
@@ -82,6 +83,19 @@ class EOSListener extends EventEmitter {
             }
         } catch (error) {
             logger.error("An error ocurred while creating and connecting client.", error);
+            throw error;
+        }
+    }
+
+    async disconnect() {
+        try {
+            if (this.client && this.client.socket.isConnected) {
+                logger.info('Client connected. Disconnecting...');
+                await this.client.disconnect();
+                logger.info("Disconnected from mainet!");
+            }
+        } catch (error) {
+            logger.error("An error ocurred while disconnecting client.", error);
             throw error;
         }
     }
@@ -217,7 +231,7 @@ class EOSListener extends EventEmitter {
         await this._unlistenTableListeners();
     }
 
-    async stop() {
+    async stop(closeConnection = true) {
         logger.info('Unlistening for EOS events...');
         const actionTraces = this._getIndividualActionTraces();
         const tableListeners = await this._getIndividualTableListeners();
@@ -227,8 +241,15 @@ class EOSListener extends EventEmitter {
         this._unlisten(tableListeners);
         logger.info('Finished unlistening. Waiting for processing of messages to finish...');
 
+        this._addedActionTraces = [];
+        this._addedTableListeners = [];
+
         return new Promise((resolve) => {
-            const onProcessingFinished = () => {
+            const onProcessingFinished = async () => {
+                logger.info('All EOS messages have been processed.');
+                if (closeConnection) {
+                    await this.disconnect();
+                }
                 logger.info('All EOS messages have been processed.');
                 resolve({
                     actionTraces: actionTraces,
@@ -246,7 +267,6 @@ class EOSListener extends EventEmitter {
     }
 
     async addTableListeners(listenerObj) {
-
 
         this._addedTableListeners.push(listenerObj);
         await this._addTableListeners(listenerObj);
@@ -291,6 +311,7 @@ class EOSListener extends EventEmitter {
                         processDeltas = true;
                         await promise;
                         processedSnapshot = true;
+                        this.emit('on-table-snapshot-processed', dappTableId);
                         logger.info(`Processed Snapshot. Msg buffer size: ${msgBuffer.length}. Processing msg buffer...DappTableId: ${dappTableId}.`);
                         for (let msg of msgBuffer) {
                             processMessage(msg);
@@ -391,6 +412,36 @@ class EOSListener extends EventEmitter {
             table.listener = this.client.getTableRows({ ...table, json: true }, streamOptions);
             table.listener.onMessage(processMessage);
 
+        });
+    }
+
+
+    async loadTableHistory(listener, numDaysBack) {
+        let dailyBlockNumbers = await EOSHTTPService.getDailyBlockNumbers(numDaysBack);
+        console.log(dailyBlockNumbers);
+        let { streamOptions } = listener;
+        streamOptions.fetch = true;
+        streamOptions.listen = false;
+        await this.connect();
+
+        for (let dailyBlockNumber of dailyBlockNumbers) {
+            const { blockNum, blockDate } = dailyBlockNumber;
+            await this._loadDay(listener, blockNum, blockDate);
+            await this.stop(false);
+        }
+        await this.disconnect();
+    }
+
+    async _loadDay(listener, blockNum, date) {
+        logger.info(`Loading table data for blockNum: ${blockNum} and date: ${date} ...`);
+        return new Promise((resolve) => {
+            let { streamOptions } = listener;
+            streamOptions.start_block = blockNum;
+            this.addTableListeners(listener);
+            this.once('on-table-snapshot-processed', async () => {
+                await listener.takeSnapshot(date);
+                resolve();
+            });
         });
     }
 }

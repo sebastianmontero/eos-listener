@@ -9,7 +9,9 @@
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
     "blockProducerSnapshotTime": "0 0 1 * * *",
     "voterSnapshotTime": "30 14 16 * * *",
+    "voterNumDaysBack": 4,
     "httpEndpoints": [
+        "https://mainnet.eos.dfuse.io",
         "http://mainnet.eoscalgary.io",
         "http://api.eosbean.com",
         "http://mainnet.auroraeos.com:8081",

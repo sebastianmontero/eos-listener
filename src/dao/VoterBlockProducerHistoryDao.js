@@ -1,7 +1,19 @@
+const { TimeUtil } = require('../util');
+const { logger } = require('../Logger');
 
 class VoterBlockProducerHistoryDAO {
     constructor(dbCon) {
         this.dbCon = dbCon;
+    }
+
+    async takeSnapshot(date) {
+        date = date || new Date();
+        const dayId = TimeUtil.dayId(date);
+        logger.info('Taking voter block producer snapshot.... For date: ', date);
+        await this.deleteByDayId(dayId);
+        logger.info('Deleted voter block producer snapshot.... For date: ', date);
+        await this.storeSnapshot(dayId);
+        logger.info('Voter block producer snapshot created For date: ', date);
     }
 
     async storeSnapshot(dayId) {

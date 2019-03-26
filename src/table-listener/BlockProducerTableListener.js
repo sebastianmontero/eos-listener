@@ -25,6 +25,7 @@ class BlockProducerTableListener extends BaseTableListener {
             mode: TableListenerModes.REPLICATE,
             tableId: 'owner',
             serializeRowUpdates: true,
+            start_block: 44334498
         };
         this.fieldsOfInterest = [
             'is_active',
