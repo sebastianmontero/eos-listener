@@ -12,7 +12,7 @@ class EOSHTTPService {
         endDate = endDate > lastDate ? lastDate : endDate;
         startDate = TimeUtil.toUTCMidday(startDate);
         endDate = TimeUtil.toUTCMidday(endDate);
-        if (startDate >= endDate) {
+        if (startDate > endDate) {
             throw new Error('End date should be greater than start date');
         }
         const blockInfo = await Fetch.json(`https://${eoswsEndpoint}/v1/chain/get_info`);

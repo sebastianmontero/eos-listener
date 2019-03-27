@@ -9,7 +9,7 @@
     "eoswsEndpoint": "mainnet.eos.dfuse.io",
     "blockProducerSnapshotTime": "0 0 1 * * *",
     "voterSnapshotTime": "30 14 16 * * *",
-    "voterHistoryStartDate": "2019-03-26",
+    "voterHistoryStartDate": "2019-03-27",
     "httpEndpoints": [
         "https://mainnet.eos.dfuse.io",
         "http://mainnet.eoscalgary.io",

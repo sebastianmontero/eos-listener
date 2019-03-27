@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const HttpStatus = require('http-status-codes');
-const DBCon = require('./db/DBConnection');
+const dbCon = require('./db/DBConnection');
 const mysqlStream = require('mysql2');
 const { AccountDao, AccountBalanceDao } = require('./dao');
 const Lock = require('./lock/Lock');
@@ -30,10 +30,9 @@ class AccountBalanceLoader {
         const date = new Date();
         this.dayId = TimeUtil.dayId(date);
         logger.info('Loading account balances.... For date: ', date);
-        this.dbCon = await DBCon.createConnection(this.config.db);
         this.dbConStream = mysqlStream.createConnection(this.config.db);
-        this.accountDao = new AccountDao(this.dbCon, this.dbConStream);
-        this.accountBalanceDao = new AccountBalanceDao(this.dbCon);
+        this.accountDao = new AccountDao(dbCon, this.dbConStream);
+        this.accountBalanceDao = new AccountBalanceDao(dbCon);
         logger.info('Deleting existing account balances for date: ', date);
         this.accountBalanceDao.deleteByDayId(this.dayId);
         this._loadAccounts();
@@ -105,7 +104,7 @@ class AccountBalanceLoader {
                 if (this.streamFinished && this.accountsFetched == this.accountsStreamed) {
                     logger.info('Finshed processing accounts. Flushing last inserts...')
                     await this.accountBalanceDao.flush();
-                    await this.dbCon.end();
+                    await dbCon.end();
                     logger.info('Finished updating database. Connection closed.');
                 }
             })

@@ -48,10 +48,7 @@ class VoterTableListener extends BaseTableListener {
             this.bpIds = await this.blockProducerDao.mapAccountNameToId();
         }
         if (!this.bpIds[bp]) {
-            const id = await this.accountDao.selectAccountId(bp);
-            if (id === null) {
-                throw new Error(`Block producer: ${bp} does not exist`);
-            }
+            const id = await this.accountDao.getAccountId(bp, AccountTypeIds.BLOCK_PRODUCER, NOT_APPLICABLE);
             this.bpIds[bp] = id;
         }
         return this.bpIds[bp];
@@ -128,7 +125,6 @@ class VoterTableListener extends BaseTableListener {
         } else {
             voter.proxyId = SpecialValues.NOT_PROXIED.id;
         }
-
         for (let bp of voter.producers) {
             const bpId = await this._getBPId(bp);
             votersProducers.push([
@@ -186,8 +182,9 @@ class VoterTableListener extends BaseTableListener {
             ]);
             votersMap[voter.accountName] = voter;
         }
+        logger.info(`Inserting Voters from: ${start} to ${end}... Length: ${voters.length}`, new Date());
         await this.voterDao.insert(voters);
-        logger.info(`Loaded Voters from: ${start} to ${end}. Length: ${voters.length}`, new Date());
+        logger.info(`Inserted Voters.`);
         return votersMap;
     }
 
@@ -198,8 +195,9 @@ class VoterTableListener extends BaseTableListener {
             let vps = await this._processProducers(voter, proxy);
             votersProducers = votersProducers.concat(vps);
         }
+        logger.info(`Inserting VotersProducers... Length VotersProducers: ${votersProducers.length}`, new Date());
         await this.voterBlockProducerDao.insert(votersProducers);
-        logger.info(`Inserting VotersProducers. Length VotersProducers: ${votersProducers.length}`, new Date());
+        logger.info(`Inserted VotersProducers.`, new Date());
     }
 
     async _processProxies(rows) {
