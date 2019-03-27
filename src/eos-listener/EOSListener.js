@@ -250,7 +250,6 @@ class EOSListener extends EventEmitter {
                 if (closeConnection) {
                     await this.disconnect();
                 }
-                logger.info('All EOS messages have been processed.');
                 resolve({
                     actionTraces: actionTraces,
                     tableListeners: tableListeners,
@@ -416,8 +415,8 @@ class EOSListener extends EventEmitter {
     }
 
 
-    async loadTableHistory(listener, numDaysBack) {
-        let dailyBlockNumbers = await EOSHTTPService.getDailyBlockNumbers(numDaysBack);
+    async loadTableHistory(listener, startDate, endDate) {
+        let dailyBlockNumbers = await EOSHTTPService.getDailyBlockNumbers(startDate, endDate);
         console.log(dailyBlockNumbers);
         let { streamOptions } = listener;
         streamOptions.fetch = true;

@@ -37,8 +37,7 @@ class VoterLoader {
     }
 
     printFiglet() {
-        const { voterNumDaysBack } = this.config;
-        const title = 'Loading Voters.' + (voterNumDaysBack ? `History Mode: ${voterNumDaysBack}` : '');
+        const title = 'Loading Voters.' + (this.config.voterHistoryStartDate ? `History Mode.` : '');
         figlet(title, {
             font: "Big",
             horizontalLayout: 'default',
@@ -77,13 +76,15 @@ class VoterLoader {
                 voterBlockProducerDao,
                 voterBlockProducerHistoryDao,
             };
-            const { voterNumDaysBack } = this.config;
+            let { voterHistoryStartDate, voterHistoryEndDate } = this.config;
             let voterTableListener = new VoterTableListener(config);
-            if (voterNumDaysBack) {
-                logger.info(`Loading Voter History. Number of days: ${voterNumDaysBack}`);
-                await this.historyMode(voterTableListener, voterNumDaysBack);
+            if (voterHistoryStartDate) {
+                voterHistoryStartDate = new Date(voterHistoryStartDate);
+                voterHistoryEndDate = voterHistoryEndDate ? new Date(voterHistoryEndDate) : null;
+                logger.info(`Loading Voter History. Range: ${voterHistoryStartDate} - ${voterHistoryEndDate}`);
+                await this.historyMode(voterTableListener, voterHistoryStartDate, voterHistoryEndDate);
                 logger.info('Finished loading voter history');
-                dbCon.end();
+                await dbCon.end();
                 logger.info('Closed database connection.');
             } else {
                 this.normalMode(voterTableListener);
@@ -105,8 +106,8 @@ class VoterLoader {
         logger.info('Added voter block producer snapshot cron job');
     }
 
-    async historyMode(voterTableListener, numDaysBack) {
-        await this.listener.loadTableHistory(voterTableListener, numDaysBack)
+    async historyMode(voterTableListener, startDate, endDate) {
+        await this.listener.loadTableHistory(voterTableListener, startDate, endDate);
 
     }
 }

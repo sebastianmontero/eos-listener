@@ -85,6 +85,12 @@ class TimeUtil {
     static toUTCDateFromNTZString(dateString) {
         return new Date(dateString + 'Z');
     }
+
+    static toUTCMidday(date) {
+        let newDate = new Date(date);
+        newDate.setUTCHours(12, 0, 0, 0);
+        return newDate;
+    }
 }
 
 module.exports = TimeUtil;
