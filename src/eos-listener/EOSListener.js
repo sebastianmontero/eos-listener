@@ -32,6 +32,7 @@ class EOSListener extends EventEmitter {
             timeBuffer: eoswsAuthTimeBuffer,
         });
         this.client = null;
+        this.reconnect = true;
     }
 
     async _createClient() {
@@ -48,6 +49,9 @@ class EOSListener extends EventEmitter {
                         logger.error('On Socket error', message);
                     },
                     onClose: async () => {
+                        if (!this.reconnect) {
+                            return;
+                        }
                         logger.error('Connection with mainet has been closed. Stopping current listeners...');
                         await this.stop(false);
                         this.client = null;
@@ -72,6 +76,7 @@ class EOSListener extends EventEmitter {
 
     async connect() {
         try {
+            this.reconnect = true;
             if (!this.client) {
                 logger.info('Client not created. Creating...');
                 this.client = await this._createClient();
@@ -89,6 +94,7 @@ class EOSListener extends EventEmitter {
 
     async disconnect() {
         try {
+            this.reconnect = false;
             if (this.client && this.client.socket.isConnected) {
                 logger.info('Client connected. Disconnecting...');
                 await this.client.disconnect();
