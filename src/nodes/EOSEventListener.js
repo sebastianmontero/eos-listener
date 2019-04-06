@@ -197,7 +197,7 @@ module.exports = straw.node({
 
                         if (passFilter) {
                             let { block_num: blockNum, block_time: blockTime, trx_id: trxId, idx } = message.data;
-                            console.log('blockTime: ', blockTime);
+                            console.log(`blockTime: ${blockTime} blockNum: ${blockNum}`);
                             const blockInfo = {
                                 blockNum,
                                 trxId,
@@ -227,6 +227,7 @@ module.exports = straw.node({
                         }
                     } else if (message.type == InboundMessageType.PROGRESS) {
                         const { data: { block_num: blockNum } } = message;
+                        console.log(message);
                         blockProgress.processedBlock({
                             blockNum,
                         });
