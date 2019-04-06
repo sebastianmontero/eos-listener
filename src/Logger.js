@@ -28,6 +28,7 @@ module.exports = {
                 maxSize: '100m',
                 zippedArchive: true
             }));
+        return this.logger;
     },
 
 }

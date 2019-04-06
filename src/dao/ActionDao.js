@@ -59,6 +59,23 @@ class ActionDAO extends BaseDao {
             [accountName, actionName]);
     }
 
+    async selectByAccountNameAndActionNamesWithProgress(accountName, actionNames) {
+        return await this.dbCon.query(
+            `SELECT act.action_id,
+                    act.action_name,
+                    a.account_id,
+                    a.account_name, 
+                    a.account_type_id, 
+                    a.dapp_id,
+                    abp.block_progress
+            FROM action act INNER JOIN
+                 account a ON act.account_id = a.account_id LEFT JOIN
+                 action_block_progress abp ON act.action_id = abp.action_id 
+            WHERE a.account_name = ?  AND
+                  act.action_name in (?)`,
+            [accountName, actionNames]);
+    }
+
     async _insert({ actionName, accountId }) {
         return await this.dbCon.execute(
             `INSERT INTO action (action_name, account_id)

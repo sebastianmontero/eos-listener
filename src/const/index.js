@@ -11,6 +11,8 @@ const TokenIds = require('./TokenIds');
 const DappTableIds = require('./DappTableIds');
 const VoterTypeIds = require('./VoterTypeIds');
 const General = require('./General');
+const TransferTypeIds = require('./TransferTypeIds');
+const GyftieAccounts = require('./GyftieAccounts');
 
 module.exports = {
     AccountTypeIds,
@@ -25,5 +27,7 @@ module.exports = {
     TokenIds,
     DappTableIds,
     VoterTypeIds,
-    General
+    General,
+    TransferTypeIds,
+    GyftieAccounts,
 };

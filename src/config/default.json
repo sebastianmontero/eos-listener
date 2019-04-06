@@ -1,7 +1,7 @@
 {
     // get eosws_token from: https://dfuse.io/#subscribe
     "logLevel": "debug",
-    "useBlockProgress": false,
+    "useBlockProgress": true,
     "eoswsAPIKey": "server_d34dc9a715ac76a7a0293ee554067628",
     "eoswsAuthUrl": "https://auth.dfuse.io/v1/auth/issue",
     "eoswsAuthTimeBuffer": 1800,

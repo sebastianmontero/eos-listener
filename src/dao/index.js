@@ -15,6 +15,8 @@ const VoterBlockProducerDao = require('./VoterBlockProducerDao');
 const VoterBlockProducerHistoryDao = require('./VoterBlockProducerHistoryDao');
 const ActionBlockProgressDao = require('./ActionBlockProgressDao');
 const DappTableBlockProgressDao = require('./DappTableBlockProgressDao');
+const TransferDao = require('./TransferDao');
+const GyftDao = require('./GyftDao');
 
 module.exports = {
     AccountDao,
@@ -33,5 +35,7 @@ module.exports = {
     BlockProducerHistoryDao,
     VoterBlockProducerHistoryDao,
     ActionBlockProgressDao,
-    DappTableBlockProgressDao
+    DappTableBlockProgressDao,
+    TransferDao,
+    GyftDao,
 };

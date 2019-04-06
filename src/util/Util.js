@@ -67,6 +67,10 @@ class Util {
         return a1.length == a2.length && !a1.some((v) => a2.indexOf(v) < 0);
     }
 
+    static cloneArray(a) {
+        return a.slice(0);
+    }
+
     static areEqual(v1, v2) {
         // Get the value type
         var type = Object.prototype.toString.call(v1);

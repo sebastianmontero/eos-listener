@@ -8,7 +8,9 @@ class BlockProgress {
     }
 
     deserialize(serializedState) {
+        console.log(serializedState);
         const state = serializedState ? JSON.parse(serializedState) : {};
+        console.log(state);
         this.setState(state);
     }
 
