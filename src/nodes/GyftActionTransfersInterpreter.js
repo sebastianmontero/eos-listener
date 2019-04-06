@@ -9,6 +9,11 @@ module.exports = straw.node({
         const transferTraces = inlineTraceResults['issue-transfers'];
         let transfers = [];
         let gyft = {
+            foundationReward: 0,
+            liquidityReward: 0,
+            eosAccountCreationReimbursement: 0,
+            gyfterReward: 0,
+            gyfteeReward: 0,
             gyftTime: transferTime,
         };
         let toAccountTypeId, toDappId;
@@ -38,7 +43,7 @@ module.exports = straw.node({
                     transferTypeId = TransferTypeIds.GYFTER;
                     gyft.gyfter = to;
                     gyft.gyfterReward = quantity;
-                } else if (lcMemo.indexOf('new') != -1) {
+                } else /* if (lcMemo.indexOf('new') != -1) */ {
                     transferTypeId = TransferTypeIds.GYFTEE;
                     gyft.gyftee = to;
                     gyft.gyfteeReward = quantity;

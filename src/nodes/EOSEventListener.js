@@ -115,7 +115,7 @@ module.exports = straw.node({
                             return;
                         }
                         logger.error('Connection with mainet has been closed. Stopping current listeners...');
-                        await this.stop(false);
+                        await this._stop(false);
                         this.client = null;
                         logger.error('Old listener stopped. Connecting new client...');
                         await this.connect();
@@ -450,7 +450,7 @@ module.exports = straw.node({
         for (let dailyBlockNumber of dailyBlockNumbers) {
             const { blockNum, blockDate } = dailyBlockNumber;
             await this._loadDay(listener, blockNum, blockDate);
-            await this.stop(false);
+            await this._stop(false);
         }
         await this.disconnect();
     },
