@@ -6,7 +6,11 @@ class ListenerConfig {
         this.actionDao = new ActionDao(dbCon);
     }
 
-    async getActionListener(accountName, actionNames) {
+    async getActionListener(accountName, actionNames, opts, streamOpts) {
+
+        opts = opts || {};
+        streamOpts = streamOpts || {};
+
         var actions = await this.actionDao.selectByAccountNameAndActionNamesWithProgress(accountName, actionNames);
 
         let actionTraces = [];
@@ -19,15 +23,10 @@ class ListenerConfig {
                 with_inline_traces: true,
                 streamOptions: {
                     with_progress: 5000,
+                    ...streamOpts,
                 },
                 blockProgress: action.block_progress,
-                inlineTraces: {
-                    "issue-transfers": {
-                        account: "gyftietokens",
-                        action: "transfer",
-                        path: [["gyftietokens-issue", "gyftietokens-issuetostake"]]
-                    }
-                }
+                ...opts,
             });
         }
         return [{

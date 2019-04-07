@@ -32,7 +32,21 @@ class GyftActionTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        const actionTraces = await this.listenerConfig.getActionListener("gyftietokens", ["gyft", "gyft2"]);
+        const actionTraces = await this.listenerConfig.getActionListener(
+            "gyftietokens",
+            ["gyft", "gyft2"],
+            {
+                inlineTraces: {
+                    "issue-transfers": {
+                        account: "gyftietokens",
+                        action: "transfer",
+                        path: [["gyftietokens-issue", "gyftietokens-issuetostake"]]
+                    }
+                },
+            },
+            {
+                
+            });
         const config = this.config;
         let nodes = [{
             id: 'eos-event-listener',
