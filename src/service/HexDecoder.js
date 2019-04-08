@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');
 const { getTypesFromAbi, createInitialTypes, hexToUint8Array, SerialBuffer } = require('eosjs/dist/eosjs-serialize');
 const { TextEncoder, TextDecoder } = require('util');
+const { EOSUtil } = require('../util');
 
 
 class HexDecoder {
@@ -18,27 +19,23 @@ class HexDecoder {
         });
     }
 
-    async addType(codeAccount, type) {
-        this.getType(codeAccount, type);
+    async addType(typePath) {
+        this.getType(typePath);
     }
 
-    async getType(codeAccount, type) {
-        let typePath = this._getTypePath(codeAccount, type);
+    async getType(typePath) {
 
         if (!this._typeMap[typePath]) {
-            let abiTypes = await this._getAbiTypes(codeAccount);
+            const { account, type } = EOSUtil.parseTypePath(typePath);
+            let abiTypes = await this._getAbiTypes(account);
             let abiType = abiTypes.get(type);
             if (!abiType) {
-                throw new Error(`Non existant type: ${codeAccount}/${type}`);
+                throw new Error(`Non existant type: ${account}/${type}`);
             }
             this._typeMap[typePath] = abiType;
         }
         return this._typeMap[typePath];
 
-    }
-
-    async _getTypePath(codeAccount, type) {
-        return `${codeAccount}/${type}`;
     }
 
     async _getAbiTypes(codeAccount) {
@@ -50,8 +47,8 @@ class HexDecoder {
         return this._abiMap[codeAccount];
     }
 
-    async hexToJson(codeAccount, type, hexData) {
-        let abiType = this.getType(codeAccount, type);
+    async hexToJson(typePath, hexData) {
+        let abiType = await this.getType(typePath);
         const data = hexToUint8Array(hexData);
 
         const buffer = new SerialBuffer({

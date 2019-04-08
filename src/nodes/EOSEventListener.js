@@ -4,20 +4,22 @@ const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/e
 const Logger = require('../Logger');
 const { logger } = Logger;
 const { DBOps, ForkSteps, TableListenerModes } = require('../const');
-const { Util } = require('../util');
+const { EOSUtil, Util } = require('../util');
 const BlockProgress = require('../eos-listener/BlockProgress');
 const TokenManager = require('../eos-listener/TokenManager');
+const HexDecoder = require('../service/HexDecoder');
 const { EOSHTTPService } = require('../service');
 const dbCon = require('../db/DBConnection');
 
 module.exports = straw.node({
-    initialize: function (opts, done) {
+    initialize: async function (opts, done) {
         this.opts = opts;
         const {
             config: {
                 useBlockProgress,
                 eoswsAPIKey,
                 eoswsAuthUrl,
+                eoswsEndpoint,
                 eoswsAuthTimeBuffer,
                 origin,
                 db,
@@ -32,8 +34,8 @@ module.exports = straw.node({
         this.useBlockProgress = useBlockProgress;
         this.actionTraces = actionTraces || [];
         this.tableListeners = tableListeners || [];
-        console.log(this.actionTraces);
-        this.preprocessListeners();
+        this.hexDecoder = new HexDecoder(`https://${eoswsEndpoint}`);
+        await this.preprocessListeners();
         console.log(this.actionTraces);
         this.origin = origin;
         this.tokenManager = new TokenManager({
@@ -77,15 +79,33 @@ module.exports = straw.node({
         });
 
     },
-    preprocessListeners: function () {
+    preprocessListeners: async function () {
         for (let actionTrace of this.actionTraces) {
-            this.inflateBlockProgress(actionTrace.actionTraces);
+            let { actionTraces } = actionTrace
+            this.inflateBlockProgress(actionTraces);
+            await this.preprocessDBOps(actionTraces);
         }
         this.inflateBlockProgress(this.tableListeners);
     },
     inflateBlockProgress: function (listeners) {
         for (let listener of listeners) {
             listener.blockProgress = new BlockProgress(listener.blockProgress);
+        }
+    },
+    preprocessDBOps: async function (listeners) {
+        for (let listener of listeners) {
+            const { dbOps } = listener;
+            if (dbOps) {
+                let pDbOps = {};
+                for (let dbOp of dbOps) {
+                    const typePath = EOSUtil.getTypePath(dbOp.account, dbOp.type);
+                    const tablePath = EOSUtil.getTypePath(dbOp.account, dbOp.table);
+                    pDbOps[tablePath] = typePath;
+                    await this.hexDecoder.addType(typePath);
+
+                }
+                listener.dbOps = pDbOps;
+            }
         }
     },
     addListeners: function (afterReconnect = false) {
@@ -168,7 +188,7 @@ module.exports = straw.node({
     }) {
         actionFilters = actionFilters || {};
         actionTraces.forEach(actionTrace => {
-            let { actionId, codeAccountId, blockProgress, streamOptions, inlineTraces } = actionTrace;
+            let { actionId, codeAccountId, blockProgress, streamOptions, inlineTraces, dbOps } = actionTrace;
             if (this.useBlockProgress) {
                 streamOptions.start_block = blockProgress.getStartBlock(streamOptions.start_block);
             }
@@ -177,12 +197,12 @@ module.exports = straw.node({
             actionTrace.listener.onMessage(async (message) => {
                 try {
                     if (message.type === InboundMessageType.ACTION_TRACE) {
-                        const data = message.data.trace.act;
+                        const { data } = message;
                         const {
                             name: action,
                             account,
                             data: actionData
-                        } = data;
+                        } = data.trace.act;
 
                         let passFilter = true;
                         if (action in actionFilters) {
@@ -196,7 +216,7 @@ module.exports = straw.node({
                         }
 
                         if (passFilter) {
-                            let { block_num: blockNum, block_time: blockTime, trx_id: trxId, idx } = message.data;
+                            let { block_num: blockNum, block_time: blockTime, trx_id: trxId, idx } = data;
                             console.log(`blockTime: ${blockTime} blockNum: ${blockNum}`);
                             const blockInfo = {
                                 blockNum,
@@ -208,7 +228,8 @@ module.exports = straw.node({
                                 return;
                             }
                             blockTime = new Date(blockTime);
-                            const inlineTraceResults = this.extractInlineTraces(message.data, inlineTraces);
+                            const inlineTraceResults = this.extractInlineTraces(data, inlineTraces);
+                            const dbOpResults = await this.extractDBOps(message.data, dbOps);
                             let payload = {
                                 actionId,
                                 codeAccountId,
@@ -218,7 +239,8 @@ module.exports = straw.node({
                                 blockNum,
                                 blockTime,
                                 message,
-                                inlineTraceResults
+                                inlineTraceResults,
+                                dbOpResults,
                             };
                             logger.debug('Payload', payload);
 
@@ -254,6 +276,27 @@ module.exports = straw.node({
     searchInlineTraces: function (traces, search, results, foundDigests, path) {
         for (let trace of traces) {
             this.findInlineTraces(trace, search, results, foundDigests, Util.cloneArray(path));
+        }
+        return results;
+    },
+
+    extractDBOps: async function (data, requestedTables) {
+        let { dbops } = data;
+        let results = {};
+        if (requestedTables && dbops) {
+            for (let dbop of dbops) {
+                const tablePath = EOSUtil.getShortTablePath(dbop.path);
+                let typePath = requestedTables[tablePath];
+                if (typePath) {
+                    results[tablePath] = { ...dbop };
+                    if (dbop.old) {
+                        results[tablePath].old = await this.hexDecoder.hexToJson(typePath, dbop.old);
+                    }
+                    if (dbop.new) {
+                        results[tablePath].new = await this.hexDecoder.hexToJson(typePath, dbop.new);
+                    }
+                }
+            }
         }
         return results;
     },
