@@ -28,7 +28,7 @@ module.exports = straw.node({
                 foundationReward,
                 liquidityReward,
             } = msg;
-
+            console.log(msg);
             let gyftTime = new Date(msg.gyftTime);
             let toInsert = {
                 gyfterAccountId: await this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id),

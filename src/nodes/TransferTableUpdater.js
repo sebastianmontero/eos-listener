@@ -35,7 +35,7 @@ module.exports = straw.node({
             } = msg;
 
             let transferTime = new Date(msg.transferTime);
-            let gyfterAccountId = gyfter ? await this.accountDao.getAccountId(from, AccountTypeIds.USER, NOT_APPLICABLE.id) : NOT_APPLICABLE.id;
+            let gyfterAccountId = gyfter ? await this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id) : NOT_APPLICABLE.id;
             let toInsert = {
                 dappId,
                 fromAccountId: await this.accountDao.getAccountId(from, fromAccountTypeId, fromDappId),

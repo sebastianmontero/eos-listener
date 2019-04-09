@@ -42,6 +42,26 @@ class TradeActionTopolgy {
                 "limitbuygft",
             ],
             {
+                inlineTraces: {
+                    "tradeexec": {
+                        account: "gftorderbook",
+                        action: "tradeexec",
+                    }
+                },
+            },
+            {
+
+            });
+        /* const actionTraces = await this.listenerConfig.getActionListener(
+            "gftorderbook",
+            [
+                "marketsell",
+                "marketbuy",
+                "limitsellgft",
+                "processbook",
+                "limitbuygft",
+            ],
+            {
                 with_dbops: true,
                 dbOps: [{
                     account: "gftorderbook",
@@ -56,8 +76,8 @@ class TradeActionTopolgy {
                 },
             },
             {
-
-            });
+ 
+            }); */
         /* const actionTraces = await this.listenerConfig.getActionListener(
             "gyftietokens",
             ["gyft", "gyft2"],

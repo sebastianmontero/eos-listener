@@ -218,6 +218,7 @@ module.exports = straw.node({
                         if (passFilter) {
                             let { block_num: blockNum, block_time: blockTime, trx_id: trxId, idx } = data;
                             console.log(`blockTime: ${blockTime} blockNum: ${blockNum}`);
+                            console.log(JSON.stringify(message));
                             const blockInfo = {
                                 blockNum,
                                 trxId,

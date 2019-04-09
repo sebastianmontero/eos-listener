@@ -69,6 +69,7 @@ module.exports = straw.node({
             transfer.gyfter = gyft.gyfter;
             this.output('transfer', transfer);
         }
+        console.log(gyft);
         this.output('gyft', gyft);
         done(false);
     },
