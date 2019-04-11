@@ -45,13 +45,16 @@ class GyftActionTopolgy {
                 },
             },
             {
-                
+
             });
         const config = this.config;
         let nodes = [{
             id: 'eos-event-listener',
             node: 'EOSEventListener',
-            output: 'gyftietokens-gyft',
+            outputs: {
+                'gyftietokens-gyft': 'gyftietokens-gyft',
+                'gyftietokens-gyft2': 'gyftietokens-gyft',
+            },
             config,
             actionTraces,
         }, {
