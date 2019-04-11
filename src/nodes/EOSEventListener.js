@@ -245,7 +245,7 @@ module.exports = straw.node({
                             };
                             logger.debug('Payload', payload);
 
-                            this.output(payload);
+                            this.output(`${account}-${action}`, payload);
                             blockProgress.processedBlock(blockInfo);
                         }
                     } else if (message.type == InboundMessageType.PROGRESS) {
@@ -266,7 +266,6 @@ module.exports = straw.node({
     extractInlineTraces: function (data, search) {
         let results = {};
         let foundDigests = {};
-
         if (search) {
             let { trace: { inline_traces } } = data;
             this.searchInlineTraces(inline_traces, search, results, foundDigests, []);

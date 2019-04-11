@@ -98,14 +98,29 @@ class TradeActionTopolgy {
         let nodes = [{
             id: 'eos-event-listener',
             node: 'EOSEventListener',
-            output: 'gftorderbook-tradeexec',
+            outputs: {
+                "gftorderbook-marketsell": 'gftorderbook-tradeexec',
+                "gftorderbook-marketbuy": 'gftorderbook-tradeexec',
+                "gftorderbook-limitsellgft": 'gftorderbook-tradeexec',
+                "gftorderbook-processbook": 'gftorderbook-tradeexec',
+                "gftorderbook-limitbuygft": 'gftorderbook-tradeexec',
+            },
             config,
             actionTraces,
         },
         {
-            id: 'voter-processor',
-            node: 'VotesProcessor',
+            id: 'gyft-exchange-trade-interpreter',
+            node: 'GyftExchangeTradeInterpreter',
             input: 'gftorderbook-tradeexec',
+            outputs: {
+                trade: 'trade'
+            }
+        },
+        {
+            id: 'trade-table-updater',
+            node: 'TradeTableUpdater',
+            input: 'trade',
+            config,
         }];
         return nodes;
     }
