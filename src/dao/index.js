@@ -18,6 +18,7 @@ const DappTableBlockProgressDao = require('./DappTableBlockProgressDao');
 const TransferDao = require('./TransferDao');
 const GyftDao = require('./GyftDao');
 const TradeDao = require('./TradeDao');
+const GyftTokenProjectionDao = require('./GyftTokenProjectionDao');
 
 module.exports = {
     AccountDao,
@@ -40,4 +41,5 @@ module.exports = {
     TransferDao,
     GyftDao,
     TradeDao,
+    GyftTokenProjectionDao,
 };

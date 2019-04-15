@@ -62,6 +62,24 @@ class GyftDAO extends BaseBatchDao {
         await this._insert(objs, this._toInsertArray);
     }
 
+    async selectOrderedByTime(offset, limit) {
+        return await this.dbCon.execute(
+            `SELECT * 
+            FROM gyft 
+            ORDER BY gyft_time
+            LIMIT ?, ?`,
+            [offset, limit]);
+    }
+
+    async selectFromDate(date) {
+        return await this.dbCon.execute(
+            `SELECT * 
+            FROM gyft 
+            WHERE gyft_time > ?
+            ORDER BY gyft_time`,
+            [date]);
+    }
+
 }
 
 
