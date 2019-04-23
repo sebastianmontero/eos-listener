@@ -39,6 +39,21 @@ module.exports = straw.node({
             let { amount: priceQty, symbol: priceTkn } = Util.parseAsset(price);
             let { amount: marketMakerFee, symbol: marketMakerFeeToken } = Util.parseAsset(makerReward);
 
+            let boughtToken = amountTkn,
+                priceBought = priceQty,
+                soldToken = priceTkn,
+                priceSold = 1 / priceBought;
+
+            let marketMakerFeeInBoughtToken, marketMakerFeeInSoldToken;
+
+            if (marketMakerFeeToken == boughtToken) {
+                marketMakerFeeInBoughtToken = marketMakerFee;
+                marketMakerFeeInSoldToken = marketMakerFee * priceBought;
+            } else {
+                marketMakerFeeInSoldToken = marketMakerFee;
+                marketMakerFeeInBoughtToken = marketMakerFee * priceSold;
+            }
+
             this.output('trade', {
                 dappId,
                 buyer,
@@ -47,17 +62,17 @@ module.exports = straw.node({
                 seller,
                 sellerAccountTypeId: AccountTypeIds.USER,
                 sellerDappId: NOT_APPLICABLE.id,
-                boughtToken: amountTkn,
-                priceBought: priceQty,
+                boughtToken,
+                priceBought,
                 boughtAmount: amountQty,
                 buyOrderTypeId,
-                soldToken: priceTkn,
-                priceSold: 1 / priceQty,
+                soldToken,
+                priceSold,
                 soldAmount: amountQty * priceQty,
                 sellOrderTypeId,
                 marketMaker,
-                marketMakerFee,
-                marketMakerFeeToken,
+                marketMakerFeeInBoughtToken,
+                marketMakerFeeInSoldToken,
                 tradeTime
             });
         }

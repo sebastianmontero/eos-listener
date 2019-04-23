@@ -24,8 +24,8 @@ class TradeDAO extends BaseBatchDao {
         hourOfDay,
         tradeTime,
         marketMakerAccountId,
-        marketMakerFee,
-        marketMakerFeeTokenId,
+        marketMakerFeeInBoughtToken,
+        marketMakerFeeInSoldToken,
 
     }) {
         return [
@@ -44,8 +44,8 @@ class TradeDAO extends BaseBatchDao {
             hourOfDay,
             tradeTime,
             marketMakerAccountId,
-            marketMakerFee,
-            marketMakerFeeTokenId,
+            marketMakerFeeInBoughtToken,
+            marketMakerFeeInSoldToken,
         ];
     }
 
@@ -68,8 +68,8 @@ class TradeDAO extends BaseBatchDao {
                 hour_of_day,
                 trade_time,
                 market_maker_account_id,
-                market_maker_fee,
-                market_maker_fee_token_id
+                market_maker_fee_in_bought_token,
+                market_maker_fee_in_sold_token
             ) VALUES ?`,
             values,
             toArray);

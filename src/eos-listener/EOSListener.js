@@ -342,7 +342,7 @@ class EOSListener extends EventEmitter {
                             return;
                         }
 
-                        if (op === DBOps.UPDATE) {
+                        if (DBOps.isUpdate(op)) {
                             modifiedProps = Util.modifiedProps(oldRow, newRow, fieldsOfInterest);
                             if (!modifiedProps) {
                                 return;
@@ -370,24 +370,24 @@ class EOSListener extends EventEmitter {
                             };
                             const isHistoryMode = mode === TableListenerModes.HISTORY;
                             if (step === ForkSteps.NEW || step === ForkSteps.REDO) {
-                                if (op === DBOps.INSERT) {
+                                if (DBOps.isInsert(op)) {
                                     logger.debug(`Insert new o redo.DappTableId: ${dappTableId}. payload:`, payload);
                                     await listenerObj.insert(payload);
-                                } else if (op === DBOps.UPDATE) {
+                                } else if (DBOps.isUpdate(op)) {
                                     logger.debug(`Update new o redo.DappTableId: ${dappTableId}. payload:`, payload);
                                     await listenerObj.update(payload);
-                                } else if (op === DBOps.REMOVE && !isHistoryMode) {
+                                } else if (DBOps.isRemove(op) && !isHistoryMode) {
                                     logger.debug(`Remove new o redo.DappTableId: ${dappTableId}. Payload:`, payload);
                                     await listenerObj.remove(payload);
                                 }
                             } else if (step === ForkSteps.UNDO) {
-                                if (op === DBOps.INSERT && !isHistoryMode) {
+                                if (DBOps.isInsert(op) && !isHistoryMode) {
                                     logger.debug(`Insert undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.insert(payload);
-                                } else if (op === DBOps.UPDATE) {
+                                } else if (DBOps.isUpdate(op)) {
                                     logger.debug(`Update undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.update(payload);
-                                } else if (op === DBOps.REMOVE) {
+                                } else if (DBOps.isRemove(op)) {
                                     logger.debug(`Remove undo.DappTableId: ${dappTableId}.Payload:`, payload);
                                     await listenerObj.remove(payload);
                                 }

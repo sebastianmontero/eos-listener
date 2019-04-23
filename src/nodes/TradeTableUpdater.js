@@ -2,11 +2,11 @@ const straw = require('straw');
 const dbCon = require('../db/DBConnection');
 
 const { TimeUtil } = require('../util');
-const { AccountTypeIds, SpecialValues } = require('../const');
+const { SpecialValues } = require('../const');
 const { AccountDao, TokenDao, TradeDao } = require('../dao');
 const logger = require('../Logger').configure('transfer-table-updater');
 
-const { UNKNOWN, NOT_APPLICABLE } = SpecialValues;
+const { UNKNOWN } = SpecialValues;
 
 module.exports = straw.node({
     initialize: function (opts, done) {
@@ -37,7 +37,8 @@ module.exports = straw.node({
                 soldAmount,
                 sellOrderTypeId,
                 marketMaker,
-                marketMakerFee,
+                marketMakerFeeInBoughtToken,
+                marketMakerFeeInSoldToken,
             } = msg;
 
             console.log('Trade: ', JSON.stringify(msg));
@@ -46,15 +47,8 @@ module.exports = straw.node({
             let sellerAccountId = await this.accountDao.getAccountId(seller, sellerAccountTypeId, sellerDappId);
             let boughtTokenId = await this.tokenDao.getTokenId(boughtToken, UNKNOWN.id);
             let soldTokenId = await this.tokenDao.getTokenId(soldToken, UNKNOWN.id);
-            let marketMakerAccountId, marketMakerFeeTokenId;
 
-            if (marketMaker == buyer) {
-                marketMakerAccountId = buyerAccountId;
-                marketMakerFeeTokenId = soldTokenId;
-            } else {
-                marketMakerAccountId = sellerAccountId;
-                marketMakerFeeTokenId = boughtTokenId;
-            }
+            let marketMakerAccountId = marketMaker == buyer ? buyerAccountId : sellerAccountId;
 
             let tradeTime = new Date(msg.tradeTime);
             let toInsert = {
@@ -73,8 +67,8 @@ module.exports = straw.node({
                 hourOfDay: tradeTime.getUTCHours(),
                 tradeTime: tradeTime,
                 marketMakerAccountId,
-                marketMakerFee,
-                marketMakerFeeTokenId,
+                marketMakerFeeInBoughtToken,
+                marketMakerFeeInSoldToken,
             };
             console.log(toInsert);
             await this.transferDao.batchInsert(toInsert);

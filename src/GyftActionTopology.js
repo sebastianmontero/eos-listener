@@ -36,6 +36,7 @@ class GyftActionTopolgy {
             "gyftietokens",
             ["gyft", "gyft2"],
             {
+                with_inline_traces: true,
                 inlineTraces: {
                     "issue-transfers": {
                         account: "gyftietokens",

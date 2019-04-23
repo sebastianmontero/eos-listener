@@ -256,7 +256,7 @@ module.exports = straw.node({
                         });
                     }
                 } catch (error) {
-                    logger.error(error);
+                    logger.error("Error processing action trace", error);
                 }
             });
 
@@ -288,13 +288,17 @@ module.exports = straw.node({
                 const tablePath = EOSUtil.getShortTablePath(dbop.path);
                 let typePath = requestedTables[tablePath];
                 if (typePath) {
-                    results[tablePath] = { ...dbop };
+                    let result = { ...dbop };
                     if (dbop.old) {
-                        results[tablePath].old = await this.hexDecoder.hexToJson(typePath, dbop.old);
+                        result.old = await this.hexDecoder.hexToJson(typePath, dbop.old);
                     }
                     if (dbop.new) {
-                        results[tablePath].new = await this.hexDecoder.hexToJson(typePath, dbop.new);
+                        result.new = await this.hexDecoder.hexToJson(typePath, dbop.new);
                     }
+                    if (!results[tablePath]) {
+                        results[tablePath] = [];
+                    }
+                    results[tablePath].push(result);
                 }
             }
         }

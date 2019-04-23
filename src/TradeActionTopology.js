@@ -42,6 +42,7 @@ class TradeActionTopolgy {
                 "limitbuygft",
             ],
             {
+                with_inline_traces: true,
                 inlineTraces: {
                     "tradeexec": {
                         account: "gftorderbook",

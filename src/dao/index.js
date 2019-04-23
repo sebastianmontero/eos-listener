@@ -19,6 +19,8 @@ const TransferDao = require('./TransferDao');
 const GyftDao = require('./GyftDao');
 const TradeDao = require('./TradeDao');
 const GyftTokenProjectionDao = require('./GyftTokenProjectionDao');
+const OrderBookChangeDao = require('./OrderBookChangeDao');
+const OrderBookDao = require('./OrderBookDao');
 
 module.exports = {
     AccountDao,
@@ -42,4 +44,6 @@ module.exports = {
     GyftDao,
     TradeDao,
     GyftTokenProjectionDao,
+    OrderBookChangeDao,
+    OrderBookDao,
 };
