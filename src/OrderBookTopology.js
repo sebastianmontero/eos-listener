@@ -42,6 +42,8 @@ class OrderBookTopolgy {
                 "limitbuygft",
                 "delbuyorder",
                 "delsellorder",
+                "stackbuyrec",
+                "stacksellrec"
             ],
             {
                 with_dbops: true,
@@ -72,6 +74,8 @@ class OrderBookTopolgy {
                 "gftorderbook-limitbuygft": 'gftorderbook-orderbook',
                 "gftorderbook-delbuyorder": 'gftorderbook-orderbook',
                 "gftorderbook-delsellorder": 'gftorderbook-orderbook',
+                "gftorderbook-stackbuyrec": 'gftorderbook-orderbook',
+                "gftorderbook-stacksellrec": 'gftorderbook-orderbook',
             },
             config,
             actionTraces,

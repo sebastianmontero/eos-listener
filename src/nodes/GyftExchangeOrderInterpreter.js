@@ -78,9 +78,11 @@ module.exports = straw.node({
                 orderId: operationTimeDate.getTime(),
                 price: avgPrice,
                 amount,
+                oldAmount: null,
                 operationToken: Tokens.GFT,
                 counterpartToken: Tokens.EOS,
                 orderValue,
+                oldOrderValue: null,
                 orderTypeId,
                 account,
                 remainingAmount,
@@ -182,14 +184,16 @@ module.exports = straw.node({
         let { amount: orderValue, symbol: counterpartToken } = Util.parseAsset(orderValueAsset);
 
         let amountChange = 0,
-            orderValueChange = 0;
+            orderValueChange = 0,
+            oldAmount = null,
+            oldOrderValue = null;
         if (oldData && newData) {
             const {
                 gft_amount: oldAmountAsset,
                 order_value: oldOrderValueAsset,
             } = oldData;
-            let { amount: oldAmount } = Util.parseAsset(oldAmountAsset);
-            let { amount: oldOrderValue } = Util.parseAsset(oldOrderValueAsset);
+            ({ amount: oldAmount } = Util.parseAsset(oldAmountAsset));
+            ({ amount: oldOrderValue } = Util.parseAsset(oldOrderValueAsset));
             amountChange = oldAmount - amount;
             orderValueChange = oldOrderValue - orderValue;
         } else if (oldData) {
@@ -201,9 +205,11 @@ module.exports = straw.node({
             orderId,
             price,
             amount,
+            oldAmount,
             operationToken,
             counterpartToken,
             orderValue,
+            oldOrderValue,
             orderTypeId,
             account,
             amountChange,

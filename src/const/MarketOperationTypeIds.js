@@ -13,7 +13,11 @@ module.exports = {
                 return this.DELETE;
             case 'limitsellgft':
                 return this.SELL_LIMIT;
+            case 'stacksellrec':
+                return this.SELL_LIMIT;
             case 'limitbuygft':
+                return this.BUY_LIMIT;
+            case 'stackbuyrec':
                 return this.BUY_LIMIT;
             case 'marketsell':
                 return this.SELL;
