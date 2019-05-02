@@ -14,9 +14,10 @@ const SELL_TABLE = "gftorderbook/sellorders";
 
 module.exports = straw.node({
     process: function (msg, done) {
-        const { dbOpResults, action, actionData, blockTime: operationTime, blockNum } = msg;
+        console.log('In Order Interpreter', msg);
+        const { actionData: { name: action, dbOps, json: actionData }, blockTime: operationTime, blockNum } = msg;
         console.log('action: ', action);
-        console.log('dbOpResults: ', JSON.stringify(dbOpResults));
+        console.log('dbOps: ', JSON.stringify(dbOps));
 
         const operationTimeDate = new Date(operationTime);
 
@@ -29,20 +30,20 @@ module.exports = straw.node({
             blockNum,
         };
 
-        let dbOps = this.processDBOps(BUY_TABLE, dbOpResults[BUY_TABLE], extraFields);
-        dbOps = dbOps.concat(
-            this.processDBOps(SELL_TABLE, dbOpResults[SELL_TABLE], extraFields)
+        let pDBOps = this.processDBOps(BUY_TABLE, dbOps[BUY_TABLE], extraFields);
+        pDBOps = pDBOps.concat(
+            this.processDBOps(SELL_TABLE, dbOps[SELL_TABLE], extraFields)
         );
-        dbOps = this.orderByType(dbOps);
+        pDBOps = this.orderByType(pDBOps);
 
-        console.log('processedDBOps: ', JSON.stringify(dbOps));
+        console.log('processedDBOps: ', JSON.stringify(pDBOps));
 
         if (action == 'marketsell' || action == 'marketbuy') {
             let {
                 totalAmount,
                 totalOrderValue,
                 avgPrice,
-            } = this.getMarketOpStats(dbOps);
+            } = this.getMarketOpStats(pDBOps);
 
             let account, amount, amountAsset, orderValue, orderValueAsset, orderTypeId,
                 remainingAmount, remainingOrderValue;
@@ -93,8 +94,8 @@ module.exports = straw.node({
             });
         }
 
-        for (const dbOp of dbOps) {
-            this.output(dbOp);
+        for (const pDBOp of pDBOps) {
+            this.output(pDBOp);
         }
 
         done(false);
@@ -152,10 +153,10 @@ module.exports = straw.node({
     },
 
     processDBOp: function (table, dbOp) {
-        const { op, old: oldData, new: newData } = dbOp;
+        const { operation, oldData, newData } = dbOp;
 
         let result = this.processDBData(table, oldData, newData);
-        result.tableOperationTypeId = TableOperationTypeIds.getTableOp(op);
+        result.tableOperationTypeId = TableOperationTypeIds.getTableOp(operation);
         return result;
     },
 

@@ -32,50 +32,29 @@ class OrderBookTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        const actionTraces = await this.listenerConfig.getActionListener(
-            "gftorderbook",
-            [
-                "marketsell",
-                "marketbuy",
-                "limitsellgft",
-                "processbook",
-                "limitbuygft",
-                "delbuyorder",
-                "delsellorder",
-                "stackbuyrec",
-                "stacksellrec"
-            ],
-            {
-                with_dbops: true,
-                dbOps: [{
-                    account: "gftorderbook",
-                    table: "buyorders",
-                    type: "buyorder"
-                },
-                {
-                    account: "gftorderbook",
-                    table: "sellorders",
-                    type: "sellorder"
-                }],
+        const actionTraces = [{
+            query: "account:gftorderbook (db.table:buyorders OR db.table:sellorders)",
+            blockNum: "42261484",
+            outputKey: "gftorderbook-orderbook",
+            dbOps: [{
+                account: "gftorderbook",
+                table: "buyorders",
+                type: "buyorder"
             },
             {
-
-            });
+                account: "gftorderbook",
+                table: "sellorders",
+                type: "sellorder"
+            }],
+            serialized: true,
+        }];
 
         const config = this.config;
         let nodes = [{
-            id: 'eos-event-listener',
-            node: 'EOSEventListener',
+            id: 'gql-eos-listener',
+            node: 'GQLEOSListener',
             outputs: {
-                "gftorderbook-marketsell": 'gftorderbook-orderbook',
-                "gftorderbook-marketbuy": 'gftorderbook-orderbook',
-                "gftorderbook-limitsellgft": 'gftorderbook-orderbook',
-                "gftorderbook-processbook": 'gftorderbook-orderbook',
-                "gftorderbook-limitbuygft": 'gftorderbook-orderbook',
-                "gftorderbook-delbuyorder": 'gftorderbook-orderbook',
-                "gftorderbook-delsellorder": 'gftorderbook-orderbook',
-                "gftorderbook-stackbuyrec": 'gftorderbook-orderbook',
-                "gftorderbook-stacksellrec": 'gftorderbook-orderbook',
+                'gftorderbook-orderbook': 'gftorderbook-orderbook',
             },
             config,
             actionTraces,
@@ -108,7 +87,86 @@ class OrderBookTopolgy {
             input: 'limit2',
             config,
         }];
+
         return nodes;
+
+        /*  await this.listenerConfig.getActionListener(
+             "gftorderbook",
+             [
+                 "marketsell",
+                 "marketbuy",
+                 "limitsellgft",
+                 "processbook",
+                 "limitbuygft",
+                 "delbuyorder",
+                 "delsellorder",
+                 "stackbuyrec",
+                 "stacksellrec"
+             ],
+             {
+                 with_dbops: true,
+                 dbOps: [{
+                     account: "gftorderbook",
+                     table: "buyorders",
+                     type: "buyorder"
+                 },
+                 {
+                     account: "gftorderbook",
+                     table: "sellorders",
+                     type: "sellorder"
+                 }],
+             },
+             {
+ 
+             });
+ 
+         const config = this.config;
+         let nodes = [{
+             id: 'eos-event-listener',
+             node: 'EOSEventListener',
+             outputs: {
+                 "gftorderbook-marketsell": 'gftorderbook-orderbook',
+                 "gftorderbook-marketbuy": 'gftorderbook-orderbook',
+                 "gftorderbook-limitsellgft": 'gftorderbook-orderbook',
+                 "gftorderbook-processbook": 'gftorderbook-orderbook',
+                 "gftorderbook-limitbuygft": 'gftorderbook-orderbook',
+                 "gftorderbook-delbuyorder": 'gftorderbook-orderbook',
+                 "gftorderbook-delsellorder": 'gftorderbook-orderbook',
+                 "gftorderbook-stackbuyrec": 'gftorderbook-orderbook',
+                 "gftorderbook-stacksellrec": 'gftorderbook-orderbook',
+             },
+             config,
+             actionTraces,
+         },
+         {
+             id: 'order-interpreter',
+             node: 'GyftExchangeOrderInterpreter',
+             input: 'gftorderbook-orderbook',
+             output: 'order'
+         },
+         {
+             id: 'order-id-fetcher',
+             node: 'GyftExchangeOrderIdFetcher',
+             input: 'order',
+             outputs: {
+                 market: 'market',
+                 limit: ['limit1', 'limit2'],
+             },
+             config,
+         },
+         {
+             id: 'order-book-table-updater',
+             node: 'OrderBookTableUpdater',
+             input: ['market', 'limit1'],
+             config,
+         },
+         {
+             id: 'order-book-change-table-updater',
+             node: 'OrderBookChangeTableUpdater',
+             input: 'limit2',
+             config,
+         }]; 
+        return nodes;*/
     }
     _create(nodes, opts) {
         var topo = straw.create(opts);
