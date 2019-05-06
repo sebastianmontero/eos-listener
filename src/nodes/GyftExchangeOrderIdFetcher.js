@@ -2,10 +2,14 @@ const straw = require('straw');
 const dbCon = require('../db/DBConnection');
 const { AccountDao, TokenDao } = require('../dao');
 const {
+    DappIds,
     AccountTypeIds,
     OrderTypeIds,
     SpecialValues,
+    TableOperationTypeIds,
+    MarketOperationTypeIds,
 } = require('../const');
+const { TimeUtil } = require('../util');
 const logger = require('../Logger').configure('exchange-order-id-fetcher');
 
 const { NOT_APPLICABLE, UNKNOWN } = SpecialValues;
@@ -22,7 +26,10 @@ module.exports = straw.node({
             operationToken,
             counterpartToken,
             account,
-            orderTypeId,
+            orderType,
+            tableOperation,
+            operationTime,
+            action,
         } = msg;
 
         const ids = await Promise.all([
@@ -30,15 +37,20 @@ module.exports = straw.node({
             this.tokenDao.getTokenId(operationToken, UNKNOWN.id),
             this.tokenDao.getTokenId(counterpartToken, UNKNOWN.id),
         ]);
-
+        const orderTypeId = OrderTypeIds.getOrderTypeId(orderType);
         let outputName = (OrderTypeIds.isMarketOrder(orderTypeId)) ?
             'market' : 'limit';
 
         let result = {
             ...msg,
+            dappId: DappIds.GYFTIE_EXCHANGE,
             accountId: ids[0],
             operationTokenId: ids[1],
             counterpartTokenId: ids[2],
+            orderTypeId,
+            dayId: TimeUtil.dayId(new Date(operationTime)),
+            tableOperationTypeId: TableOperationTypeIds.getTableOp(tableOperation),
+            marketOperationTypeId: MarketOperationTypeIds.getMarketOpTypeId(action),
         };
 
         console.log(outputName, result);

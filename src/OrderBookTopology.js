@@ -1,6 +1,7 @@
 
 const straw = require('straw');
 const config = require('config');
+const { ActionTraceFactory, ActionTraceKeys } = require('@smontero/gyftie-listener');
 const logger = require('./Logger');
 const dbCon = require('./db/DBConnection');
 const ListenerConfig = require('./ListenerConfig');
@@ -32,22 +33,30 @@ class OrderBookTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        const actionTraces = [{
-            query: "account:gftorderbook (db.table:buyorders OR db.table:sellorders)",
-            blockNum: "42261484",
-            outputKey: "gftorderbook-orderbook",
-            dbOps: [{
-                account: "gftorderbook",
-                table: "buyorders",
-                type: "buyorder"
-            },
-            {
-                account: "gftorderbook",
-                table: "sellorders",
-                type: "sellorder"
-            }],
-            serialized: true,
-        }];
+        /*  const actionTraces = [{
+             query: "account:gftorderbook (db.table:buyorders OR db.table:sellorders)",
+             blockNum: "42261484",
+             outputKey: "gftorderbook-orderbook",
+             dbOps: [{
+                 account: "gftorderbook",
+                 table: "buyorders",
+                 type: "buyorder"
+             },
+             {
+                 account: "gftorderbook",
+                 table: "sellorders",
+                 type: "sellorder"
+             }],
+             serialized: true,
+         }]; */
+        const actionTraces = [];
+
+        actionTraces.push(
+            ActionTraceFactory.getActionTrace(ActionTraceKeys.ORDER_BOOK_CHANGES, {
+                blockNum: "42261484",
+                outputKey: "gftorderbook-orderbook",
+            })
+        );
 
         const config = this.config;
         let nodes = [{
