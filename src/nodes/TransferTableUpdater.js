@@ -37,15 +37,22 @@ module.exports = straw.node({
             } = msg;
 
             let transferTime = new Date(msg.transferTime);
-            let gyfterAccountId = gyfter ? await this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id) : NOT_APPLICABLE.id;
+
+            const ids = await Promise.all([
+                this.accountDao.getAccountId(from, fromAccountTypeId, fromDappId),
+                this.accountDao.getAccountId(to, toAccountTypeId, toDappId),
+                this.tokenDao.getTokenId(quantitySymbol, UNKNOWN.id),
+                this.getGyfterAccountId(gyfter),
+            ]);
+
             let toInsert = {
                 dappId,
-                fromAccountId: await this.accountDao.getAccountId(from, fromAccountTypeId, fromDappId),
-                toAccountId: await this.accountDao.getAccountId(to, toAccountTypeId, toDappId),
+                fromAccountId: ids[0],
+                toAccountId: ids[1],
                 quantity,
-                quantityTokenId: await this.tokenDao.getTokenId(quantitySymbol, UNKNOWN.id),
+                quantityTokenId: ids[2],
                 transferTypeId,
-                gyfterAccountId,
+                gyfterAccountId: ids[3],
                 dayId: TimeUtil.dayId(transferTime),
                 hourOfDay: transferTime.getUTCHours(),
                 transferTime: transferTime,
@@ -60,6 +67,10 @@ module.exports = straw.node({
             throw error;
 
         }
+    },
+
+    getGyfterAccountId: async function (gyfter) {
+        return gyfter ? await this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id) : NOT_APPLICABLE.id;
     },
 
     stop: async function (done) {

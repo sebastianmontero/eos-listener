@@ -1,6 +1,7 @@
 
 const straw = require('straw');
 const config = require('config');
+const { ActionTraceFactory, ActionTraceKeys } = require('@smontero/gyftie-listener');
 const logger = require('./Logger');
 const dbCon = require('./db/DBConnection');
 const ListenerConfig = require('./ListenerConfig');
@@ -32,33 +33,24 @@ class GyftActionTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        const actionTraces = await this.listenerConfig.getActionListener(
-            "gyftietokens",
-            ["gyft", "gyft2"],
-            {
-                with_inline_traces: true,
-                inlineTraces: {
-                    "issue-transfers": {
-                        account: "gyftietokens",
-                        action: "transfer",
-                        path: [["gyftietokens-issue", "gyftietokens-issuetostake"]]
-                    }
-                },
-            },
-            {
-
-            });
+        const actionTraces = [];
+        actionTraces.push(
+            ActionTraceFactory.getActionTrace(ActionTraceKeys.GYFT_EVENTS, {
+                blockNum: "39347684",
+                outputKey: "gyftietokens-gyft",
+            })
+        );
         const config = this.config;
         let nodes = [{
-            id: 'eos-event-listener',
-            node: 'EOSEventListener',
+            id: 'gql-eos-listener',
+            node: 'GQLEOSListener',
             outputs: {
                 'gyftietokens-gyft': 'gyftietokens-gyft',
-                'gyftietokens-gyft2': 'gyftietokens-gyft',
             },
             config,
             actionTraces,
-        }, {
+        },
+        {
             id: 'gyft-action-transfers-interpreter',
             node: 'GyftActionTransfersInterpreter',
             input: 'gyftietokens-gyft',

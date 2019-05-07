@@ -32,9 +32,13 @@ module.exports = straw.node({
             } = msg;
             console.log(msg);
             let gyftTime = new Date(msg.gyftTime);
+            const ids = await Promise.all([
+                this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id),
+                this.accountDao.getAccountId(gyftee, AccountTypeIds.USER, NOT_APPLICABLE.id),
+            ]);
             let toInsert = {
-                gyfterAccountId: await this.accountDao.getAccountId(gyfter, AccountTypeIds.USER, NOT_APPLICABLE.id),
-                gyfteeAccountId: await this.accountDao.getAccountId(gyftee, AccountTypeIds.USER, NOT_APPLICABLE.id),
+                gyfterAccountId: ids[0],
+                gyfteeAccountId: ids[1],
                 eosAccountCreationReimbursement,
                 gyfterReward,
                 gyfteeReward,

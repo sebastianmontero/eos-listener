@@ -12,7 +12,6 @@ const DappTableIds = require('./DappTableIds');
 const VoterTypeIds = require('./VoterTypeIds');
 const General = require('./General');
 const TransferTypeIds = require('./TransferTypeIds');
-const GyftieAccounts = require('./GyftieAccounts');
 const OrderStatusIds = require('./OrderStatusIds');
 const TableOperationTypeIds = require('./TableOperationTypeIds');
 const MarketOperationTypeIds = require('./MarketOperationTypeIds');
@@ -33,7 +32,6 @@ module.exports = {
     VoterTypeIds,
     General,
     TransferTypeIds,
-    GyftieAccounts,
     OrderStatusIds,
     TableOperationTypeIds,
     MarketOperationTypeIds,

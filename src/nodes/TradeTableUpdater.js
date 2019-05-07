@@ -45,10 +45,16 @@ module.exports = straw.node({
 
             console.log('Trade: ', JSON.stringify(msg));
 
-            let buyerAccountId = await this.accountDao.getAccountId(buyer, buyerAccountTypeId, buyerDappId);
-            let sellerAccountId = await this.accountDao.getAccountId(seller, sellerAccountTypeId, sellerDappId);
-            let boughtTokenId = await this.tokenDao.getTokenId(boughtToken, UNKNOWN.id);
-            let soldTokenId = await this.tokenDao.getTokenId(soldToken, UNKNOWN.id);
+
+            const ids = await Promise.all([
+                this.accountDao.getAccountId(buyer, buyerAccountTypeId, buyerDappId),
+                this.accountDao.getAccountId(seller, sellerAccountTypeId, sellerDappId),
+                this.tokenDao.getTokenId(boughtToken, UNKNOWN.id),
+                this.tokenDao.getTokenId(soldToken, UNKNOWN.id),
+            ]);
+
+            let buyerAccountId = ids[0];
+            let sellerAccountId = ids[1];
 
             let marketMakerAccountId = marketMaker == buyer ? buyerAccountId : sellerAccountId;
 
@@ -57,11 +63,11 @@ module.exports = straw.node({
                 dappId,
                 buyerAccountId,
                 sellerAccountId,
-                boughtTokenId,
+                boughtTokenId: ids[2],
                 priceBought,
                 boughtAmount,
                 buyOrderTypeId,
-                soldTokenId,
+                soldTokenId: ids[3],
                 priceSold,
                 soldAmount,
                 sellOrderTypeId,

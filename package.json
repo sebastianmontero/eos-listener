@@ -11,7 +11,7 @@
     "dependencies": {
         "@dfuse/eosws-js": "^0.11.12",
         "@smontero/eos-listener-gql": "^1.0.11",
-        "@smontero/gyftie-listener": "^1.0.15",
+        "@smontero/gyftie-listener": "^1.0.16",
         "axios": "0.18.0",
         "config": "2.0.1",
         "console-stamp": "0.2.7",
