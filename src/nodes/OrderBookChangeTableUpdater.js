@@ -33,6 +33,8 @@ module.exports = straw.node({
                 marketOperationTypeId,
                 blockNum,
                 createdAt,
+                actionSeq,
+                operationSeq,
             } = msg;
 
             console.log('OrderBookChange: ', JSON.stringify(msg));
@@ -56,6 +58,8 @@ module.exports = straw.node({
                 marketOperationTypeId,
                 blockNum,
                 createdAt,
+                actionSeq,
+                operationSeq,
             };
             console.log(toInsert);
             await this.orderBookChangeDao.batchInsert(toInsert);

@@ -1,6 +1,7 @@
 
 const straw = require('straw');
 const config = require('config');
+const { ActionTraceFactory, ActionTraceKeys } = require('@smontero/gyftie-listener');
 const logger = require('./Logger');
 const dbCon = require('./db/DBConnection');
 const ListenerConfig = require('./ListenerConfig');
@@ -32,79 +33,18 @@ class TradeActionTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        const actionTraces = await this.listenerConfig.getActionListener(
-            "gftorderbook",
-            [
-                "marketsell",
-                "marketbuy",
-                "limitsellgft",
-                "processbook",
-                "limitbuygft",
-            ],
-            {
-                with_inline_traces: true,
-                inlineTraces: {
-                    "tradeexec": {
-                        account: "gftorderbook",
-                        action: "tradeexec",
-                    }
-                },
-            },
-            {
+        const actionTraces = [];
+        actionTraces.push(ActionTraceFactory.getActionTrace(ActionTraceKeys.TRADES, {
+            blockNum: "40000000",
+            outputKey: "gftorderbook-tradeexec",
+        }));
 
-            });
-        /* const actionTraces = await this.listenerConfig.getActionListener(
-            "gftorderbook",
-            [
-                "marketsell",
-                "marketbuy",
-                "limitsellgft",
-                "processbook",
-                "limitbuygft",
-            ],
-            {
-                with_dbops: true,
-                dbOps: [{
-                    account: "gftorderbook",
-                    table: "buyorders",
-                    type: "buyorder"
-                }],
-                inlineTraces: {
-                    "tradeexec": {
-                        account: "gftorderbook",
-                        action: "tradeexec",
-                    }
-                },
-            },
-            {
- 
-            }); */
-        /* const actionTraces = await this.listenerConfig.getActionListener(
-            "gyftietokens",
-            ["gyft", "gyft2"],
-            {
-                with_dbops: true,
-                inlineTraces: {
-                    "issue-transfers": {
-                        account: "gyftietokens",
-                        action: "transfer",
-                        path: [["gyftietokens-issue", "gyftietokens-issuetostake"]]
-                    }
-                },
-            },
-            {
-
-            }); */
         const config = this.config;
         let nodes = [{
-            id: 'eos-event-listener',
-            node: 'EOSEventListener',
+            id: 'gql-eos-listener',
+            node: 'GQLEOSListener',
             outputs: {
-                "gftorderbook-marketsell": 'gftorderbook-tradeexec',
-                "gftorderbook-marketbuy": 'gftorderbook-tradeexec',
-                "gftorderbook-limitsellgft": 'gftorderbook-tradeexec',
-                "gftorderbook-processbook": 'gftorderbook-tradeexec',
-                "gftorderbook-limitbuygft": 'gftorderbook-tradeexec',
+                'gftorderbook-tradeexec': 'gftorderbook-tradeexec',
             },
             config,
             actionTraces,

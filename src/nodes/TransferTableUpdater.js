@@ -32,6 +32,8 @@ module.exports = straw.node({
                 quantitySymbol,
                 transferTypeId,
                 gyfter,
+                blockNum,
+                actionSeq,
             } = msg;
 
             let transferTime = new Date(msg.transferTime);
@@ -47,6 +49,8 @@ module.exports = straw.node({
                 dayId: TimeUtil.dayId(transferTime),
                 hourOfDay: transferTime.getUTCHours(),
                 transferTime: transferTime,
+                blockNum,
+                actionSeq,
             };
             console.log(toInsert);
             await this.transferDao.batchInsert(toInsert);

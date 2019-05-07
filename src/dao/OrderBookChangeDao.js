@@ -27,6 +27,8 @@ class OrderBookChangeDAO extends BaseBatchDao {
         marketOperationTypeId,
         blockNum,
         createdAt,
+        actionSeq,
+        operationSeq,
 
     }) {
         return [
@@ -48,6 +50,8 @@ class OrderBookChangeDAO extends BaseBatchDao {
             marketOperationTypeId,
             blockNum,
             createdAt,
+            actionSeq,
+            operationSeq,
         ];
     }
 
@@ -72,7 +76,9 @@ class OrderBookChangeDAO extends BaseBatchDao {
                 table_operation_type_id,
                 market_operation_type_id,
                 block_num,
-                created_at
+                created_at,
+                action_seq,
+                operation_seq
             ) VALUES ?`,
             values,
             toArray);
@@ -196,7 +202,9 @@ class OrderBookChangeDAO extends BaseBatchDao {
                     table_operation_type_id tableOperationTypeId,
                     market_operation_type_id marketOperationTypeId,
                     block_num blockNum,
-                    created_at createdAt
+                    created_at createdAt,
+                    action_seq actionSeq,
+                    operation_seq operationSeq,
             from order_book_change
             ${condition}
             order by operation_time asc,

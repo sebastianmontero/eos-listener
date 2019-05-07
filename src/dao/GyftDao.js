@@ -19,6 +19,8 @@ class GyftDAO extends BaseBatchDao {
         dayId,
         hourOfDay,
         gyftTime,
+        blockNum,
+        actionSeq,
 
     }) {
         return [
@@ -32,6 +34,8 @@ class GyftDAO extends BaseBatchDao {
             dayId,
             hourOfDay,
             gyftTime,
+            blockNum,
+            actionSeq,
         ];
     }
 
@@ -48,7 +52,9 @@ class GyftDAO extends BaseBatchDao {
                 liquidity_reward,
                 day_id,
                 hour_of_day,
-                gyft_time
+                gyft_time,
+                block_num,
+                action_seq
             ) VALUES ?`,
             values,
             toArray);

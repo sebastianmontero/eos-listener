@@ -33,22 +33,6 @@ class OrderBookTopolgy {
         await this.dbCon.end();
     }
     async _getNodes() {
-        /*  const actionTraces = [{
-             query: "account:gftorderbook (db.table:buyorders OR db.table:sellorders)",
-             blockNum: "42261484",
-             outputKey: "gftorderbook-orderbook",
-             dbOps: [{
-                 account: "gftorderbook",
-                 table: "buyorders",
-                 type: "buyorder"
-             },
-             {
-                 account: "gftorderbook",
-                 table: "sellorders",
-                 type: "sellorder"
-             }],
-             serialized: true,
-         }]; */
         const actionTraces = [];
 
         actionTraces.push(

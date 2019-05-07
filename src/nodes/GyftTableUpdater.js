@@ -27,6 +27,8 @@ module.exports = straw.node({
                 gyfteeReward,
                 foundationReward,
                 liquidityReward,
+                blockNum,
+                actionSeq,
             } = msg;
             console.log(msg);
             let gyftTime = new Date(msg.gyftTime);
@@ -41,6 +43,8 @@ module.exports = straw.node({
                 dayId: TimeUtil.dayId(gyftTime),
                 hourOfDay: gyftTime.getUTCHours(),
                 gyftTime: gyftTime,
+                blockNum,
+                actionSeq,
             };
             console.log(toInsert);
             await this.gyftDao.batchInsert(toInsert);

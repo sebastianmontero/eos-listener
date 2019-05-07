@@ -39,6 +39,8 @@ module.exports = straw.node({
                 marketMaker,
                 marketMakerFeeInBoughtToken,
                 marketMakerFeeInSoldToken,
+                blockNum,
+                actionSeq,
             } = msg;
 
             console.log('Trade: ', JSON.stringify(msg));
@@ -69,6 +71,8 @@ module.exports = straw.node({
                 marketMakerAccountId,
                 marketMakerFeeInBoughtToken,
                 marketMakerFeeInSoldToken,
+                blockNum,
+                actionSeq,
             };
             console.log(toInsert);
             await this.transferDao.batchInsert(toInsert);

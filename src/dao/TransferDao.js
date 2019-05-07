@@ -19,6 +19,8 @@ class TransferDAO extends BaseBatchDao {
         dayId,
         hourOfDay,
         transferTime,
+        blockNum,
+        actionSeq,
 
     }) {
         return [
@@ -32,6 +34,8 @@ class TransferDAO extends BaseBatchDao {
             dayId,
             hourOfDay,
             transferTime,
+            blockNum,
+            actionSeq,
         ];
     }
 
@@ -48,7 +52,10 @@ class TransferDAO extends BaseBatchDao {
                 gyfter_account_id,
                 day_id,
                 hour_of_day,
-                transfer_time
+                transfer_time,
+                block_num,
+                action_seq
+                
             ) VALUES ?`,
             values,
             toArray);
