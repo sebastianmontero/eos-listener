@@ -12,7 +12,7 @@ class TradeActionTopolgy extends BaseTopology {
     async getNodes() {
         const actionTraces = {
             "gftorderbook-tradeexec": ActionTraceFactory.getActionTrace(ActionTraceKeys.TRADES, {
-                blockNum: "40000000",
+                blockNum: "56962781",
                 outputKey: "gftorderbook-tradeexec",
             }),
         };

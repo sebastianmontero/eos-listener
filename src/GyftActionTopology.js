@@ -11,13 +11,13 @@ class GyftActionTopolgy extends BaseTopology {
 
 
     async getNodes() {
-        const actionTraces = [];
-        actionTraces.push(
-            ActionTraceFactory.getActionTrace(ActionTraceKeys.GYFT_EVENTS, {
-                blockNum: "39347684",
+
+        const actionTraces = {
+            'gyftietokens-gyft': ActionTraceFactory.getActionTrace(ActionTraceKeys.GYFT_EVENTS, {
+                blockNum: "56928684",
                 outputKey: "gyftietokens-gyft",
             })
-        );
+        };
         const config = this.config;
         let nodes = [{
             id: 'gql-eos-listener',

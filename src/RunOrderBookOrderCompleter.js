@@ -63,6 +63,8 @@ class OrderBookOrderCompleter {
                     tableOperationTypeId: TableOperationTypeIds.INSERT,
                     marketOperationTypeId: orderTypeId == OrderTypeIds.BUY_LIMIT ? MarketOperationTypeIds.BUY_LIMIT : MarketOperationTypeIds.SELL_LIMIT,
                     blockNum: 54656123 + ((createdAt - 1556113549) * 2),
+                    actionSeq: 1,
+                    operationSeq: 1,
                     createdAt,
                 };
                 changed = false;

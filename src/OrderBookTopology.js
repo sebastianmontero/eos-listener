@@ -9,14 +9,12 @@ logger.configure('order-book-loader');
 class OrderBookTopolgy extends BaseTopology {
 
     async getNodes() {
-        const actionTraces = [];
-
-        actionTraces.push(
-            ActionTraceFactory.getActionTrace(ActionTraceKeys.ORDER_BOOK_CHANGES, {
-                blockNum: "42261484",
+        const actionTraces = {
+            "gftorderbook-orderbook": ActionTraceFactory.getActionTrace(ActionTraceKeys.ORDER_BOOK_CHANGES, {
+                blockNum: "56748068",
                 outputKey: "gftorderbook-orderbook",
             })
-        );
+        };
 
         const config = this.config;
         let nodes = [{

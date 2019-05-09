@@ -204,7 +204,7 @@ class OrderBookChangeDAO extends BaseBatchDao {
                     block_num blockNum,
                     created_at createdAt,
                     action_seq actionSeq,
-                    operation_seq operationSeq,
+                    operation_seq operationSeq
             from order_book_change
             ${condition}
             order by operation_time asc,
