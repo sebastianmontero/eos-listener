@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const { ExchangeOrderInterpreter } = require('@smontero/gyftie-listener');
 const logger = require('../Logger').configure('exchange-order-interpreter-table-updater');
 

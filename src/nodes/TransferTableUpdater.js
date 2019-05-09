@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const dbCon = require('../db/DBConnection');
 
 const { TimeUtil } = require('../util');

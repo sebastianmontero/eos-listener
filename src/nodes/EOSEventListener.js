@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const WebSocket = require('ws');
 const { EoswsClient, createEoswsSocket, InboundMessageType } = require('@dfuse/eosws-js');
 const Logger = require('../Logger');

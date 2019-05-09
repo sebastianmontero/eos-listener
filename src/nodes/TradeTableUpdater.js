@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const dbCon = require('../db/DBConnection');
 
 const { TimeUtil } = require('../util');
@@ -13,7 +13,7 @@ module.exports = straw.node({
         dbCon.init(opts.config.db);
         this.accountDao = new AccountDao(dbCon);
         this.tokenDao = new TokenDao(dbCon);
-        this.transferDao = new TradeDao(dbCon);
+        this.tradeDao = new TradeDao(dbCon);
         done();
     },
 
@@ -81,7 +81,7 @@ module.exports = straw.node({
                 actionSeq,
             };
             console.log(toInsert);
-            await this.transferDao.batchInsert(toInsert);
+            await this.tradeDao.batchInsert(toInsert);
             done(false);
         } catch (error) {
             logger.error('Error while processing and inserting transfer.', error);

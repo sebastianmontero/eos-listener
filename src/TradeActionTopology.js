@@ -1,43 +1,21 @@
 
-const straw = require('straw');
+const BaseTopology = require('./BaseTopology');
 const config = require('config');
 const { ActionTraceFactory, ActionTraceKeys } = require('@smontero/gyftie-listener');
 const logger = require('./Logger');
-const dbCon = require('./db/DBConnection');
-const ListenerConfig = require('./ListenerConfig');
 
-require('events').EventEmitter.defaultMaxListeners = 0;
 logger.configure('trade-action-loader');
 
 
-class TradeActionTopolgy {
+class TradeActionTopolgy extends BaseTopology {
 
-    constructor(config, dbCon) {
-        this.opts = {
-            nodes_dir: __dirname + '/nodes',
-            redis: {
-                host: '127.0.0.1',
-                port: 6379,
-                prefix: 'gyftie'
-            },
+    async getNodes() {
+        const actionTraces = {
+            "gftorderbook-tradeexec": ActionTraceFactory.getActionTrace(ActionTraceKeys.TRADES, {
+                blockNum: "40000000",
+                outputKey: "gftorderbook-tradeexec",
+            }),
         };
-        dbCon.init(config.db);
-        this.purge = true;
-        this.listenerConfig = new ListenerConfig(dbCon);
-        this.config = config;
-        this.dbCon = dbCon;
-    }
-
-    async start() {
-        await this._create(await this._getNodes(), this.opts);
-        await this.dbCon.end();
-    }
-    async _getNodes() {
-        const actionTraces = [];
-        actionTraces.push(ActionTraceFactory.getActionTrace(ActionTraceKeys.TRADES, {
-            blockNum: "40000000",
-            outputKey: "gftorderbook-tradeexec",
-        }));
 
         const config = this.config;
         let nodes = [{
@@ -65,19 +43,9 @@ class TradeActionTopolgy {
         }];
         return nodes;
     }
-    _create(nodes, opts) {
-        var topo = straw.create(opts);
-        topo.add(nodes, () => {
-            topo.start({ purge: this.purge });
-        });
-        process.on('SIGINT', () => {
-            topo.destroy(function () {
-                console.log('Finished.');
-            });
-        });
-        this.topology = topo;
-    }
 }
 
-new TradeActionTopolgy(config, dbCon).start();
+new TradeActionTopolgy('trade-action-topology', {
+    config,
+}).start();
 

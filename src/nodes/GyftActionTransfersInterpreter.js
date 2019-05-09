@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const { GyftEventInterpreter, GyftieAccounts } = require('@smontero/gyftie-listener');
 const { AccountTypeIds, DappIds, TransferTypeIds, SpecialValues } = require('../const');
 const { NOT_APPLICABLE } = SpecialValues;

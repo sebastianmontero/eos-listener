@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const { ExchangeTradeInterpreter } = require('@smontero/gyftie-listener');
 const { AccountTypeIds, DappIds, OrderTypeIds, SpecialValues } = require('../const');
 const { NOT_APPLICABLE } = SpecialValues;

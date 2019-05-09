@@ -1,4 +1,4 @@
-const straw = require('straw');
+const straw = require('@smontero/straw');
 const dbCon = require('../db/DBConnection');
 
 const { OrderBookChangeDao } = require('../dao');
@@ -73,7 +73,7 @@ module.exports = straw.node({
 
     stop: async function (done) {
         logger.info('Stopping...');
-        await this.tradeDao.flush();
+        await this.orderBookChangeDao.flush();
         await dbCon.end();
         logger.info('Closed database connection.');
         done(false);
