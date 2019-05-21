@@ -72,15 +72,16 @@ class OrderBookHistoryDAO extends BaseBatchDao {
     }
 
     async selectLastCompleteDayId() {
-        return await this.dbCon.singleRow(
+        let row = await this.dbCon.singleRow(
             `SELECT  distinct day_id dayId
             FROM order_book_history
             ORDER BY day_id desc
             LIMIT 1, 1`);
+        return row ? row.dayId : null;
     }
 
     async selectByDayId(dayId) {
-        return await this.dbCon.singleRow(
+        return await this.dbCon.execute(
             `SELECT dapp_id dappId,
                     day_id dayId,
                     operation_token_id operationTokenId,

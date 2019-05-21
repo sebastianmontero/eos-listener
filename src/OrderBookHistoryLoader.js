@@ -158,7 +158,6 @@ class OrderBookHistoryLoader {
         for (let historyRow of historyRows) {
             const {
                 dappId,
-                orderId,
                 operationTokenId,
                 counterpartTokenId,
                 orderTypeId,
@@ -172,19 +171,19 @@ class OrderBookHistoryLoader {
 
             current[orderTypeId] = {
                 dappId,
-                orderId,
                 operationTokenId,
                 counterpartTokenId,
                 orderTypeId,
-                totalOpenAmount,
-                totalOpenOrderValue,
-                totalCanceledAmount,
-                totalCanceledOrderValue,
-                openOrderCount,
-                canceledOrderCount,
+                totalOpenAmount: Number(totalOpenAmount),
+                totalOpenOrderValue: Number(totalOpenOrderValue),
+                totalCanceledAmount: Number(totalCanceledAmount),
+                totalCanceledOrderValue: Number(totalCanceledOrderValue),
+                openOrderCount: Number(openOrderCount),
+                canceledOrderCount: Number(canceledOrderCount),
             };
 
         }
+        console.log(current);
         return current;
 
     }
