@@ -102,7 +102,6 @@ module.exports = straw.node({
 
             subscription.subscribe({
                 next: data => {
-                    console.log(data);
                     if (tp.shouldProcessAction(data)) {
                         this.output(outputKey, data);
                         tp.processedAction(data);
