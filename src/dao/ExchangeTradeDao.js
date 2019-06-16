@@ -23,6 +23,8 @@ class ExchangeTradeDAO extends BaseBatchDao {
         dayId,
         hourOfDay,
         blockTime,
+        blockNum,
+        actionSeq,
 
     }) {
         return [
@@ -40,7 +42,9 @@ class ExchangeTradeDAO extends BaseBatchDao {
             channelId,
             dayId,
             hourOfDay,
-            blockTime
+            blockTime,
+            blockNum,
+            actionSeq,
         ];
     }
 
@@ -62,7 +66,9 @@ class ExchangeTradeDAO extends BaseBatchDao {
                 channel_id,
                 day_id,
                 hour_of_day,
-                block_time
+                block_time,
+                block_num,
+                action_seq
             ) VALUES ?`,
             values,
             toArray);

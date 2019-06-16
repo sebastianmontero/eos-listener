@@ -39,7 +39,7 @@ class BaseBatchDAO {
             this.batchArray.push(obj);
         }
         this.count++;
-        logger.debug('Batch count: ', this.count);
+        logger.debug(`Batch count: ${this.count}`);
         logger.debug('In batchInsert, toInsert:', obj);
         if (this.count >= this.batchSize) {
             await this.flush();

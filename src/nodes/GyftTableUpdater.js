@@ -46,7 +46,7 @@ module.exports = straw.node({
                 liquidityReward,
                 dayId: TimeUtil.dayId(gyftTime),
                 hourOfDay: gyftTime.getUTCHours(),
-                gyftTime: gyftTime,
+                gyftTime,
                 blockNum,
                 actionSeq,
             };
