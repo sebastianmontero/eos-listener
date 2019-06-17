@@ -1,6 +1,7 @@
 const straw = require('@smontero/straw');
 const Interpreter = require('../Interpreter');
 const { Util } = require('../util');
+const logger = require('../Logger').configure('exchange-trade-interpreter');
 
 
 module.exports = straw.node({
@@ -13,6 +14,7 @@ module.exports = straw.node({
             actionData: {
                 seq: actionSeq,
                 account: tokenAccount,
+                receiver: receiverAccount,
                 name: action,
                 json: {
                     to,
@@ -27,32 +29,34 @@ module.exports = straw.node({
             undo
         } = msg;
 
-        const {
-            tradePrice,
-            tradeQuantity,
-            orderType,
-            channel,
-            pair
-        } = this._postProcessParsedMemo(this.interpreter.interpret(memo));
+        if (tokenAccount === receiverAccount) {
+            const {
+                tradePrice,
+                tradeQuantity,
+                orderType,
+                channel,
+                pair
+            } = this._postProcessParsedMemo(this.interpreter.interpret(memo));
 
 
-        this.output({
-            blockNum,
-            actionSeq,
-            cursor,
-            undo,
-            tokenAccount,
-            action,
-            to,
-            from,
-            quantity,
-            tradePrice,
-            tradeQuantity,
-            orderType,
-            channel,
-            pair,
-            tradeTime,
-        });
+            this.output({
+                blockNum,
+                actionSeq,
+                cursor,
+                undo,
+                tokenAccount,
+                action,
+                to,
+                from,
+                quantity,
+                tradePrice,
+                tradeQuantity,
+                orderType,
+                channel,
+                pair,
+                tradeTime,
+            });
+        }
 
         done(false);
     },
