@@ -14,7 +14,6 @@ module.exports = straw.node({
             actionData: {
                 seq: actionSeq,
                 account: tokenAccount,
-                receiver: receiverAccount,
                 name: action,
                 json: {
                     to,
@@ -29,34 +28,33 @@ module.exports = straw.node({
             undo
         } = msg;
 
-        if (tokenAccount === receiverAccount) {
-            const {
-                tradePrice,
-                tradeQuantity,
-                orderType,
-                channel,
-                pair
-            } = this._postProcessParsedMemo(this.interpreter.interpret(memo));
+
+        const {
+            tradePrice,
+            tradeQuantity,
+            orderType,
+            channel,
+            pair
+        } = this._postProcessParsedMemo(this.interpreter.interpret(memo));
 
 
-            this.output({
-                blockNum,
-                actionSeq,
-                cursor,
-                undo,
-                tokenAccount,
-                action,
-                to,
-                from,
-                quantity,
-                tradePrice,
-                tradeQuantity,
-                orderType,
-                channel,
-                pair,
-                tradeTime,
-            });
-        }
+        this.output({
+            blockNum,
+            actionSeq,
+            cursor,
+            undo,
+            tokenAccount,
+            action,
+            to,
+            from,
+            quantity,
+            tradePrice,
+            tradeQuantity,
+            orderType,
+            channel,
+            pair,
+            tradeTime,
+        });
 
         done(false);
     },

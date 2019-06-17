@@ -28,36 +28,17 @@ module.exports = straw.node({
         this.lastProcessedActions = await this._getLastProcessedActions(this.prefix);
         done();
     },
-    _getLastProcessedActions: function (prefix) {
+    _getLastProcessedActions: async function (prefix) {
         console.log('Getting lastProcessedActions... Prefix: ', prefix);
-        return new Promise((resolve, reject) => {
-            this.redis.get(prefix, (err, reply) => {
-                if (err) {
-                    console.log('Error getting lastProcessedActions:', err);
-                    reject(err);
-                    return;
-                } else {
-                    console.log('Got lastProcessedActions:', reply);
-                    resolve(this.deserializeLastProcessedActions(reply));
-                }
-            });
-        });
+        const value = await this.redis.get(prefix);
+        console.log('Got lastProcessedActions:', value);
+        return this.deserializeLastProcessedActions(value);
     },
 
-    _storeLastProcessedActions: function (prefix, lastProcessedActions) {
+    _storeLastProcessedActions: async function (prefix, lastProcessedActions) {
         console.log('Saving lastProcessedActions...', prefix, lastProcessedActions);
-        return new Promise((resolve, reject) => {
-            this.redis.set(prefix, this.serializeLastProcessedActions(lastProcessedActions), (err) => {
-                if (err) {
-                    console.log('Error storing lastProcessedActions:', err);
-                    reject(err);
-                    return;
-                } else {
-                    console.log('Saved lastProcessedActions.');
-                    resolve();
-                }
-            });
-        });
+        await this.redis.set(prefix, this.serializeLastProcessedActions(lastProcessedActions));
+        console.log('Saved lastProcessedActions.');
     },
 
     serializeLastProcessedActions() {
@@ -103,6 +84,8 @@ module.exports = straw.node({
             subscription.subscribe({
                 next: data => {
                     if (tp.shouldProcessAction(data)) {
+                        const { blockNum } = data;
+                        logger.info(blockNum);
                         this.output(outputKey, data);
                         tp.processedAction(data);
                     }

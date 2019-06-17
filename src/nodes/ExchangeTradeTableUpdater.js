@@ -29,6 +29,9 @@ const {
 
 module.exports = straw.node({
     initialize: function (opts, done) {
+
+        this.redis = opts.redis.client;
+        this.prefix = opts.redis.prefix;
         dbCon.init(opts.config.db);
         this.accountDao = new AccountDao(dbCon);
         this.actionDao = new ActionDao(dbCon);
@@ -36,8 +39,91 @@ module.exports = straw.node({
         this.channelDao = new ChannelDao(dbCon);
         this.dappDao = new DappDao(dbCon);
         this.exchangeTradeDao = new ExchangeTradeDao(dbCon);
+        this.CHANNEL_ID_KEY = this.generateKey('channel-id');
+        this.ACCOUNT_ID_KEY = this.generateKey('account-id');
+        this.TOKEN_ID_KEY = this.generateKey('token-id');
+        this.ACTION_ID_KEY = this.generateKey('action-id');
+        this.DAPP_ID_KEY = this.generateKey('dapp-id');
+        this._getAccountId = this.accountDao.getAccountId.bind(this.accountDao);
+        this._selectAccountId = this.accountDao.selectAccountId.bind(this.accountDao);
+        this._getTokenId = this.tokenDao.getTokenId.bind(this.tokenDao);
+        this._getChannelId = this.channelDao.getChannelId.bind(this.channelDao);
+        this._getActionId = this.actionDao.getActionId.bind(this.actionDao);
+        this._getDappId = this.dappDao.getDappId.bind(this.dappDao);
         done();
     },
+
+    generateKey: function (key) {
+        return this.generateField([this.prefix, key]);
+    },
+
+    generateField: function (fields) {
+        return fields.join('-');
+    },
+
+    getCacheValue: async function (key, field) {
+        return await this.redis.hget(key, field);
+    },
+
+    setCacheValue: async function (key, field, value) {
+        return await this.redis.hset(key, field, value);
+    },
+
+    getValue: async function (key, fn, params) {
+        let field = this.generateField(params);
+        let value = await this.getCacheValue(key, field);
+        if (!value) {
+            value = await fn(...params);
+            await this.setCacheValue(key, field, value);
+        }
+        return value;
+    },
+
+    getActionId: async function (action, accountId) {
+        return await this.getValue(
+            this.ACTION_ID_KEY,
+            this._getActionId,
+            [action, accountId]);
+    },
+
+    getAccountId: async function (account, accountTypeId, dappId = UNKNOWN) {
+        return await this.getValue(
+            this.ACCOUNT_ID_KEY,
+            this._getAccountId,
+            [account, accountTypeId, dappId]);
+    },
+
+    selectAccountId: async function (account) {
+        return await this.getValue(
+            this.ACCOUNT_ID_KEY,
+            this._selectAccountId,
+            [account]);
+    },
+
+    getTokenId: async function (symbol, accountId = UNKNOWN) {
+        return await this.getValue(
+            this.TOKEN_ID_KEY,
+            this._getTokenId,
+            [symbol, accountId]);
+    },
+
+    getDappId: async function (account, dappTypeId) {
+        return await this.getValue(
+            this.DAPP_ID_KEY,
+            this._getDappId,
+            [account, dappTypeId]);
+    },
+
+    getChannelId: async function (channel) {
+        if (!channel) {
+            return UNKNOWN;
+        }
+        return await this.getValue(
+            this.CHANNEL_ID_KEY,
+            this._getChannelId,
+            [channel]);
+    },
+
     process: async function (msg, done) {
         const {
             blockNum,
@@ -59,13 +145,11 @@ module.exports = straw.node({
             const quantityObj = Util.parseAsset(quantity);
 
             const [tokenAccountId, quantityTokenId] = await Promise.all([
-                this.accountDao.getAccountId(tokenAccount, AccountTypeIds.DAPP, UNKNOWN),
-                this.tokenDao.getTokenId(quantityObj.symbol, UNKNOWN),
+                this.getAccountId(tokenAccount, AccountTypeIds.DAPP),
+                this.getTokenId(quantityObj.symbol),
             ]);
             const tradeTime = new Date(msg.tradeTime);
             const dayId = TimeUtil.dayId(tradeTime);
-
-            const getChannelId = async channel => channel ? await this.channelDao.getChannelId(channel) : UNKNOWN;
 
             const [
                 {
@@ -78,10 +162,10 @@ module.exports = straw.node({
                 channelId,
             ] = await Promise.all([
                 this._determinePair(quantityObj.symbol, quantityTokenId, pair),
-                this.actionDao.getActionId(action, tokenAccountId),
+                this.getActionId(action, tokenAccountId),
                 this.accountDao.getAccountId(from, AccountTypeIds.USER, NOT_APPLICABLE),
-                this.accountDao.getAccountId(to, AccountTypeIds.DAPP, UNKNOWN),
-                getChannelId(channel),
+                this.getAccountId(to, AccountTypeIds.DAPP),
+                this.getChannelId(channel),
             ]);
 
 
@@ -137,7 +221,7 @@ module.exports = straw.node({
             }
             if (splitPair.length == 1) {
                 if (splitPair[0] != quantityToken) {
-                    let tokenId = await this.tokenDao.getTokenId(splitPair[0], UNKNOWN);
+                    let tokenId = await this.getTokenId(splitPair[0]);
                     if (quoteTokenId === UNKNOWN) {
                         quoteTokenId = tokenId;
                     } else {
@@ -148,15 +232,17 @@ module.exports = straw.node({
                 let quoteAccountId = UNKNOWN;
                 if (splitPair.length == 3) {
                     const accountName = splitPair[0].toLowerCase();
-                    quoteAccountId = await this.accountDao.selectAccountId(accountName);
+                    quoteAccountId = await this.selectAccountId(accountName);
                     if (!quoteAccountId) {
-                        const dappId = await this.dappDao.getDappId(accountName, DappTypeIds.TOKEN);
-                        quoteAccountId = await this.accountDao.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.DAPP, dappId);
+                        const dappId = await this.getDappId(accountName, DappTypeIds.TOKEN);
+                        quoteAccountId = await this.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.DAPP, dappId);
                     }
                     splitPair.shift();
                 }
-                quoteTokenId = await this.tokenDao.getTokenId(splitPair[0], quoteAccountId);
-                baseTokenId = await this.tokenDao.getTokenId(splitPair[1], UNKNOWN);
+                [quoteTokenId, baseTokenId] = await Promise.all([
+                    this.getTokenId(splitPair[0], quoteAccountId),
+                    this.getTokenId(splitPair[1], UNKNOWN),
+                ]);
             }
         }
 

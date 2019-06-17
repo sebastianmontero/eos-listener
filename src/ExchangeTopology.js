@@ -47,6 +47,7 @@ class ExchangeTopolgy extends BaseTopology {
                 blockNum: "45225825",
                 outputKey: "token-trade",
                 serialized: true,
+                receiverEqualToAccountFilter: true,
             }
         };
 
