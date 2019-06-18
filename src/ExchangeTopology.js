@@ -44,7 +44,8 @@ class ExchangeTopolgy extends BaseTopology {
         const actionTraces = {
             'token-trade': {
                 query: await this.getQuery(),
-                blockNum: "45225825",
+                blockNum: "55766330",
+                //blockNum: "45225825",
                 outputKey: "token-trade",
                 serialized: true,
                 receiverEqualToAccountFilter: true,
