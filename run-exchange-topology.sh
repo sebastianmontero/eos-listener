@@ -4,5 +4,5 @@ export NODE_ENV=$1
 echo $NODE_ENV
 cd "${BASH_SOURCE%/*}" || exit
 pushd src
-nodejs ExchangeTopology.js > ../logs/exchange-topology-stdout.log 2> ../logs/exchange-topology-stderr.log &
+node ExchangeTopology.js > ../logs/exchange-topology-stdout.log 2> ../logs/exchange-topology-stderr.log &
 popd
