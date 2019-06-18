@@ -19,13 +19,25 @@ module.exports = straw.node({
         } = opts;
 
         Logger.configure('gql-event-listener');
+        this.actionTraces = actionTraces;
+        this.lastProcessedActions = await this._getLastProcessedActions(this.prefix);
+
         this.listener = new GQLEOSListener({
             apiKey,
             network,
             endpoint,
         });
-        this.actionTraces = actionTraces;
-        this.lastProcessedActions = await this._getLastProcessedActions(this.prefix);
+
+        this.listener.on('disconnected', () => {
+            for (let actionTrace of Object.values(this.actionTraces)) {
+                actionTrace.subscription.unsubscribe();
+            }
+        });
+
+        this.listener.on('reconnected', () => {
+            this.addActionTraces();
+        })
+
         done();
     },
     _getLastProcessedActions: async function (prefix) {
@@ -54,19 +66,20 @@ module.exports = straw.node({
     },
 
     start: async function (done) {
-        await this.addActionTraces(this.actionTraces);
+        await this.addActionTraces();
         done(false);
     },
     stop: async function (done) {
         logger.info('Stopping subscriptions...');
+        this.listener.removeAllListeners();
         await this.listener.stop();
         await this._storeLastProcessedActions(this.prefix, this.lastProcessedActions);
         done(false);
     },
 
-    addActionTraces: async function (actionTraces) {
-        for (let actionTraceKey in actionTraces) {
-            let actionTrace = actionTraces[actionTraceKey];
+    addActionTraces: async function () {
+        for (let actionTraceKey in this.actionTraces) {
+            let actionTrace = this.actionTraces[actionTraceKey];
             const { query, outputKey, blockNum, actionSeq } = actionTrace;
             if (!this.lastProcessedActions[actionTraceKey]) {
                 this.lastProcessedActions[actionTraceKey] = new TraceProgress({
@@ -81,11 +94,10 @@ module.exports = straw.node({
             });
             console.log(`Subscribing Traces, query:${query} outputKey:${outputKey} Trace progress: ${tp.getState()}`);
 
-            subscription.subscribe({
+            actionTrace.subscription = subscription.subscribe({
                 next: data => {
                     if (tp.shouldProcessAction(data)) {
-                        const { blockNum } = data;
-                        logger.info(blockNum);
+                        logger.info(data.blockNum);
                         this.output(outputKey, data);
                         tp.processedAction(data);
                     }

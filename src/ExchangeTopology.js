@@ -80,6 +80,6 @@ class ExchangeTopolgy extends BaseTopology {
 
 new ExchangeTopolgy('exchange-topology', {
     config,
-    purge: true,
+    purge: false,
 }).start();
 
