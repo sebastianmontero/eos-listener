@@ -74,7 +74,9 @@ module.exports = straw.node({
         let value = await this.getCacheValue(key, field);
         if (!value) {
             value = await fn(...params);
-            await this.setCacheValue(key, field, value);
+            if (value) {
+                await this.setCacheValue(key, field, value);
+            }
         }
         return value;
     },
