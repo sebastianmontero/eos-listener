@@ -61,6 +61,7 @@ class ExchangeTopolgy extends BaseTopology {
             },
             config,
             actionTraces,
+            processOpts: { execArgv: ['--max-old-space-size=2048'] },
         },
         {
             id: 'exchange-trade-interpreter',
