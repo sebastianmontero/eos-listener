@@ -104,6 +104,9 @@ class AccountBalanceLoader {
                 if (this.streamFinished && this.accountsFetched == this.accountsStreamed) {
                     logger.info('Finshed processing accounts. Flushing last inserts...')
                     await this.accountBalanceDao.flush();
+                    logger.info('Fixing day...');
+                    await this.accountBalanceDao.fixDay(this.dayId);
+                    logger.info('Closing DB connection...');
                     await dbCon.end();
                     logger.info('Finished updating database. Connection closed.');
                 }
