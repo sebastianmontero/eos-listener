@@ -53,6 +53,40 @@ class AccountBalanceDAO extends BaseBatchDao {
             [dayId]);
     }
 
+    async selectDayRange() {
+        return await this.dbCon.singleRow(
+            `SELECT MIN(day_id) minDayId, 
+                    MAX(day_id) maxDayId
+            FROM account_balance`);
+    }
+
+    async fixDay(dayId) {
+
+        await this.dbCon.execute(`
+            INSERT INTO account_balance(
+                account_id,
+                day_id,
+                liquid,
+                staked,
+                refund
+                )
+            SELECT 
+                account_id,
+                ?,
+                liquid,
+                staked,
+                refund
+            FROM account_balance
+            WHERE day_id = ?  AND
+                  account_id NOT IN (
+                    SELECT account_id
+                    FROM account_balance
+                    WHERE day_id = ?
+              )`,
+            [dayId, dayId - 1, dayId]);
+
+    }
+
 }
 
 module.exports = AccountBalanceDAO;
