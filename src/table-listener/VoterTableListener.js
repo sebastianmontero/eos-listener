@@ -140,15 +140,10 @@ class VoterTableListener extends BaseTableListener {
 
     _extractProxies(rows) {
         let proxies = [];
-        let ps = {};
         for (let i = 0; i < rows.length; i++) {
-
-            if (rows[i].proxy) {
-                ps[rows[i].proxy] = true;
-            }
-
-            if (this._isProxy(rows[i])) {
-                proxies.push(rows[i]);
+            let row = rows[i];
+            if (this._isProxy(row)) {
+                proxies.push(row);
                 rows[i] = null;
             }
         }
@@ -157,6 +152,10 @@ class VoterTableListener extends BaseTableListener {
 
     _isProxy(row) {
         return Number(row.is_proxy) === 1;
+    }
+
+    _hasProducers(row) {
+        return row.producers.length;
     }
 
     async _processVoters(rows, start, end) {

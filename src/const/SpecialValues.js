@@ -18,5 +18,9 @@ module.exports = {
     NOT_PROXIED: {
         id: -5,
         desc: "Not Proxied",
+    },
+    NON_VOTING_PROXY: {
+        id: -6,
+        desc: "Non Voting Proxy",
     }
 };

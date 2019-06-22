@@ -1,5 +1,10 @@
 const { TimeUtil } = require('../util');
 const { logger } = require('../Logger');
+const {
+    SpecialValues: {
+        NON_VOTING_PROXY: { id: NON_VOTING_PROXY }
+    }
+} = require('../const');
 
 class VoterBlockProducerHistoryDAO {
     constructor(dbCon) {
@@ -23,17 +28,18 @@ class VoterBlockProducerHistoryDAO {
                 block_producer_id,
                 proxy_id,
                 day_id,
-                votes,
-                proxied_votes
+                votes
             )
-             SELECT voter_id,
-                    block_producer_id,
-                    proxy_id,
-                    ?,
-                    votes,
-                    proxied_votes
-            FROM voter_block_producer`,
-            [dayId]
+            SELECT vh1.voter_id,
+            IF(vh2.block_producer_id IS NOT NULL, vh2.block_producer_id, IF(vh1.block_producer_id < 0, ?,vh1.block_producer_id)) block_producer_id,
+                   vh1.proxy_id,
+                   ?,
+                   vh1.votes
+            FROM voter_block_producer vh1 LEFT JOIN
+	             voter_block_producer vh2 on vh1.proxy_id = vh2.voter_id and
+								             vh1.block_producer_id < 0
+            `,
+            [NON_VOTING_PROXY, dayId]
         );
     }
 

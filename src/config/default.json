@@ -13,7 +13,7 @@
     //"eoswsEndpoint": "jungle.eos.dfuse.io",
     "blockProducerSnapshotTime": "0 0 1 * * *",
     "voterSnapshotTime": "30 14 16 * * *",
-    "voterHistoryStartDate": "2019-03-28",
+    "voterHistoryStartDate": "2019-06-22",
     "httpEndpoints": [
         "https://mainnet.eos.dfuse.io",
         "http://mainnet.eoscalgary.io",
