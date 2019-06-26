@@ -244,6 +244,7 @@ module.exports = straw.node({
                     if (!quoteAccountId) {
                         const dappId = await this.getDappId(accountName, DappTypeIds.TOKEN);
                         quoteAccountId = await this.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.DAPP, dappId);
+                        console.log(`account: ${splitPair[0].toLowerCase()}, dappTypeId: ${AccountTypeIds.DAPP} dappId: ${dappId}, quoteAccountId: ${quoteAccountId}`);
                     }
                     splitPair.shift();
                 }
