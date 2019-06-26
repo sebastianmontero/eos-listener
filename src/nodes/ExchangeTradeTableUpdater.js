@@ -103,7 +103,7 @@ module.exports = straw.node({
     },
 
     getTokenId: async function (symbol, accountId = UNKNOWN) {
-        if (!accountId) {
+        if (accountId == 'null') {
             throw 'Account id is null';
         }
         try {
