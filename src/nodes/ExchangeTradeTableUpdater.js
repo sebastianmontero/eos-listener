@@ -103,6 +103,9 @@ module.exports = straw.node({
     },
 
     getTokenId: async function (symbol, accountId = UNKNOWN) {
+        if (!accountId) {
+            throw 'Account id is null';
+        }
         try {
             return await this.getValue(
                 this.TOKEN_ID_KEY,
@@ -151,6 +154,8 @@ module.exports = straw.node({
         try {
 
             const quantityObj = Util.parseAsset(quantity);
+
+            this.getTokenId(quantityObj.symbol);
 
             const [tokenAccountId, quantityTokenId] = await Promise.all([
                 this.getAccountId(tokenAccount, AccountTypeIds.DAPP),
@@ -229,6 +234,7 @@ module.exports = straw.node({
             }
             if (splitPair.length == 1) {
                 if (splitPair[0] != quantityToken) {
+                    this.getTokenId(splitPair[0]);
                     let tokenId = await this.getTokenId(splitPair[0]);
                     if (quoteTokenId === UNKNOWN) {
                         quoteTokenId = tokenId;
@@ -244,10 +250,11 @@ module.exports = straw.node({
                     if (!quoteAccountId) {
                         const dappId = await this.getDappId(accountName, DappTypeIds.TOKEN);
                         quoteAccountId = await this.getAccountId(splitPair[0].toLowerCase(), AccountTypeIds.DAPP, dappId);
-                        console.log(`account: ${splitPair[0].toLowerCase()}, dappTypeId: ${AccountTypeIds.DAPP} dappId: ${dappId}, quoteAccountId: ${quoteAccountId}`);
                     }
                     splitPair.shift();
                 }
+                this.getTokenId(splitPair[0], quoteAccountId);
+                this.getTokenId(splitPair[1], UNKNOWN);
                 [quoteTokenId, baseTokenId] = await Promise.all([
                     this.getTokenId(splitPair[0], quoteAccountId),
                     this.getTokenId(splitPair[1], UNKNOWN),
