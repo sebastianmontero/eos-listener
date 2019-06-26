@@ -103,10 +103,16 @@ module.exports = straw.node({
     },
 
     getTokenId: async function (symbol, accountId = UNKNOWN) {
-        return await this.getValue(
-            this.TOKEN_ID_KEY,
-            this._getTokenId,
-            [symbol, accountId]);
+        try {
+            return await this.getValue(
+                this.TOKEN_ID_KEY,
+                this._getTokenId,
+                [symbol, accountId]);
+        } catch (e) {
+            console.log(`Symbol: ${symbol} and accountId: ${accountId}`);
+            console.dir(e);
+            throw e;
+        }
     },
 
     getDappId: async function (account, dappTypeId) {
