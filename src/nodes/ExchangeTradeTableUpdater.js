@@ -75,6 +75,9 @@ module.exports = straw.node({
         if (!value) {
             value = await fn(...params);
             if (value) {
+                if (value == 'null') {
+                    console.log(`Trying to store null value in cache key: ${key}, params:`, params);
+                }
                 await this.setCacheValue(key, field, value);
             }
         }
