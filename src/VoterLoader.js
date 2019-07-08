@@ -7,9 +7,11 @@ const {
     TokenDao,
     DappTableDao,
     BlockProducerDao,
+    BlockProducerVotesHistoryDao,
     VoterDao,
     VoterBlockProducerDao,
-    VoterBlockProducerHistoryDao } = require('./dao');
+    VoterBlockProducerHistoryDao
+} = require('./dao');
 const { logger } = require('./Logger');
 const { VoterTableListener } = require('./table-listener');
 
@@ -69,6 +71,7 @@ class VoterLoader {
             const voterBlockProducerHistoryDao = new VoterBlockProducerHistoryDao(dbCon);
             let config = {
                 accountDao: new AccountDao(dbCon),
+                blockProducerVotesHistoryDao: new BlockProducerVotesHistoryDao(dbCon),
                 tokenDao: new TokenDao(dbCon),
                 dappTableDao: new DappTableDao(dbCon),
                 blockProducerDao: new BlockProducerDao(dbCon),

@@ -19,6 +19,7 @@ class VoterBlockProducerHistoryDAO {
         logger.info(`Deleted current voter block producer data. Taking snapshot for date: ${date}...`);
         await this.storeSnapshot(dayId);
         logger.info(`Voter block producer snapshot created for date: ${date}...`);
+        return dayId;
     }
 
     async storeSnapshot(dayId) {

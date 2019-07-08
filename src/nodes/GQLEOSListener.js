@@ -36,7 +36,7 @@ module.exports = straw.node({
 
         this.listener.on('reconnected', () => {
             this.addActionTraces();
-        })
+        });
 
         done();
     },

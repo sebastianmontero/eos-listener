@@ -8,6 +8,7 @@ const NOT_APPLICABLE = SpecialValues.NOT_APPLICABLE.id;
 class VoterTableListener extends BaseTableListener {
     constructor({
         accountDao,
+        blockProducerVotesHistoryDao,
         tokenDao,
         dappTableDao,
         blockProducerDao,
@@ -22,6 +23,7 @@ class VoterTableListener extends BaseTableListener {
             dappTableDao,
         });
         this.blockProducerDao = blockProducerDao;
+        this.blockProducerVotesHistoryDao = blockProducerVotesHistoryDao;
         this.voterDao = voterDao;
         this.voterBlockProducerDao = voterBlockProducerDao;
         this.voterBlockProducerHistoryDao = voterBlockProducerHistoryDao;
@@ -284,7 +286,8 @@ class VoterTableListener extends BaseTableListener {
 
 
     async takeSnapshot(date) {
-        await this.voterBlockProducerHistoryDao.takeSnapshot(date);
+        const dayId = await this.voterBlockProducerHistoryDao.takeSnapshot(date);
+        await this.blockProducerVotesHistoryDao.updateDay(dayId);
     }
 
     reset() {
