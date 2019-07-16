@@ -23,6 +23,7 @@ const GyftTokenProjectionDao = require('./GyftTokenProjectionDao');
 const OrderBookChangeDao = require('./OrderBookChangeDao');
 const OrderBookDao = require('./OrderBookDao');
 const OrderBookHistoryDao = require('./OrderBookHistoryDao');
+const VotersRawDao = require('./VotersRawDao');
 
 module.exports = {
     AccountDao,
@@ -50,4 +51,5 @@ module.exports = {
     OrderBookChangeDao,
     OrderBookDao,
     OrderBookHistoryDao,
+    VotersRawDao,
 };
