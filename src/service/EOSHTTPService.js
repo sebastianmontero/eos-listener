@@ -15,9 +15,10 @@ class EOSHTTPService {
         if (startDate > endDate) {
             throw new Error('End date should be greater than start date');
         }
-        const blockInfo = await Fetch.json(`https://${eoswsEndpoint}/v1/chain/get_info`);
-        const { head_block_num: blockNum, head_block_time: blockTimeStr } = blockInfo;
-        let blockTime = TimeUtil.toUTCDateFromNTZString(blockTimeStr);
+        //const blockInfo = await Fetch.json(`https://${eoswsEndpoint}/v1/chain/get_info`);
+        //const { head_block_num: blockNum, head_block_time: blockTimeStr } = blockInfo;
+        const blockNum = 68973000;
+        const blockTime = new Date(1563278565 * 1000);
         const diff = TimeUtil.secondsDiff(startDate, blockTime);
         let dayBlockNum = blockNum + (diff * 2);
 

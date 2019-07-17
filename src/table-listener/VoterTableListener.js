@@ -149,6 +149,7 @@ class VoterTableListener extends BaseTableListener {
                 rows[i] = null;
             }
         }
+        console.log(`Proxy count: ${proxies.length}`);
         return proxies;
     }
 
