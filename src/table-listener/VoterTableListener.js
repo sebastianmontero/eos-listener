@@ -166,13 +166,10 @@ class VoterTableListener extends BaseTableListener {
         for (let j = start; j < end; j++) {
             if (rows[j]) {
                 const toInsert = this._extractFields(rows[j]);
-                if (toInsert.voterTypeId === VoterTypeIds.PROXY) {
-                    inserted.push(toInsert);
-                    accountNames.push(toInsert.accountName);
-                }
+                inserted.push(toInsert);
+                accountNames.push(toInsert.accountName);
             }
         }
-        console.log('Getting account Ids: ', accountNames);
         const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
         let voters = [];
         let votersMap = {};

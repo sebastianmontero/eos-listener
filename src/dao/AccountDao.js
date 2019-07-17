@@ -26,6 +26,9 @@ class AccountDAO extends BaseDao {
     }
 
     async mapByNaturalPKs(accountNames) {
+        if (accountNames.length == 0) {
+            return {};
+        }
         return await this.dbCon.keyValueMap(
             `SELECT account_id, 
                     account_name
