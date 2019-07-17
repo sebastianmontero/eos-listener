@@ -14,11 +14,11 @@ class VoterBlockProducerHistoryDAO {
     async takeSnapshot(date) {
         date = date || new Date();
         const dayId = TimeUtil.dayId(date);
-        logger.info(`Taking voter block producer snapshot. Deleting current data for date: ${date}...`);
+        logger.info(`Taking voter block producer snapshot. Deleting current data for date: ${date} dayId: ${dayId}...`);
         await this.deleteByDayId(dayId);
-        logger.info(`Deleted current voter block producer data. Taking snapshot for date: ${date}...`);
+        logger.info(`Deleted current voter block producer data. Taking snapshot for date: ${date} dayId: ${dayId}...`);
         await this.storeSnapshot(dayId);
-        logger.info(`Voter block producer snapshot created for date: ${date}...`);
+        logger.info(`Voter block producer snapshot created for date: ${date} dayId: ${dayId}...`);
         return dayId;
     }
 
