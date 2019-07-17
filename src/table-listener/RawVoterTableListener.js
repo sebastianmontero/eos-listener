@@ -73,7 +73,7 @@ class RawVoterTableListener extends BaseTableListener {
             }
 
         }
-        await this.votersRawDao.flush();
+        await this.votersRawDao.insert(toInsert);
         console.log('Finished processing voter snapshot', new Date());
 
     }
