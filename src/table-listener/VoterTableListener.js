@@ -167,7 +167,7 @@ class VoterTableListener extends BaseTableListener {
         for (let j = start; j < end; j++) {
             if (rows[j]) {
                 const toInsert = this._extractFields(rows[j]);
-                if (toInsert.votes > 0 || toInsert.voterTypeId === VoterTypeIds.PROXY) {
+                if (toInsert.voterTypeId === VoterTypeIds.PROXY) {
                     inserted.push(toInsert);
                     accountNames.push(toInsert.accountName);
                 }
