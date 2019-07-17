@@ -149,7 +149,6 @@ class VoterTableListener extends BaseTableListener {
                 rows[i] = null;
             }
         }
-        console.log(`Proxy count: ${proxies.length}`);
         return proxies;
     }
 
@@ -173,6 +172,7 @@ class VoterTableListener extends BaseTableListener {
                 }
             }
         }
+        console.log('Getting account Ids: ', accountNames);
         const usersToIds = await this.accountDao.getAccountIds(accountNames, AccountTypeIds.USER, NOT_APPLICABLE);
         let voters = [];
         let votersMap = {};
