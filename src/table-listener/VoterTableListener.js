@@ -15,6 +15,7 @@ class VoterTableListener extends BaseTableListener {
         voterDao,
         voterBlockProducerDao,
         voterBlockProducerHistoryDao,
+        votingPowerHistoryDao,
     }) {
         super({
             dappTableId: DappTableIds.EOSIO_VOTERS,
@@ -27,6 +28,7 @@ class VoterTableListener extends BaseTableListener {
         this.voterDao = voterDao;
         this.voterBlockProducerDao = voterBlockProducerDao;
         this.voterBlockProducerHistoryDao = voterBlockProducerHistoryDao;
+        this.votingPowerHistoryDao = votingPowerHistoryDao;
         this.streamOptions = {
             ...this.streamOptions,
             fetch: true,
@@ -286,6 +288,7 @@ class VoterTableListener extends BaseTableListener {
     async takeSnapshot(date) {
         const dayId = await this.voterBlockProducerHistoryDao.takeSnapshot(date);
         await this.blockProducerVotesHistoryDao.updateDay(dayId);
+        await this.votingPowerHistoryDao.updateDay(dayId);
     }
 
     reset() {
