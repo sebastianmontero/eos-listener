@@ -10,7 +10,8 @@ const {
     BlockProducerVotesHistoryDao,
     VoterDao,
     VoterBlockProducerDao,
-    VoterBlockProducerHistoryDao
+    VoterBlockProducerHistoryDao,
+    VotingPowerHistoryDao,
 } = require('./dao');
 const { logger } = require('./Logger');
 const { VoterTableListener } = require('./table-listener');
@@ -78,6 +79,7 @@ class VoterLoader {
                 voterDao: new VoterDao(dbCon),
                 voterBlockProducerDao,
                 voterBlockProducerHistoryDao,
+                votingPowerHistoryDao: new VotingPowerHistoryDao(dbCon),
             };
             let { voterHistoryStartDate, voterHistoryEndDate } = this.config;
             let voterTableListener = new VoterTableListener(config);
