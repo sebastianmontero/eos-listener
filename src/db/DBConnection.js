@@ -46,6 +46,10 @@ class DBConnection {
             values = this._objsToArray(values, toArrayFn);
         }
         values = this._fixInsertArray(values);
+        if (!values.length || !values[0].length) {
+            console.log('Insert Batch: No values to insert');
+            return;
+        }
         return await this.query(statement, [values]);
     }
 

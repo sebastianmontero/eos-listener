@@ -142,7 +142,9 @@ class AccountDAO extends BaseDao {
         const namesToIds = await this.mapByNaturalPKs(accountNames);
         let toInsert = [];
         for (let accountName of accountNames) {
-            toInsert.push([accountName, accountTypeId, dappId]);
+            if (!namesToIds[accountName]) {
+                toInsert.push([accountName, accountTypeId, dappId]);
+            }
         }
         await this._insertBatch(toInsert);
         const missingNames = toInsert.map(account => account[0]);
