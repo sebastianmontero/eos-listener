@@ -29,7 +29,7 @@ class EOSHTTPService {
                 blockNum: dayBlockNum,
                 blockDate: date
             });
-            dayBlockNum -= EOSUtil.blocksPerDay;
+            dayBlockNum += EOSUtil.blocksPerDay;
             date = TimeUtil.addDays(date, 1);
         }
         return blockNumbers;
