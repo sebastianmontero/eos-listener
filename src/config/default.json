@@ -2,10 +2,10 @@
     // get eosws_token from: https://dfuse.io/#subscribe
     "logLevel": "debug",
     "useBlockProgress": true,
-    "apiKey": "server_d34dc9a715ac76a7a0293ee554067628",
+    "apiKey": "server_ab4d659674ba93f2277166488bacd8d2",
     "network": "mainnet",
     "endpoint": "mainnet.eos.dfuse.io",
-    "eoswsAPIKey": "server_d34dc9a715ac76a7a0293ee554067628",
+    "eoswsAPIKey": "server_ab4d659674ba93f2277166488bacd8d2",
     "eoswsAuthUrl": "https://auth.dfuse.io/v1/auth/issue",
     "eoswsAuthTimeBuffer": 1800,
     "eoswsToken": "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTM0ODIxMTcsImp0aSI6IjAzY2VlYmNiLWRmNzMtNDBjZi1iOTY2LTQxMzI0ZTNjMGI1NiIsImlhdCI6MTU1MDg5MDExNywiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU2T2phNVFxS0lWaU5UMHBMVDRsUGJEZS8xd01yNUxSTTZvb2xteWYrc0FTUXdBL0NMUnRZa1BmTUJhNjF5dDNOYVVjOW9xQ1RjRG5MMzFIY0RkL3BVT0QwalRJSFRqVU5iaVlZdlpJeFBNQVpBaXNaVkQxUkMrVEJ2RE16eW9pVVA4aTNoMD0iLCJ0aWVyIjoiYmV0YS12MSIsInYiOjF9.zdJSs6EwVwkxJ4d_8BxlC1oDT_Mn32rcV3zSd1PLO2MMR13G-zVUs9Zb0uLqeImubM2YaRcNDPEpu8oBIAU47A",
